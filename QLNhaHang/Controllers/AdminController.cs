@@ -8,5 +8,17 @@ namespace QLNhaHang.Controllers
         {
             return View();
         }
+        public IActionResult DanhSachNhanVien_Admin()
+        {
+            return View();
+        }
+        public IActionResult ThemNhanVien()
+        {
+            return View();
+        }
+        public IActionResult SuaNhanVien()
+        {
+            return View();
+        }
     }
 }
