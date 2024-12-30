@@ -11,34 +11,17 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
     <title>Star Admin2 </title>
-    <!-- plugins:css -->
-    @* <link rel="stylesheet" href="~/vendor/feather/feather.css">
-    <link rel="stylesheet" href="~/vendor/mdi/css/materialdesignicons.min.css">
-    <link rel="stylesheet" href="~/vendor/ti-icons/css/themify-icons.css">
-    <link rel="stylesheet" href="~/vendor/font-awesome/css/font-awesome.min.css">
-    <link rel="stylesheet" href="~/vendor/typicons/typicons.css">
-    <link rel="stylesheet" href="~/vendor/simple-line-icons/css/simple-line-icons.css">
-    <link rel="stylesheet" href="~/vendor/css/vendor.bundle.base.css">
-    <link rel="stylesheet" href="~/vendor/bootstrap-datepicker/bootstrap-datepicker.min.css">
-    <!-- endinject -->
-    <!-- Plugin css for this page -->
-    <link rel="stylesheet" href="~/vendor/select2/select2.min.css">
-    <link rel="stylesheet" href="~/vendor/select2-bootstrap-theme/select2-bootstrap.min.css">
-    <!-- End plugin css for this page -->
-    <!-- inject:css -->
-    <link rel="stylesheet" href="~/css/style.css">
-    <!-- endinject -->
-    <link rel="shortcut icon" href="~/images/favicon.png" /> *@
 </head>
 <body class="with-welcome-text">
     <div class="col-12 grid-margin">
         <div class="card">
             <div class="card-body">
                 <h4 class="card-title">Horizontal Two column</h4>
-                <form class="form-sample">
+                <form class="form-sample" method="post">
                     <p class="card-description"> Personal info </p>
                     <div class="row">
                         <div class="col-md-6">
+                            @* Nhớ thêm asp-for vào mỗi label và input theo trường dữ liệu của table*@
                             <div class="form-group row">
                                 <label class="col-sm-3 col-form-label">First Name</label>
                                 <div class="col-sm-9">
@@ -194,45 +177,11 @@
                             </div>
                         </div>
                     </div>
-                    <a type="submit" class="btn btn-primary me-2">Submit</a>
-                    <a class="btn btn-light" asp-controller="Admin" asp-action="DanhSachNhanVien_Admin">Cancel</a>
+                    <button type="submit" class="btn btn-primary me-2">Sửa Nhân Viên</button>
+                    <a class="btn btn-light" asp-controller="Admin" asp-action="DanhSachNhanVien_Admin">Quay Lại Danh Sách</a>
                 </form>
             </div>
         </div>
-        <!-- plugins:js -->
-        @*         <script src="~/vendor/js/vendor.bundle.base.js"></script>
-        <script src="~/vendor/bootstrap-datepicker/bootstrap-datepicker.min.js"></script>
-        <!-- endinject -->
-        <!-- Plugin js for this page -->
-        <script src="~/vendor/chart.js/chart.umd.js"></script>
-        <script src="~/vendor/progressbar.js/progressbar.min.js"></script>
-        <!-- End plugin js for this page -->
-        <!-- inject:js -->
-        <script src="~/js/off-canvas.js"></script>
-        <script src="~/js/template.js"></script>
-        <script src="~/js/settings.js"></script>
-        <script src="~/js/hoverable-collapse.js"></script>
-        <script src="~/js/todolist.js"></script>
-        <!-- endinject -->
-        <!-- Custom js for this page-->
-        <script src="~/js/jquery.cookie.js" type="text/javascript"></script>
-        <script src="~/js/dashboard.js"></script>
-        <!-- <script src="~/js/Chart.roundedBarCharts.js"></script> -->
-        <!-- End custom js for this page-->
-        <!-- Plugin js for this page -->
-        <script src="~/vendor/typeahead.js/typeahead.bundle.min.js"></script>
-        <script src="~/vendor/select2/select2.min.js"></script>
-        <!-- End plugin js for this page -->
-        <!-- inject:js -->
-        <script src="~/js/off-canvas.js"></script>
-        <script src="~/js/template.js"></script>
-        <script src="~/js/settings.js"></script>
-        <script src="~/js/hoverable-collapse.js"></script>
-        <script src="~/js/todolist.js"></script>
-        <!-- endinject -->
-        <!-- Custom js for this page-->
-        <script src="~/js/file-upload.js"></script>
-        <script src="~/assets/js/typeahead.js"></script>
-        <script src="~/assets/js/select2.js"></script> *@
+    </div>
 </body>
 </html>
