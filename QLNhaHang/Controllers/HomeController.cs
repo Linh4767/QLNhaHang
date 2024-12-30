@@ -7,10 +7,12 @@ namespace QLNhaHang.Controllers
     public class HomeController : Controller
     {
         private readonly ILogger<HomeController> _logger;
+        private readonly QLNhaHangContext _QLNhaHangContext;
 
-        public HomeController(ILogger<HomeController> logger)
+        public HomeController(ILogger<HomeController> logger, QLNhaHangContext qLNhaHangContext)
         {
             _logger = logger;
+            _QLNhaHangContext = qLNhaHangContext;
         }
 
         public IActionResult TrangChu()
