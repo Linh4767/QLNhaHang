@@ -60,7 +60,7 @@ namespace QLNhaHang.Controllers
         [HttpPost]
         public IActionResult ThemLoaiMA(LoaiMonAn loaiMA)
         {
-            if (!string.IsNullOrEmpty(loaiMA.TenLoaiMa))
+            if (!string.IsNullOrEmpty(loaiMA.TenLoaiMa) || !string.IsNullOrWhiteSpace(loaiMA.TenLoaiMa))
             {
                 if (!_QLNhaHangContext.LoaiMonAns.Any(loaiMonAn => loaiMonAn.TenLoaiMa == loaiMA.TenLoaiMa))
                 {
@@ -124,7 +124,7 @@ namespace QLNhaHang.Controllers
         [HttpPost]
         public IActionResult SuaLoaiMA(LoaiMonAn loaiMA)
         {
-            if (!string.IsNullOrEmpty(loaiMA.TenLoaiMa))
+            if (!string.IsNullOrEmpty(loaiMA.TenLoaiMa) || !string.IsNullOrWhiteSpace(loaiMA.TenLoaiMa))
             {
                 if (!_QLNhaHangContext.LoaiMonAns.Any(loaiMonAn => loaiMonAn.MaLoaiMa != loaiMA.MaLoaiMa &&loaiMonAn.TenLoaiMa == loaiMA.TenLoaiMa))
                 {
