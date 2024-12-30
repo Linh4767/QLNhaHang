@@ -1,0 +1,63 @@
+﻿@model QLNhaHang.Models.LoaiMonAn
+
+@{
+    Layout = "Header";
+}
+<html lang="en">
+<head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>Star Admin2 </title>
+
+</head>
+<body class="with-welcome-text">
+    @if (TempData["ThongBaoThemLoi"] != null)
+    {
+        <div id="themLoi" class="alert alert-danger">
+            @TempData["ThongBaoThemLoi"]
+        </div>
+    }
+    @if (TempData["ThongBaoTrong"] != null)
+    {
+        <div id="tbTrong" class="alert alert-warning">
+            @TempData["ThongBaoTrong"]
+        </div>
+    }
+    <script>
+        // Ẩn thông báo sau 3 giây
+        setTimeout(function () {
+            var them = document.getElementById("themLoi");
+            var tbTrong = document.getElementById("tbTrong");
+            if (them) {
+                them.style.display = "none";
+            }
+            if (tbTrong) {
+                tbTrong.style.display = "none";
+            }
+        }, 3000);
+    </script>
+    <div class="col-12 grid-margin">
+        <div class="card">
+            <div class="card-body">
+                <h4 class="card-title">Quản Lý Danh Mục Món Ăn</h4>
+                <form class="form-sample" method="post" asp-action="ThemLoaiMA">
+                    <p class="card-description"> Thêm Danh Mục Món Ăn </p>
+                    <div class="row">
+                        <div class="col-md-12">
+                            <div class="form-group row">
+                                <label class="col-sm-3 col-form-label" asp-for="TenLoaiMa">Tên Danh Mục Món Ăn</label>
+                                <div class="col-sm-9">
+                                    <input type="text" class="form-control" asp-for="TenLoaiMa" />
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <button class="btn btn-primary me-2" type="submit">Thêm Danh Mục Món Ăn</button>
+                    <a class="btn btn-light" asp-action="DanhSachLoaiMonAn_Admin">Quay lại danh sách</a>
+                </form>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

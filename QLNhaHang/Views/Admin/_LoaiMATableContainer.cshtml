@@ -1,0 +1,24 @@
+﻿@model IEnumerable<QLNhaHang.Models.LoaiMonAn>
+
+<table class="table table-striped table-hover">
+    <thead>
+        <tr>
+            <th>Mã Loại Món Ăn</th>
+            <th>Tên Loại Món Ăn</th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var item in Model)
+        {
+            <tr>
+                <td>@Html.DisplayFor(modelItem => item.MaLoaiMa)</td>
+                <td>@Html.DisplayFor(modelItem => item.TenLoaiMa)</td>
+                <td>
+                    <a class="btn btn-warning btn-sm" asp-controller="Admin" asp-action="SuaLoaiMA" asp-route-maLoaiMA="@item.MaLoaiMa">Sửa</a>
+                    <a class="btn btn-danger btn-sm" asp-controller="Admin" asp-action="XoaLoaiMA" asp-route-maLoaiMA="@item.MaLoaiMa">Xóa</a>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
