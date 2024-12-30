@@ -10,7 +10,7 @@ namespace QLNhaHang.Models
             HoaDonChiTiets = new HashSet<HoaDonChiTiet>();
         }
 
-        public string LoaiMa { get; set; } = null!;
+        public string? LoaiMa { get; set; }
         public string MaMonAn { get; set; } = null!;
         public string TenMonAn { get; set; } = null!;
         public string? HinhAnh { get; set; }
@@ -18,7 +18,7 @@ namespace QLNhaHang.Models
         public string? MoTa { get; set; }
         public string? TrangThai { get; set; }
 
-        public virtual LoaiMonAn LoaiMaNavigation { get; set; } = null!;
+        public virtual LoaiMonAn? LoaiMaNavigation { get; set; }
         public virtual ICollection<HoaDonChiTiet> HoaDonChiTiets { get; set; }
     }
 }
