@@ -52,6 +52,7 @@
             <div class="card-body">
                 <h4 class="card-title">Quản Lý Danh Mục Món Ăn</h4>
                 <form class="form-sample" method="post" asp-action="ThemLoaiMA">
+                    <input type="hidden" asp-for="MaLoaiMa" />
                     <p class="card-description"> Thêm Danh Mục Món Ăn </p>
                     <div class="row">
                         <div class="col-md-12">
@@ -59,6 +60,7 @@
                                 <label class="col-sm-3 col-form-label" asp-for="TenLoaiMa">Tên Danh Mục Món Ăn</label>
                                 <div class="col-sm-9">
                                     <input type="text" class="form-control" asp-for="TenLoaiMa" />
+                                    <span asp-validation-for="TenLoaiMa" class="text-danger"></span>
                                 </div>
                             </div>
                         </div>
@@ -69,5 +71,10 @@
             </div>
         </div>
     </div>
+    @section Scripts {
+        @{
+            await Html.RenderPartialAsync("_ValidationScriptsPartial");
+        }
+    }
 </body>
 </html>

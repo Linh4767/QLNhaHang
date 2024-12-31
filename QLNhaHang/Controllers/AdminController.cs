@@ -37,6 +37,7 @@ namespace QLNhaHang.Controllers
         {
             var dsLoaiMA = _QLNhaHangContext.LoaiMonAns.ToList();
             return View(dsLoaiMA);
+
         }
         //Thêm loại món ăn
         //Tạo mã tự động
@@ -55,13 +56,38 @@ namespace QLNhaHang.Controllers
         //Thêm loại món ăn
         public IActionResult ThemLoaiMA()
         {
-            return View();
+            var loaiMA = new LoaiMonAn
+            {
+                MaLoaiMa = TaoMaLoaiMATuDong()
+            };
+            return View(loaiMA);
         }
         [HttpPost]
         public IActionResult ThemLoaiMA(LoaiMonAn loaiMA)
         {
+            loaiMA.MaLoaiMa = TaoMaLoaiMATuDong();
+            //ModelState.Remove("MaLoaiMa"); // Xóa lỗi nếu có cho thuộc tính này.
             if (!string.IsNullOrEmpty(loaiMA.TenLoaiMa) || !string.IsNullOrWhiteSpace(loaiMA.TenLoaiMa))
             {
+
+                var regex = new System.Text.RegularExpressions.Regex(@"^(?!.*\s{2})[a-zA-Z\s]+$");
+                if (!regex.IsMatch(loaiMA.TenLoaiMa))
+                {
+                    ModelState.AddModelError("TenLoaiMa", "Tên danh mục chỉ được chứa chữ cái, khoảng trắng và không được có 2 khoảng trắng liên tiếp.");
+                }
+                if (!ModelState.IsValid)
+                {
+                    var errors = ModelState.Values.SelectMany(v => v.Errors).ToList();
+                    foreach (var error in errors)
+                    {
+                        Console.WriteLine("MaLoaiMa: " + loaiMA.MaLoaiMa);
+                        // Log hoặc kiểm tra chi tiết lỗi
+                        Console.WriteLine(error.ErrorMessage);
+                        
+                    }
+                    return View(loaiMA); // Trả lại View với lỗi
+                }
+
                 if (loaiMA.TenLoaiMa.Length > 60)
                 {
                     TempData["ThongBaoVuotQuaGH"] = "Tên danh mục không vượt quá 60 ký tự";
@@ -69,9 +95,9 @@ namespace QLNhaHang.Controllers
                 }
                 else
                 {
+
                     if (!_QLNhaHangContext.LoaiMonAns.Any(loaiMonAn => loaiMonAn.TenLoaiMa == loaiMA.TenLoaiMa))
                     {
-                        loaiMA.MaLoaiMa = TaoMaLoaiMATuDong();
                         _QLNhaHangContext.LoaiMonAns.Add(loaiMA);
                         _QLNhaHangContext.SaveChanges();
                         TempData["ThongBaoThemTC"] = "Thêm danh mục món ăn thành công";
@@ -89,6 +115,7 @@ namespace QLNhaHang.Controllers
                 TempData["ThongBaoTrong"] = "Vui lòng không để trống tên loại món ăn";
                 return RedirectToAction("ThemLoaiMA");
             }
+
         }
         //Xóa loại món ăn
         public IActionResult XoaLoaiMA(string maLoaiMA)
@@ -134,6 +161,23 @@ namespace QLNhaHang.Controllers
         {
             if (!string.IsNullOrEmpty(loaiMA.TenLoaiMa) || !string.IsNullOrWhiteSpace(loaiMA.TenLoaiMa))
             {
+                var regex = new System.Text.RegularExpressions.Regex(@"^(?!.*\s{2})[a-zA-Z\s]+$");
+                if (!regex.IsMatch(loaiMA.TenLoaiMa))
+                {
+                    ModelState.AddModelError("TenLoaiMa", "Tên danh mục chỉ được chứa chữ cái, khoảng trắng và không được có 2 khoảng trắng liên tiếp.");
+                }
+                if (!ModelState.IsValid)
+                {
+                    var errors = ModelState.Values.SelectMany(v => v.Errors).ToList();
+                    foreach (var error in errors)
+                    {
+                        Console.WriteLine("MaLoaiMa: " + loaiMA.MaLoaiMa);
+                        // Log hoặc kiểm tra chi tiết lỗi
+                        Console.WriteLine(error.ErrorMessage);
+
+                    }
+                    return View(loaiMA); // Trả lại View với lỗi
+                }
                 if (loaiMA.TenLoaiMa.Length > 60)
                 {
                     TempData["ThongBaoVuotQuaGH"] = "Tên danh mục không vượt quá 60 ký tự";
@@ -155,7 +199,6 @@ namespace QLNhaHang.Controllers
                     }
 
                 }
-
             }
             else
             {
