@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Components.Forms;
+using Microsoft.AspNetCore.Mvc;
 using QLNhaHang.Models;
 
 namespace QLNhaHang.Controllers
@@ -31,9 +32,12 @@ namespace QLNhaHang.Controllers
         }
 
         //Quản lý bàn ăn
-        public IActionResult DSBanAn()
+        public IActionResult DSBanAn(string? searchQuery)
         {
-            var dsBan = _QLNhaHangContext.Bans.ToList();
+            var dsBan = string.IsNullOrEmpty(searchQuery) 
+                        ? _QLNhaHangContext.Bans.ToList() 
+                        : _QLNhaHangContext.Bans.Where(e => e.ViTri.Contains(searchQuery)).ToList();
+            ViewData["SearchQuery"] = searchQuery;
             return View(dsBan);
         }
 
@@ -67,11 +71,18 @@ namespace QLNhaHang.Controllers
             //mặc định trạng thái bàn là trống
             ban.TrangThai = false;
 
+            //kiểm tra ký tự đặc biệt
+            var regex = new System.Text.RegularExpressions.Regex(@"^[a-zA-Z0-9\s]+$");
             //kiểm tra số lượng ký tự của trường vị trí
             if (ban.ViTri.Length > 30)
             {
                 ModelState.AddModelError("ViTri", "Vị trí không được vượt quá 30 ký tự.");
             }
+            else if (!regex.IsMatch(ban.ViTri))
+            {
+                ModelState.AddModelError("ViTri", "Vị trí chỉ được chứa chữ, số và khoảng trắng.");
+            }
+
             //ktra số lượng
             if (!ban.SoLuongNguoi.HasValue || ban.SoLuongNguoi.Value <= 0 || ban.SoLuongNguoi.Value > 20)
             {
@@ -112,11 +123,18 @@ namespace QLNhaHang.Controllers
                 return NotFound();
             }
 
+            //kiểm tra ký tự đặc biệt
+            var regex = new System.Text.RegularExpressions.Regex(@"^[a-zA-Z0-9\s]+$");         
             //kiểm tra số lượng ký tự của trường vị trí
             if (suaBan.ViTri.Length > 30)
             {
                 ModelState.AddModelError("ViTri", "Vị trí không được vượt quá 30 ký tự.");
+            } 
+            else if(!regex.IsMatch(suaBan.ViTri))
+            {
+                ModelState.AddModelError("ViTri", "Vị trí chỉ được chứa chữ, số và khoảng trắng.");
             }
+
             //ktra số lượng
             if (!suaBan.SoLuongNguoi.HasValue || suaBan.SoLuongNguoi.Value <= 0 || suaBan.SoLuongNguoi.Value > 20)
             {

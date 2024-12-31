@@ -23,7 +23,8 @@
 
     <!-- Thanh tìm kiếm -->
     <div class="d-flex justify-content-between align-items-center mb-3">
-        <input type="text" class="form-control w-50" placeholder="Tìm kiếm..." id="searchInput" />
+        <input type="text" class="form-control w-50" placeholder="Tìm kiếm theo vị trí..." 
+        id="searchInput" name="searchQuery" value="@ViewData["SearchQuery"]" onkeydown="searchOnEnter(event)" />
         <button class="btn btn-success" id="btnAdd" onclick="window.location.href='ThemBan'">Thêm mới</button>
     </div>
     <div class="table-responsive">
@@ -76,4 +77,14 @@
             sua.style.display = "none";
         }
     }, 3000);
+
+    function searchOnEnter(event) {
+        // Kiểm tra nếu người dùng nhấn phím Enter
+        if (event.key === "Enter") {
+            const query = document.getElementById('searchInput').value;
+            const url = `@Url.Action("DSBanAn", "Admin")?searchQuery=${encodeURIComponent(query)}`;
+            window.location.href = url;
+        }
+    }
+
 </script>
