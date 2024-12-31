@@ -24,16 +24,26 @@
             @TempData["ThongBaoTrong"]
         </div>
     }
+    @if (TempData["ThongBaoVuotQuaGH"] != null)
+    {
+        <div id="tbVuotQuaGH" class="alert alert-warning">
+            @TempData["ThongBaoVuotQuaGH"]
+        </div>
+    }
     <script>
         // Ẩn thông báo sau 3 giây
         setTimeout(function () {
             var sua = document.getElementById("suaLoi");
             var tbTrong = document.getElementById("tbTrong");
+            var tbVuotQuaGH = document.getElementById("tbVuotQuaGH");
             if (sua) {
                 sua.style.display = "none";
             }
             if (tbTrong) {
                 tbTrong.style.display = "none";
+            }
+            if (tbVuotQuaGH) {
+                tbVuotQuaGH.style.display = "none";
             }
         }, 3000);
     </script>
@@ -45,9 +55,10 @@
                     <p class="card-description"> Sửa Danh Mục Món Ăn </p>
                     <div class="row">
 
-                        <div class="col-md-6">
+                        <div class="col-md-12">
+                            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
                             <div class="form-group row">
-                                <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+                                
                                 <input type="hidden" asp-for="MaLoaiMa" />
                                 <label class="col-sm-3 col-form-label" asp-for="TenLoaiMa">Tên Danh Mục Món Ăn</label>
                                 <div class="col-sm-9">

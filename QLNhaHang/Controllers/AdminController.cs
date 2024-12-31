@@ -62,18 +62,26 @@ namespace QLNhaHang.Controllers
         {
             if (!string.IsNullOrEmpty(loaiMA.TenLoaiMa) || !string.IsNullOrWhiteSpace(loaiMA.TenLoaiMa))
             {
-                if (!_QLNhaHangContext.LoaiMonAns.Any(loaiMonAn => loaiMonAn.TenLoaiMa == loaiMA.TenLoaiMa))
+                if (loaiMA.TenLoaiMa.Length > 60)
                 {
-                    loaiMA.MaLoaiMa = TaoMaLoaiMATuDong();
-                    _QLNhaHangContext.LoaiMonAns.Add(loaiMA);
-                    _QLNhaHangContext.SaveChanges();
-                    TempData["ThongBaoThemTC"] = "Thêm danh mục món ăn thành công";
-                    return RedirectToAction("DanhSachLoaiMonAn_Admin");
+                    TempData["ThongBaoVuotQuaGH"] = "Tên danh mục không vượt quá 60 ký tự";
+                    return RedirectToAction("ThemLoaiMA");
                 }
                 else
                 {
-                    TempData["ThongBaoThemLoi"] = "Danh mục món ăn đã tồn tại";
-                    return RedirectToAction("ThemLoaiMA");
+                    if (!_QLNhaHangContext.LoaiMonAns.Any(loaiMonAn => loaiMonAn.TenLoaiMa == loaiMA.TenLoaiMa))
+                    {
+                        loaiMA.MaLoaiMa = TaoMaLoaiMATuDong();
+                        _QLNhaHangContext.LoaiMonAns.Add(loaiMA);
+                        _QLNhaHangContext.SaveChanges();
+                        TempData["ThongBaoThemTC"] = "Thêm danh mục món ăn thành công";
+                        return RedirectToAction("DanhSachLoaiMonAn_Admin");
+                    }
+                    else
+                    {
+                        TempData["ThongBaoThemLoi"] = "Danh mục món ăn đã tồn tại";
+                        return RedirectToAction("ThemLoaiMA");
+                    }
                 }
             }
             else
@@ -126,18 +134,28 @@ namespace QLNhaHang.Controllers
         {
             if (!string.IsNullOrEmpty(loaiMA.TenLoaiMa) || !string.IsNullOrWhiteSpace(loaiMA.TenLoaiMa))
             {
-                if (!_QLNhaHangContext.LoaiMonAns.Any(loaiMonAn => loaiMonAn.MaLoaiMa != loaiMA.MaLoaiMa &&loaiMonAn.TenLoaiMa == loaiMA.TenLoaiMa))
+                if (loaiMA.TenLoaiMa.Length > 60)
                 {
-                    _QLNhaHangContext.LoaiMonAns.Update(loaiMA);
-                    _QLNhaHangContext.SaveChanges();
-                    TempData["ThongBaoSuaTC"] = "Cập nhật danh mục món ăn thành công";
-                    return RedirectToAction("DanhSachLoaiMonAn_Admin");
+                    TempData["ThongBaoVuotQuaGH"] = "Tên danh mục không vượt quá 60 ký tự";
+                    return RedirectToAction("SuaLoaiMA");
                 }
                 else
                 {
-                    TempData["ThongBaoSuaLoi"] = "Danh mục món ăn đã tồn tại";
-                    return RedirectToAction("SuaLoaiMA");
+                    if (!_QLNhaHangContext.LoaiMonAns.Any(loaiMonAn => loaiMonAn.MaLoaiMa != loaiMA.MaLoaiMa && loaiMonAn.TenLoaiMa == loaiMA.TenLoaiMa))
+                    {
+                        _QLNhaHangContext.LoaiMonAns.Update(loaiMA);
+                        _QLNhaHangContext.SaveChanges();
+                        TempData["ThongBaoSuaTC"] = "Cập nhật danh mục món ăn thành công";
+                        return RedirectToAction("DanhSachLoaiMonAn_Admin");
+                    }
+                    else
+                    {
+                        TempData["ThongBaoSuaLoi"] = "Danh mục món ăn đã tồn tại";
+                        return RedirectToAction("SuaLoaiMA");
+                    }
+
                 }
+
             }
             else
             {
