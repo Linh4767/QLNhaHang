@@ -1,0 +1,90 @@
+﻿@model IEnumerable<QLNhaHang.Models.Ban>
+
+@{
+    Layout = "Header";
+    ViewData["Title"] = "QLy Bàn";
+}
+
+<div class="container mt-4">
+    @if (TempData["ThemBan"] != null)
+    {
+        <div id="them" class="alert alert-success">
+            @TempData["ThemBan"]
+        </div>
+    }
+    @if (TempData["SuaBan"] != null)
+    {
+        <div id="sua" class="alert alert-success">
+            @TempData["SuaBan"]
+        </div>
+    }
+
+    <h2 class="mb-4 text-center">Quản lý Bàn</h2>
+
+    <!-- Thanh tìm kiếm -->
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <input type="text" class="form-control w-50" placeholder="Tìm kiếm theo vị trí..." 
+        id="searchInput" name="searchQuery" value="@ViewData["SearchQuery"]" onkeydown="searchOnEnter(event)" />
+        <button class="btn btn-success" id="btnAdd" onclick="window.location.href='ThemBan'">Thêm mới</button>
+    </div>
+    <div class="table-responsive">
+        <table class="table table-striped table-hover">
+            <thead>
+                <tr>
+                    <th>Số lượng người</th>
+                    <th>Vị trí</th>
+                    <th> Trạng thái</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in Model)
+                {
+                    <tr>
+                        <td>
+                            @Html.DisplayFor(modelItem => item.SoLuongNguoi)
+                        </td>
+                        <td>
+                            @Html.DisplayFor(modelItem => item.ViTri)
+                        </td>
+                        <td>
+                            @(item.TrangThai.HasValue && item.TrangThai.Value ? "Có người" : "Trống")
+                        </td>
+                        <td>
+                            <a class="btn btn-warning btn-sm" asp-action="CapNhatBan" asp-route-maBan="@item.MaBan">Cập nhật</a>
+                            <a class="btn btn-danger btn-sm" asp-action="Delete" asp-route-id="@item.MaBan">Xóa</a>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+<script>
+    // Ẩn thông báo sau 3 giây
+    setTimeout(function () {
+        var them = document.getElementById("them");
+        var xoa = document.getElementById("xoa");
+        var sua = document.getElementById("sua");
+
+        if (them) {
+            them.style.display = "none";
+        }
+        if (xoa) {
+            xoa.style.display = "none";
+        }
+        if (sua) {
+            sua.style.display = "none";
+        }
+    }, 3000);
+
+    function searchOnEnter(event) {
+        // Kiểm tra nếu người dùng nhấn phím Enter
+        if (event.key === "Enter") {
+            const query = document.getElementById('searchInput').value;
+            const url = `@Url.Action("DSBanAn", "Admin")?searchQuery=${encodeURIComponent(query)}`;
+            window.location.href = url;
+        }
+    }
+
+</script>
