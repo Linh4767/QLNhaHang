@@ -125,8 +125,8 @@ namespace QLNhaHang.Controllers
                 //}
                 else
                 {
-
-                    if (!_QLNhaHangContext.LoaiMonAns.Any(loaiMonAn => loaiMonAn.TenLoaiMa == loaiMA.TenLoaiMa))
+                    
+                    if (!_QLNhaHangContext.LoaiMonAns.Any(loaiMonAn => loaiMonAn.TenLoaiMa.ToLower() == loaiMA.TenLoaiMa.ToLower()))
                     {
                         loaiMA.TenLoaiMa = VietHoa(loaiMA.TenLoaiMa);
                         _QLNhaHangContext.LoaiMonAns.Add(loaiMA);
@@ -137,14 +137,14 @@ namespace QLNhaHang.Controllers
                     else
                     {
                         TempData["ThongBaoThemLoi"] = "Danh mục món ăn đã tồn tại";
-                        return RedirectToAction("ThemLoaiMA");
+                        return View("ThemLoaiMA");
                     }
                 }
             }
             else
             {
                 TempData["ThongBaoTrong"] = "Vui lòng không để trống tên loại món ăn";
-                return RedirectToAction("ThemLoaiMA");
+                return View("ThemLoaiMA");
             }
 
         }
@@ -200,8 +200,6 @@ namespace QLNhaHang.Controllers
                 if (loaiMA.TenLoaiMa.Length > 60)
                 {
                     ModelState.AddModelError("TenLoaiMa", "Tên danh mục không vượt quá 60 ký tự");
-                    //TempData["ThongBaoVuotQuaGH"] = "Tên danh mục không vượt quá 60 ký tự";
-                    //return RedirectToAction("SuaLoaiMA");
                 }
                 if (!ModelState.IsValid)
                 {
@@ -218,7 +216,8 @@ namespace QLNhaHang.Controllers
                
                 else
                 {
-                    if (!_QLNhaHangContext.LoaiMonAns.Any(loaiMonAn => loaiMonAn.MaLoaiMa != loaiMA.MaLoaiMa && loaiMonAn.TenLoaiMa == loaiMA.TenLoaiMa))
+                   
+                    if (!_QLNhaHangContext.LoaiMonAns.Any(loaiMonAn => loaiMonAn.MaLoaiMa != loaiMA.MaLoaiMa && loaiMonAn.TenLoaiMa.ToLower() == loaiMA.TenLoaiMa.ToLower()))
                     {
                         loaiMA.TenLoaiMa = VietHoa(loaiMA.TenLoaiMa);
                         _QLNhaHangContext.LoaiMonAns.Update(loaiMA);
@@ -229,7 +228,7 @@ namespace QLNhaHang.Controllers
                     else
                     {
                         TempData["ThongBaoSuaLoi"] = "Danh mục món ăn đã tồn tại";
-                        return RedirectToAction("SuaLoaiMA");
+                        return View("SuaLoaiMA");
                     }
 
                 }
@@ -237,7 +236,7 @@ namespace QLNhaHang.Controllers
             else
             {
                 TempData["ThongBaoTrong"] = "Vui lòng không để trống tên loại món ăn";
-                return RedirectToAction("SuaLoaiMA");
+                return View("SuaLoaiMA");
             }
         }
         //Tìm kiếm tên danh mục
