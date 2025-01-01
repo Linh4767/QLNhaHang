@@ -100,8 +100,11 @@
     </div>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script>
+        //Chờ trang web load xong
         $(document).ready(function () {
+            //Khi người nhập
             $('#searchInput').keyup(function () {
+                //Lấy giá trị mà người dùng nhập vào trong ô input (#searchInput) và lưu vào biến searchTerm.
                 var searchTerm = $('#searchInput').val();
                 $.ajax({
                     //Gọi tới controller
@@ -110,9 +113,11 @@
                     //tuKhoa: là bên controller đặt sao là phải đặt dị/ searchTeam là ko đổi nha do khai báo biến ở trên
                     data: { tuKhoa: searchTerm },
                     success: function (data) {
+                        //Load dữ liệu vào chỗ id='loaiMATableContainer'
                         $('#loaiMATableContainer').html(data);
                     },
                     error: function (error) {
+                        //Ghi lỗi ra(nếu có)
                         console.log(error);
                     }
                 });
