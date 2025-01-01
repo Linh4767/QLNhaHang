@@ -1,0 +1,44 @@
+﻿@model IPagedList<QLNhaHang.Models.ViTriCongViec>
+@using X.PagedList.Mvc.Core;
+@using X.PagedList;
+@{
+    ViewData["Title"] = "View";
+}
+
+
+<table class="table table-striped table-hover mt-3 mb-3">
+    <thead>
+        <tr>
+            <th>Mã Vị Trí </th>
+            <th>Vị Trí Công Việc</th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var item in Model)
+        {
+            <tr>
+                <td>
+                    @Html.DisplayFor(modelItem => item.MaViTriCv)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.TenViTriCv)
+                </td>
+                <td>
+                    <a class="btn btn-warning btn-sm" asp-action="CapNhatViTriCV" asp-route-maVTCV="@item.MaViTriCv">Cập Nhật</a>
+                    <a class="btn btn-danger btn-sm" asp-action="XoaViTriCV" asp-route-maVTCV="@item.MaViTriCv">Xóa</a>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+@Html.PagedListPager(Model, page => Url.Action("TimKiemViTriCongViec",
+                            new { page, searchQuery = ViewBag.SearchQuery }), new X.PagedList.Mvc.Core.PagedListRenderOptions
+                        {
+                            ContainerDivClasses = new[] { "navigation" },
+                            LiElementClasses = new[] { "page-item" },
+                            PageClasses = new[] { "page-link" },
+                            ActiveLiElementClass = "active" // Đánh dấu trang hiện tại
+                        }
+                )
+
