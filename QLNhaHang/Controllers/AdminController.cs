@@ -35,11 +35,6 @@ namespace QLNhaHang.Controllers
         {
             return View();
         }
-        public string VietHoa(string s)
-        {
-            if (String.IsNullOrEmpty(s))
-                return s;
-
 
         //Quản Lý Vị Trí Công Việc
         //Hiển thị danh sách vị trí công việc
