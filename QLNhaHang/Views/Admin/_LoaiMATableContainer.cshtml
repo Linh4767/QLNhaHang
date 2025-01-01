@@ -16,7 +16,7 @@
                 <td>@Html.DisplayFor(modelItem => item.TenLoaiMa)</td>
                 <td>
                     <a class="btn btn-warning btn-sm" asp-controller="Admin" asp-action="SuaLoaiMA" asp-route-maLoaiMA="@item.MaLoaiMa">Sửa</a>
-                    <a class="btn btn-danger btn-sm" asp-controller="Admin" asp-action="XoaLoaiMA" asp-route-maLoaiMA="@item.MaLoaiMa">Xóa</a>
+                    <a class="btn btn-danger btn-sm" asp-controller="Admin" asp-action="XoaLoaiMA" asp-route-maLoaiMA="@item.MaLoaiMa" onclick="return confirm ('Bạn muốn thực hiện xóa danh mục món ăn không ?')">Xóa</a>
                 </td>
             </tr>
         }

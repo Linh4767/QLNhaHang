@@ -29,6 +29,31 @@ namespace QLNhaHang.Controllers
         {
             return View();
         }
+        public string VietHoa(string s)
+        {
+            if (String.IsNullOrEmpty(s))
+                return s;
+
+            string result = "";
+
+            //lấy danh sách các từ  
+
+            string[] words = s.Split(' ');
+
+            foreach (string word in words)
+            {
+                // từ nào là các khoảng trắng thừa thì bỏ  
+                if (word.Trim() != "")
+                {
+                    if (word.Length > 1)
+                        result += word.Substring(0, 1).ToUpper() + word.Substring(1).ToLower() + " ";
+                    else
+                        result += word.ToUpper() + " ";
+                }
+
+            }
+            return result.Trim();
+        }
         /*
          * Quản lý loại món ăn
          */
@@ -70,7 +95,7 @@ namespace QLNhaHang.Controllers
             if (!string.IsNullOrEmpty(loaiMA.TenLoaiMa) || !string.IsNullOrWhiteSpace(loaiMA.TenLoaiMa))
             {
 
-                var regex = new System.Text.RegularExpressions.Regex(@"^(?!.*\s{2})[a-zA-Z\s]+$");
+                var regex = new System.Text.RegularExpressions.Regex(@"^(?!.*\s{2})[\p{L}\s]+$");
                 if (!regex.IsMatch(loaiMA.TenLoaiMa))
                 {
                     ModelState.AddModelError("TenLoaiMa", "Tên danh mục chỉ được chứa chữ cái, khoảng trắng và không được có 2 khoảng trắng liên tiếp.");
@@ -98,6 +123,7 @@ namespace QLNhaHang.Controllers
 
                     if (!_QLNhaHangContext.LoaiMonAns.Any(loaiMonAn => loaiMonAn.TenLoaiMa == loaiMA.TenLoaiMa))
                     {
+                        loaiMA.TenLoaiMa = VietHoa(loaiMA.TenLoaiMa);
                         _QLNhaHangContext.LoaiMonAns.Add(loaiMA);
                         _QLNhaHangContext.SaveChanges();
                         TempData["ThongBaoThemTC"] = "Thêm danh mục món ăn thành công";
@@ -161,7 +187,7 @@ namespace QLNhaHang.Controllers
         {
             if (!string.IsNullOrEmpty(loaiMA.TenLoaiMa) || !string.IsNullOrWhiteSpace(loaiMA.TenLoaiMa))
             {
-                var regex = new System.Text.RegularExpressions.Regex(@"^(?!.*\s{2})[a-zA-Z\s]+$");
+                var regex = new System.Text.RegularExpressions.Regex(@"^(?!.*\s{2})[\p{L}\s]+$");
                 if (!regex.IsMatch(loaiMA.TenLoaiMa))
                 {
                     ModelState.AddModelError("TenLoaiMa", "Tên danh mục chỉ được chứa chữ cái, khoảng trắng và không được có 2 khoảng trắng liên tiếp.");
@@ -187,6 +213,7 @@ namespace QLNhaHang.Controllers
                 {
                     if (!_QLNhaHangContext.LoaiMonAns.Any(loaiMonAn => loaiMonAn.MaLoaiMa != loaiMA.MaLoaiMa && loaiMonAn.TenLoaiMa == loaiMA.TenLoaiMa))
                     {
+                        loaiMA.TenLoaiMa = VietHoa(loaiMA.TenLoaiMa);
                         _QLNhaHangContext.LoaiMonAns.Update(loaiMA);
                         _QLNhaHangContext.SaveChanges();
                         TempData["ThongBaoSuaTC"] = "Cập nhật danh mục món ăn thành công";
