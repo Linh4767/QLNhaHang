@@ -24,27 +24,27 @@
             @TempData["ThongBaoTrong"]
         </div>
     }
-    @if (TempData["ThongBaoVuotQuaGH"] != null)
+   @*  @if (TempData["ThongBaoVuotQuaGH"] != null)
     {
         <div id="tbVuotQuaGH" class="alert alert-warning">
             @TempData["ThongBaoVuotQuaGH"]
         </div>
-    }
+    } *@
     <script>
         // Ẩn thông báo sau 3 giây
         setTimeout(function () {
             var them = document.getElementById("themLoi");
             var tbTrong = document.getElementById("tbTrong");
-            var tbVuotQuaGH = document.getElementById("tbVuotQuaGH");
+            // var tbVuotQuaGH = document.getElementById("tbVuotQuaGH");
             if (them) {
                 them.style.display = "none";
             }
             if (tbTrong) {
                 tbTrong.style.display = "none";
             }
-            if (tbVuotQuaGH) {
-                tbVuotQuaGH.style.display = "none";
-            }
+            // if (tbVuotQuaGH) {
+            //     tbVuotQuaGH.style.display = "none";
+            // }
         }, 3000);
     </script>
     <div class="col-12 grid-margin">

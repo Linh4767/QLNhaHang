@@ -24,12 +24,12 @@
             @TempData["ThongBaoTrong"]
         </div>
     }
-    @if (TempData["ThongBaoVuotQuaGH"] != null)
+   @*  @if (TempData["ThongBaoVuotQuaGH"] != null)
     {
         <div id="tbVuotQuaGH" class="alert alert-warning">
             @TempData["ThongBaoVuotQuaGH"]
         </div>
-    }
+    } *@
     <script>
         // Ẩn thông báo sau 3 giây
         setTimeout(function () {
@@ -42,9 +42,9 @@
             if (tbTrong) {
                 tbTrong.style.display = "none";
             }
-            if (tbVuotQuaGH) {
-                tbVuotQuaGH.style.display = "none";
-            }
+            // if (tbVuotQuaGH) {
+            //     tbVuotQuaGH.style.display = "none";
+            // }
         }, 3000);
     </script>
     <div class="col-12 grid-margin">

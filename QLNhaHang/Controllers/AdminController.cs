@@ -99,6 +99,12 @@ namespace QLNhaHang.Controllers
                 {
                     ModelState.AddModelError("TenLoaiMa", "Tên danh mục chỉ được chứa chữ cái, khoảng trắng và không được có 2 khoảng trắng liên tiếp.");
                 }
+                if (loaiMA.TenLoaiMa.Length > 60)
+                {
+                    ModelState.AddModelError("TenLoaiMa", "Tên danh mục không vượt quá 60 ký tự");
+                    //TempData["ThongBaoVuotQuaGH"] = "Tên danh mục không vượt quá 60 ký tự";
+                    //return RedirectToAction("SuaLoaiMA");
+                }
                 if (!ModelState.IsValid)
                 {
                     var errors = ModelState.Values.SelectMany(v => v.Errors).ToList();
@@ -112,11 +118,11 @@ namespace QLNhaHang.Controllers
                     return View(loaiMA); // Trả lại View với lỗi
                 }
 
-                if (loaiMA.TenLoaiMa.Length > 60)
-                {
-                    TempData["ThongBaoVuotQuaGH"] = "Tên danh mục không vượt quá 60 ký tự";
-                    return RedirectToAction("ThemLoaiMA");
-                }
+                //if (loaiMA.TenLoaiMa.Length > 60)
+                //{
+                //    TempData["ThongBaoVuotQuaGH"] = "Tên danh mục không vượt quá 60 ký tự";
+                //    return RedirectToAction("ThemLoaiMA");
+                //}
                 else
                 {
 
@@ -191,6 +197,12 @@ namespace QLNhaHang.Controllers
                 {
                     ModelState.AddModelError("TenLoaiMa", "Tên danh mục chỉ được chứa chữ cái, khoảng trắng và không được có 2 khoảng trắng liên tiếp.");
                 }
+                if (loaiMA.TenLoaiMa.Length > 60)
+                {
+                    ModelState.AddModelError("TenLoaiMa", "Tên danh mục không vượt quá 60 ký tự");
+                    //TempData["ThongBaoVuotQuaGH"] = "Tên danh mục không vượt quá 60 ký tự";
+                    //return RedirectToAction("SuaLoaiMA");
+                }
                 if (!ModelState.IsValid)
                 {
                     var errors = ModelState.Values.SelectMany(v => v.Errors).ToList();
@@ -203,11 +215,7 @@ namespace QLNhaHang.Controllers
                     }
                     return View(loaiMA); // Trả lại View với lỗi
                 }
-                if (loaiMA.TenLoaiMa.Length > 60)
-                {
-                    TempData["ThongBaoVuotQuaGH"] = "Tên danh mục không vượt quá 60 ký tự";
-                    return RedirectToAction("SuaLoaiMA");
-                }
+               
                 else
                 {
                     if (!_QLNhaHangContext.LoaiMonAns.Any(loaiMonAn => loaiMonAn.MaLoaiMa != loaiMA.MaLoaiMa && loaiMonAn.TenLoaiMa == loaiMA.TenLoaiMa))
