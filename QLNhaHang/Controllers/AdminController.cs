@@ -72,7 +72,7 @@ namespace QLNhaHang.Controllers
             ban.TrangThai = false;
 
             //kiểm tra ký tự đặc biệt
-            var regex = new System.Text.RegularExpressions.Regex(@"^[a-zA-Z0-9\s]+$");
+            var regex = new System.Text.RegularExpressions.Regex(@"^(?!.*\s{2})[\p{L}\s]+$");
             //kiểm tra số lượng ký tự của trường vị trí
             if (ban.ViTri.Length > 30)
             {
@@ -124,7 +124,7 @@ namespace QLNhaHang.Controllers
             }
 
             //kiểm tra ký tự đặc biệt
-            var regex = new System.Text.RegularExpressions.Regex(@"^[a-zA-Z0-9\s]+$");         
+            var regex = new System.Text.RegularExpressions.Regex(@"^(?!.*\s{2})[\p{L}\s]+$");         
             //kiểm tra số lượng ký tự của trường vị trí
             if (suaBan.ViTri.Length > 30)
             {
