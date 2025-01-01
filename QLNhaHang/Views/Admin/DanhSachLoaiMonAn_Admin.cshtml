@@ -66,36 +66,37 @@
 
         <!-- Thanh tìm kiếm -->
         <div class="d-flex justify-content-between align-items-center mb-3">
-            <input type="text" class="form-control w-50" placeholder="Tìm kiếm tên danh mục..." id="searchInput" />
+            <input type="text" class="form-control w-50" placeholder="Tìm kiếm tên danh mục..." id="searchInput"/>
             <a class="btn btn-success mb-3 ms-auto" id="btnAdd" asp-controller="Admin" asp-action="ThemLoaiMA">Thêm mới</a>
         </div>
 
 
         <!-- Bảng -->
         <div class="table-responsive" id="loaiMATableContainer">
-            @* <table class="table table-striped table-hover" >
-            <thead>
-            <tr>
-            <th>Mã Loại Món Ăn</th>
-            <th>Tên Loại Món Ăn</th>
-            <th></th>
-            </tr>
-            </thead>
-            <tbody>
-            @foreach (var item in Model)
-            {
-            <tr>
-            <td>@Html.DisplayFor(modelItem => item.MaLoaiMa)</td>
-            <td>@Html.DisplayFor(modelItem => item.TenLoaiMa)</td>
-            <td>
-            <a class="btn btn-warning btn-sm" asp-controller="Admin" asp-action="SuaLoaiMA" asp-route-maLoaiMA="@item.MaLoaiMa">Sửa</a>
-            <a class="btn btn-danger btn-sm" asp-controller="Admin" asp-action="XoaLoaiMA" asp-route-maLoaiMA="@item.MaLoaiMa">Xóa</a>
-            </td>
-            </tr>
-            }
-            </tbody>
+            @* <table class="table table-striped table-hover">
+                <thead>
+                    <tr>
+                        <th>Mã Loại Món Ăn</th>
+                        <th>Tên Loại Món Ăn</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in Model)
+                    {
+                        <tr>
+                            <td>@Html.DisplayFor(modelItem => item.MaLoaiMa)</td>
+                            <td>@Html.DisplayFor(modelItem => item.TenLoaiMa)</td>
+                            <td>
+                                <a class="btn btn-warning btn-sm" asp-controller="Admin" asp-action="SuaLoaiMA" asp-route-maLoaiMA="@item.MaLoaiMa">Sửa</a>
+                                <a class="btn btn-danger btn-sm" asp-controller="Admin" asp-action="XoaLoaiMA" asp-route-maLoaiMA="@item.MaLoaiMa">Xóa</a>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
             </table> *@
-            @await Html.PartialAsync("_LoaiMATableContainer", Model)
+
+               @await Html.PartialAsync("_LoaiMATableContainer", Model)
         </div>
     </div>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
@@ -123,6 +124,25 @@
                 });
             });
         });
+        //Chờ trang web load xong
+        // $(document).ready(function () {
+        //     var typingTimer;                // Biến để lưu lại thời gian người dùng nhập
+        //     var doneTypingInterval = 500;   // Độ trễ 500ms sau khi người dùng ngừng nhập
+
+        //     // Khi người nhập
+        //     $('#searchInput').keyup(function () {
+        //         clearTimeout(typingTimer);  // Hủy bỏ timer nếu người dùng tiếp tục nhập
+        //         var searchTerm = $('#searchInput').val(); // Lấy giá trị người dùng nhập vào
+
+        //         // Tạo lại timer để gửi yêu cầu sau khi người dùng ngừng nhập
+        //         typingTimer = setTimeout(function () {
+        //             // Tạo URL với query string
+        //             const url = `@Url.Action("DanhSachLoaiMonAn_Admin", "Admin")?searchQuery=${encodeURIComponent(searchTerm)}`;
+        //             // Điều hướng đến URL mới
+        //             window.location.href = url;
+        //         }, doneTypingInterval);
+        //     });
+        // });
     </script>
 </body>
 </html>

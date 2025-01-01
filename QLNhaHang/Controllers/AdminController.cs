@@ -62,7 +62,6 @@ namespace QLNhaHang.Controllers
         {
             var dsLoaiMA = _QLNhaHangContext.LoaiMonAns.ToList();
             return View(dsLoaiMA);
-
         }
         //Thêm loại món ăn
         //Tạo mã tự động
