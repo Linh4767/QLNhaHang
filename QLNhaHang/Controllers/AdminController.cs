@@ -246,7 +246,7 @@ namespace QLNhaHang.Controllers
         {
             var dsTimKiem = string.IsNullOrEmpty(tuKhoa) ? _QLNhaHangContext.LoaiMonAns.ToList() : _QLNhaHangContext.LoaiMonAns.Where(lma => lma.TenLoaiMa.Contains(tuKhoa)).ToList();
             return PartialView("_LoaiMATableContainer", dsTimKiem);
-
+        }
         //Quản lý bàn ăn
         public IActionResult DSBanAn(string? searchQuery)
         {
@@ -266,6 +266,7 @@ namespace QLNhaHang.Controllers
         [HttpPost]
         public IActionResult ThemBan(Ban ban)
         {
+            ModelState.Remove("MaBan");
             //lấy mã bàn lớn nhất hiện tại
             var maCuoi = _QLNhaHangContext.Bans
                 .OrderByDescending(b => b.MaBan)
@@ -288,7 +289,7 @@ namespace QLNhaHang.Controllers
             ban.TrangThai = false;
 
             //kiểm tra ký tự đặc biệt
-            var regex = new System.Text.RegularExpressions.Regex(@"^(?!.*\s{2})[\p{L}\s]+$");
+            var regex = new System.Text.RegularExpressions.Regex(@"^(?!.*\s{2})[\p{L}0-9\s]+$");
             //kiểm tra số lượng ký tự của trường vị trí
             if (ban.ViTri.Length > 30)
             {
@@ -308,6 +309,7 @@ namespace QLNhaHang.Controllers
             //kiểm tra trạng thái của ModelState
             if (!ModelState.IsValid)
             {
+                
                 return View(ban);
             }
 
@@ -340,7 +342,7 @@ namespace QLNhaHang.Controllers
             }
 
             //kiểm tra ký tự đặc biệt
-            var regex = new System.Text.RegularExpressions.Regex(@"^(?!.*\s{2})[\p{L}\s]+$");         
+            var regex = new System.Text.RegularExpressions.Regex(@"^(?!.*\s{2})[\p{L}0-9\s]+$");         
             //kiểm tra số lượng ký tự của trường vị trí
             if (suaBan.ViTri.Length > 30)
             {
@@ -371,7 +373,7 @@ namespace QLNhaHang.Controllers
             _QLNhaHangContext.SaveChanges();
 
             //thông báo
-            TempData["SuaBan"] = "Cập nhật bà thành công";
+            TempData["SuaBan"] = "Cập nhật bàn thành công";
             return RedirectToAction("DSBanAn");
         }
     }
