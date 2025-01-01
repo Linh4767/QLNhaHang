@@ -1,5 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
+using System.Runtime.InteropServices;
+
 
 namespace QLNhaHang.Models
 {
@@ -11,6 +14,7 @@ namespace QLNhaHang.Models
         }
 
         public string MaLoaiMa { get; set; } = null!;
+ 
         public string TenLoaiMa { get; set; } = null!;
 
         public virtual ICollection<MonAn> MonAns { get; set; }
