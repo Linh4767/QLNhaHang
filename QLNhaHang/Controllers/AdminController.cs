@@ -234,11 +234,10 @@ namespace QLNhaHang.Controllers
         }
         //Tìm kiếm tên danh mục
         [HttpGet]
-        public IActionResult TimKiemMonAn(string tuKhoa)
+        public IActionResult TimKiemLoaiMonAn(string tuKhoa)
         {
             var dsTimKiem = string.IsNullOrEmpty(tuKhoa) ? _QLNhaHangContext.LoaiMonAns.ToList() : _QLNhaHangContext.LoaiMonAns.Where(lma => lma.TenLoaiMa.Contains(tuKhoa)).ToList();
             return PartialView("_LoaiMATableContainer", dsTimKiem);
-
         }
     }
 }

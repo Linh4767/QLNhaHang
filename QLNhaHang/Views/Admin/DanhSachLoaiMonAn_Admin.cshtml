@@ -109,7 +109,7 @@
                 var searchTerm = $('#searchInput').val();
                 $.ajax({
                     //Gọi tới controller
-                    url: '/Admin/TimKiemMonAn',
+                    url: '/Admin/TimKiemLoaiMonAn',
                     type: 'GET',
                     //tuKhoa: là bên controller đặt sao là phải đặt dị/ searchTeam là ko đổi nha do khai báo biến ở trên
                     data: { tuKhoa: searchTerm },
