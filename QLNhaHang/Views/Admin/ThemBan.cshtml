@@ -26,8 +26,7 @@
                         <div class="form-group row">
                             <label class="col-sm-2 col-form-label" asp-for="ViTri">Vị trí</label>
                             <div class="col-sm-10">
-                                <input type="text" class="form-control" asp-for="ViTri" />
-                                <span asp-validation-for="ViTri" class="text-danger"></span>
+                                <input type="text" class="form-control" asp-for="ViTri" id="viTri" name="ViTri" value="@ViewData["Floor"]" readonly />
                             </div>
                         </div>
                     </div>
@@ -42,5 +41,7 @@
 
 
 @section Scripts {
-    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
 }

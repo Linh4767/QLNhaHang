@@ -153,7 +153,7 @@ namespace QLNhaHang.Controllers
                         Console.WriteLine("MaLoaiMa: " + loaiMA.MaLoaiMa);
                         // Log hoặc kiểm tra chi tiết lỗi
                         Console.WriteLine(error.ErrorMessage);
-                        
+
                     }
                     return View(loaiMA); // Trả lại View với lỗi
                 }
@@ -165,7 +165,7 @@ namespace QLNhaHang.Controllers
                 //}
                 else
                 {
-                    
+
                     if (!_QLNhaHangContext.LoaiMonAns.Any(loaiMonAn => loaiMonAn.TenLoaiMa.ToLower() == loaiMA.TenLoaiMa.ToLower()))
                     {
                         loaiMA.TenLoaiMa = VietHoa(loaiMA.TenLoaiMa);
@@ -253,10 +253,10 @@ namespace QLNhaHang.Controllers
                     }
                     return View(loaiMA); // Trả lại View với lỗi
                 }
-               
+
                 else
                 {
-                   
+
                     if (!_QLNhaHangContext.LoaiMonAns.Any(loaiMonAn => loaiMonAn.MaLoaiMa != loaiMA.MaLoaiMa && loaiMonAn.TenLoaiMa.ToLower() == loaiMA.TenLoaiMa.ToLower()))
                     {
                         loaiMA.TenLoaiMa = VietHoa(loaiMA.TenLoaiMa);
@@ -439,18 +439,22 @@ namespace QLNhaHang.Controllers
 
 
         //Quản lý bàn ăn
-        public IActionResult DSBanAn(string? searchQuery)
+        public IActionResult DSBanAn(int? floor = 1)
         {
-            var dsBan = string.IsNullOrEmpty(searchQuery)
-                        ? _QLNhaHangContext.Bans.ToList()
-                        : _QLNhaHangContext.Bans.Where(e => e.ViTri.Contains(searchQuery)).ToList();
-            ViewData["SearchQuery"] = searchQuery;
+            ViewData["CurrentFloor"] = floor;
+
+            var dsBan = _QLNhaHangContext.Bans
+                         .Where(b => b.ViTri.Contains($"Lầu {floor}"))
+                         .ToList();
+
             return View(dsBan);
         }
 
         //thêm bàn mới
-        public IActionResult ThemBan()
+        [HttpGet]
+        public IActionResult ThemBan(int floor)
         {
+            ViewData["Floor"] = $"Lầu {floor}";
             return View();
         }
 
@@ -479,18 +483,6 @@ namespace QLNhaHang.Controllers
             //mặc định trạng thái bàn là trống
             ban.TrangThai = false;
 
-            //kiểm tra ký tự đặc biệt
-            var regex = new System.Text.RegularExpressions.Regex(@"^(?!.*\s{2})[\p{L}0-9\s]+$");
-            //kiểm tra số lượng ký tự của trường vị trí
-            if (ban.ViTri.Length > 30)
-            {
-                ModelState.AddModelError("ViTri", "Vị trí không được vượt quá 30 ký tự.");
-            }
-            else if (!regex.IsMatch(ban.ViTri))
-            {
-                ModelState.AddModelError("ViTri", "Vị trí chỉ được chứa chữ, số và khoảng trắng.");
-            }
-
             //ktra số lượng
             if (!ban.SoLuongNguoi.HasValue || ban.SoLuongNguoi.Value <= 0 || ban.SoLuongNguoi.Value > 20)
             {
@@ -500,7 +492,7 @@ namespace QLNhaHang.Controllers
             //kiểm tra trạng thái của ModelState
             if (!ModelState.IsValid)
             {
-                
+
                 return View(ban);
             }
 
@@ -532,18 +524,6 @@ namespace QLNhaHang.Controllers
                 return NotFound();
             }
 
-            //kiểm tra ký tự đặc biệt
-            var regex = new System.Text.RegularExpressions.Regex(@"^(?!.*\s{2})[\p{L}0-9\s]+$");         
-            //kiểm tra số lượng ký tự của trường vị trí
-            if (suaBan.ViTri.Length > 30)
-            {
-                ModelState.AddModelError("ViTri", "Vị trí không được vượt quá 30 ký tự.");
-            }
-            else if (!regex.IsMatch(suaBan.ViTri))
-            {
-                ModelState.AddModelError("ViTri", "Vị trí chỉ được chứa chữ, số và khoảng trắng.");
-            }
-
             //ktra số lượng
             if (!suaBan.SoLuongNguoi.HasValue || suaBan.SoLuongNguoi.Value <= 0 || suaBan.SoLuongNguoi.Value > 20)
             {
@@ -558,7 +538,6 @@ namespace QLNhaHang.Controllers
 
             ////cập nhật dữ liệu
             ban.SoLuongNguoi = suaBan.SoLuongNguoi;
-            ban.ViTri = suaBan.ViTri;
 
             //lưu thay đổi
             _QLNhaHangContext.SaveChanges();
