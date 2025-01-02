@@ -4,41 +4,6 @@
     Layout = "Header";
     ViewData["Title"] = "CapNhatBan";
 }
-
-@* <h1>CapNhatBan</h1>
-
-<h4>Ban</h4>
-<hr />
-<div class="row">
-    <div class="col-md-4">
-        <form asp-action="CapNhatBan" method="post">
-            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
-            <input type="hidden" asp-for="MaBan" />
-            <div class="form-group">
-                <label asp-for="SoLuongNguoi" class="control-label"></label>
-                <input asp-for="SoLuongNguoi" class="form-control" />
-                <span asp-validation-for="SoLuongNguoi" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="ViTri" class="control-label"></label>
-                <input asp-for="ViTri" class="form-control" />
-                <span asp-validation-for="ViTri" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="TrangThai" class="control-label"></label>
-                <input asp-for="TrangThai" class="form-control" />
-                <span asp-validation-for="TrangThai" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <input type="submit" value="Save" class="btn btn-primary" />
-            </div>
-        </form>
-    </div>
-</div>
-
-<div>
-    <a asp-action="Index">Back to List</a>
-</div> *@
 <div class="col-12 grid-margin">
     <div class="card">
         <div class="card-body">
@@ -61,8 +26,7 @@
                         <div class="form-group row">
                             <label class="col-sm-2 col-form-label" asp-for="ViTri">Vị trí</label>
                             <div class="col-sm-10">
-                                <input type="text" class="form-control" asp-for="ViTri" />
-                                <span asp-validation-for="ViTri" class="text-danger"></span>
+                                <input type="text" class="form-control" asp-for="ViTri" readonly />
                             </div>
                         </div>
                     </div>
@@ -75,5 +39,7 @@
     </div>
 </div>
 @section Scripts {
-    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
 }
