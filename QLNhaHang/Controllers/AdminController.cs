@@ -546,6 +546,90 @@ namespace QLNhaHang.Controllers
             TempData["SuaBan"] = "Cập nhật bàn thành công";
             return RedirectToAction("DSBanAn");
         }
+
+        //Đặt bàn.
+
+        public IActionResult XemDSDatBan()
+        {
+            var dsDatBan = _QLNhaHangContext.DatBans.ToList();
+            return View(dsDatBan);
+        }
+
+        public IActionResult DB_DSBanAn(int? floor = 1)
+        {
+            ViewData["CurrentFloor"] = floor;
+
+            // Lấy danh sách bàn từ bảng Ban
+            var dsBan = _QLNhaHangContext.Bans
+                         .Where(b => b.ViTri.Contains($"Lầu {floor}"))
+                         .ToList();
+
+            // Lấy thông tin đặt bàn từ bảng DatBan
+            var dsDatBan = _QLNhaHangContext.DatBans
+                                .Where(d => d.NgayDatBan >= DateTime.Now)
+                                .ToList();
+
+            // Kết hợp danh sách bàn với trạng thái đặt bàn
+            var dsBanWithStatus = dsBan.Select(ban => new
+            {
+                MaBan = ban.MaBan,
+                SoLuongNguoi = ban.SoLuongNguoi,
+                ViTri = ban.ViTri,
+                TrangThai = dsDatBan.Any(d => d.MaBan == ban.MaBan) ? "occupied" : "available"
+            }).ToList();
+
+            return View(dsBanWithStatus);
+        }
+
+        public string TaoMaTuDongDatBan()
+        {
+            // Lấy ngày hiện tại với định dạng yyyyMMdd
+            var dinhdangngay = DateTime.Now.ToString("yyyyMMdd");
+
+            // Lấy danh sách đặt bàn trong ngày hiện tại
+            var dsDatBan = _QLNhaHangContext.DatBans
+                            .Where(db => db.MaDatBan.Substring(2, 8) == dinhdangngay) // Lọc theo ngày
+                            .ToList();
+
+            int maDatBan;
+            if (dsDatBan.Any())
+            {
+                // Tìm mã đặt bàn lớn nhất trong ngày hiện tại
+                int maDatBanMoiNhat = dsDatBan
+                                      .Select(madb => int.Parse(madb.MaDatBan.Substring(10))) // Lấy phần số sau ngày
+                                      .Max(); // Lấy số lớn nhất
+                                              // Tăng lên 1
+                maDatBan = maDatBanMoiNhat + 1;
+            }
+            else
+            {
+                // Nếu chưa có mã nào trong ngày, bắt đầu từ 1
+                maDatBan = 1;
+            }
+
+            // Trả về mã đặt bàn mới
+            return "DB" + dinhdangngay + maDatBan.ToString("D3");
+        }
+
+        public IActionResult ThemDatBan()
+        {
+            var loaiMA = new DatBan
+            {
+                MaDatBan = TaoMaTuDongDatBan()
+            };
+
+
+            return View(loaiMA);
+        }
+
+        [HttpPost]
+        public IActionResult ThemDatBan(DatBan datBan)
+        {
+            datBan.MaDatBan = TaoMaTuDongDatBan();// Nối thời gian
+            _QLNhaHangContext.DatBans.Add(datBan);
+            _QLNhaHangContext.SaveChanges();
+            return RedirectToAction("XemDSDatBan");
+        }
     }
 }
 

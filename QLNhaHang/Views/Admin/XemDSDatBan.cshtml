@@ -1,0 +1,68 @@
+﻿@model IEnumerable<QLNhaHang.Models.DatBan>
+@*
+    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
+*@
+@{
+    Layout = "Header";
+}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>Star Admin2 </title>
+</head>
+<body class="with-welcome-text">
+
+    <div class="container mt-4">
+        <h2 class="mb-4">Danh Sách Đặt Bàn</h2>
+
+        <!-- Thanh tìm kiếm -->
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <input type="text" class="form-control w-50" placeholder="Tìm kiếm người dùng..." id="searchInput" />
+            <button class="btn btn-success" id="btnAdd" onclick="window.location.href='DB_DSBanAn'" asp-action="DB_DSBanAn">Thêm mới</button>
+        </div>
+
+        <!-- Bảng -->
+        <div class="table-responsive" id="caLamTableContainer">
+            <table class="table table-striped table-hover">
+                <thead>
+                    <tr>
+                        <th><center><b>Mã Đặt Bàn</b></center></th>
+                        <th><center><b>Ngày Đặt Bàn</b></center></th>
+                        <th><center><b>Tên Khách Hàng</b></center></th>
+                        <th><center><b>Số Điện Thoại</b></center></th>
+                        <th><center><b>Mã Bàn</b></center></th>
+                        <th><center><b>Số Người Đi</b></center></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in Model)
+                    {
+                        <tr>
+                            <td>
+                                <center>@Html.DisplayFor(modelItem => item.MaDatBan)</center>
+                            </td>
+                            <td>
+                                <center>@Html.DisplayFor(modelItem => item.NgayDatBan)</center>
+                            </td>
+                            <td>
+                                <center>@Html.DisplayFor(modelItem => item.TenKh)</center>
+                            </td>
+                            <td>
+                                <center>@Html.DisplayFor(modelItem => item.Sdt)</center>
+                            </td>
+                            <td>
+                                <center>@Html.DisplayFor(modelItem => item.MaBan)</center>
+                            </td>
+                            <td>
+                                <center>@Html.DisplayFor(modelItem => item.SoNguoiDi)</center>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</body>
