@@ -16,7 +16,7 @@ namespace QLNhaHang.Models
         public string? HinhAnh { get; set; }
         public double? Gia { get; set; }
         public string? MoTa { get; set; }
-        public string? TrangThai { get; set; }
+        public byte? TrangThai { get; set; }
 
         public virtual LoaiMonAn? LoaiMaNavigation { get; set; }
         public virtual ICollection<HoaDonChiTiet> HoaDonChiTiets { get; set; }

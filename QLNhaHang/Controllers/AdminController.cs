@@ -192,7 +192,7 @@ namespace QLNhaHang.Controllers
         public IActionResult XoaLoaiMA(string maLoaiMA)
         {
             // Kiểm tra nếu có món ăn đang bán
-            var dsMonAn = _QLNhaHangContext.MonAns.Where(ma => ma.LoaiMa == maLoaiMA && ma.TrangThai == "Đang bán").ToList();
+            var dsMonAn = _QLNhaHangContext.MonAns.Where(ma => ma.LoaiMa == maLoaiMA && (ma.TrangThai == 1 || ma.TrangThai == 0)).ToList();
             if (dsMonAn.Any())
             {
                 TempData["ThongBaoXoaLoi"] = "Danh sách món ăn trong mục vẫn đang được bán. Danh mục không thể xóa.";
@@ -200,7 +200,7 @@ namespace QLNhaHang.Controllers
             }
 
             // Nếu không có món ăn đang bán, tiếp tục xử lý các món ăn ngừng bán
-            var dsMonAnNgungBan = _QLNhaHangContext.MonAns.Where(ma => ma.LoaiMa == maLoaiMA && ma.TrangThai == "Ngừng bán").ToList();
+            var dsMonAnNgungBan = _QLNhaHangContext.MonAns.Where(ma => ma.LoaiMa == maLoaiMA && ma.TrangThai == 2).ToList();
             if (dsMonAnNgungBan.Any())
             {
                 foreach (var i in dsMonAnNgungBan)
