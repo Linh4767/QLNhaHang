@@ -93,6 +93,10 @@
                         {
                             <a class="btn btn-warning btn-sm" asp-action="ThemDatBan" asp-route-maBan="@item.MaBan">Đặt bàn</a>
                         }
+                        @if (item.TrangThai == "occupied")
+                        {
+                            <a class="btn btn-warning btn-sm" asp-action="ThemDatBan" asp-route-maBan="@item.MaBan">Xem thông tin</a>
+                        }
                     </div>
                 </div>
             }
