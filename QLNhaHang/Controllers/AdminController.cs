@@ -492,7 +492,7 @@ namespace QLNhaHang.Controllers
             //kiểm tra trạng thái của ModelState
             if (!ModelState.IsValid)
             {
-
+                ViewData["Floor"] = ban.ViTri;
                 return View(ban);
             }
 
@@ -544,6 +544,107 @@ namespace QLNhaHang.Controllers
 
             //thông báo
             TempData["SuaBan"] = "Cập nhật bàn thành công";
+            return RedirectToAction("DSBanAn");
+        }
+
+        //Đặt bàn
+        [HttpGet]
+        public IActionResult DatBan(string maBan)
+        {
+            ViewData["MaBan"] = maBan;
+            return View();
+        }
+
+        [HttpPost]
+        public IActionResult DatBan(DatBan datBan)
+        {
+            ModelState.Remove("MaDatBan");
+            //lấy ngày hiện tại
+            string ngayHienTai = DateTime.Now.ToString("yyyyMMdd");
+
+            //lọc các mã đặt bàn trong ngày hiện tại
+            var maCuoi = _QLNhaHangContext.DatBans
+                .Where(b => b.MaDatBan.StartsWith("DB" + ngayHienTai))
+                .OrderByDescending(b => b.MaDatBan)
+                .FirstOrDefault();
+
+            //tạo mã mới
+            string maMoi;
+            if (maCuoi != null)
+            {
+                //lấy phần số cuối từ mã cuối cùng và tăng lên
+                int soCuoi = int.Parse(maCuoi.MaDatBan.Substring(10));
+                maMoi = "DB" + ngayHienTai + (soCuoi + 1).ToString("D3");
+            }
+            else
+            {
+                //nếu chưa có mã nào trong ngày, bắt đầu từ 001
+                maMoi = "DB" + ngayHienTai + "001";
+            }
+
+            //gán mã mới cho đối tượng đặt bàn
+            datBan.MaDatBan = maMoi;
+
+            //thay đổi trang thái của bàn
+            var ban = _QLNhaHangContext.Bans.FirstOrDefault(e => e.MaBan == datBan.MaBan);
+            if (ban != null)
+            {
+                ban.TrangThai = true;
+            }
+
+            //ktra số lượng
+            if (!datBan.SoNguoiDi.HasValue || datBan.SoNguoiDi.Value <= 0 || datBan.SoNguoiDi.Value > ban.SoLuongNguoi.Value)
+            {
+                ModelState.AddModelError("SoNguoiDi", "Số lượng người phải lớn hơn 0 và nhỏ hơn hoặc bằng số lượng người bàn có thể chứa.");
+            }
+
+            //kiểm tra tên KH
+            var regex = new System.Text.RegularExpressions.Regex(@"^(?!.*\s{2})[\p{L}\s]+$");
+            if (!string.IsNullOrEmpty(datBan.TenKh) || !string.IsNullOrWhiteSpace(datBan.TenKh))
+            {
+                if (!regex.IsMatch(datBan.TenKh))
+                {
+                    ModelState.AddModelError("TenKh", "Tên khách hàng chỉ được chứa chữ cái, khoảng trắng và không được có 2 khoảng trắng liên tiếp.");
+                }
+                else if (datBan.TenKh.Length > 50)
+                {
+                    ModelState.AddModelError("TenKh", "Tên khách hàng không vượt quá 50 ký tự");
+                }
+            }
+
+            //kiểm tra ngày đặt bàn
+            if (!datBan.NgayDatBan.HasValue)
+            {
+                ModelState.AddModelError("NgayDatBan", "Ngày đặt bàn là bắt buộc.");
+            }
+            else
+            {
+                DateTime ngayHT = DateTime.Now;
+                DateTime ngayDatBan = datBan.NgayDatBan.Value;
+
+                if (ngayDatBan.Date < ngayHT.Date)
+                {
+                    ModelState.AddModelError("NgayDatBan", "Ngày đặt bàn không được nhỏ hơn ngày hiện tại.");
+                }
+                else if (ngayDatBan.Date == ngayHT.Date && ngayDatBan.TimeOfDay < ngayHT.TimeOfDay.Add(TimeSpan.FromHours(5)))
+                {
+                    ModelState.AddModelError("NgayDatBan", "Nếu ngày đặt bàn là hôm nay, giờ đặt bàn phải lớn hơn giờ hiện tại ít nhất 5 giờ.");
+                }
+            }
+
+            //kiểm tra trạng thái của ModelState
+            if (!ModelState.IsValid)
+            {
+                ViewData["MaBan"] = datBan.MaBan;
+                return View(datBan);
+            }
+
+            //thêm đặt bàn mới vào database
+            _QLNhaHangContext.DatBans.Add(datBan);
+            _QLNhaHangContext.SaveChanges();
+
+            //thông báo khi thêm thành công
+            TempData["DatBan"] = "Đặt bàn thành công!";
             return RedirectToAction("DSBanAn");
         }
     }
