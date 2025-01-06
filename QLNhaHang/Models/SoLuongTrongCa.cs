@@ -13,7 +13,7 @@ namespace QLNhaHang.Models
 
         public string MaQuanLy { get; set; } = null!;
         public string MaCa { get; set; } = null!;
-        public string Ngay { get; set; } = null!;
+        public DateTime Ngay { get; set; }
         public int? SoLuongToiDa { get; set; }
 
         public virtual Ca MaCaNavigation { get; set; } = null!;
