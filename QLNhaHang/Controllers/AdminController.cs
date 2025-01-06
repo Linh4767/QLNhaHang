@@ -286,6 +286,8 @@ namespace QLNhaHang.Controllers
             var dsTimKiem = string.IsNullOrEmpty(tuKhoa) ? _QLNhaHangContext.LoaiMonAns.ToList() : _QLNhaHangContext.LoaiMonAns.Where(lma => lma.TenLoaiMa.Contains(tuKhoa)).ToList();
             return PartialView("_LoaiMATableContainer", dsTimKiem);
         }
+        
+        //Thêm vị trí công việc
         public IActionResult ThemViTriCV()
         {
             var danhSachMaVTCV = _QLNhaHangContext.ViTriCongViecs
@@ -546,6 +548,36 @@ namespace QLNhaHang.Controllers
             TempData["SuaBan"] = "Cập nhật bàn thành công";
             return RedirectToAction("DSBanAn");
         }
+
+        //Số Lượng Nhân Viên Trong Ca
+        //public IActionResult SoLuongTrongCaList(string searchQuery, int? page)
+        //{
+        //    var sltc = _QLNhaHangContext.SoLuongTrongCas.ToPagedList(page ?? 1, 5);
+        //    return View(vtcv);
+        //}
+
+        //[HttpGet]
+        //public IActionResult TimKiemViTriCongViec(string searchQuery, int? page)
+        //{
+        //    int pageSize = 5; // Số lượng kết quả mỗi trang
+        //    int pageNumber = page ?? 1; // Trang hiện tại, mặc định là trang 1
+
+        //    // Lấy dữ liệu từ database
+        //    var query = _QLNhaHangContext.ViTriCongViecs.AsQueryable();
+
+        //    // Kiểm tra nếu có từ khóa tìm kiếm
+        //    if (!string.IsNullOrEmpty(searchQuery))
+        //    {
+        //        query = query.Where(vtcv => vtcv.TenViTriCv.Contains(searchQuery));
+        //    }
+
+        //    // Phân trang và sắp xếp
+        //    var dsTimKiem = query.OrderBy(vtcv => vtcv.MaViTriCv).ToPagedList(pageNumber, pageSize);
+
+        //    ViewBag.SearchQuery = searchQuery; // Lưu từ khóa tìm kiếm vào ViewBag (nếu có)
+
+        //    return PartialView("_ViTriCongViecContainer", dsTimKiem); // Trả về PartialView
+        //}
     }
 }
 
