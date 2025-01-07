@@ -443,11 +443,21 @@ namespace QLNhaHang.Controllers
         {
             ViewData["CurrentFloor"] = floor;
 
+            var today = DateTime.Today;
+
             var dsBan = _QLNhaHangContext.Bans
                          .Where(b => b.ViTri.Contains($"Lầu {floor}"))
                          .ToList();
-
-            return View(dsBan);
+            var dsBanWithStatus = dsBan.Select(ban => new Ban
+            {
+                MaBan = ban.MaBan,
+                SoLuongNguoi = ban.SoLuongNguoi,
+                ViTri = ban.ViTri,
+                TrangThai = _QLNhaHangContext.DatBans.Any(db => db.MaBan == ban.MaBan && db.NgayDatBan.Value.Date == today.Date)
+                ? true // occupied
+                : false // available
+            }).ToList();
+            return View(dsBanWithStatus);
         }
 
         //thêm bàn mới
@@ -559,6 +569,7 @@ namespace QLNhaHang.Controllers
         public IActionResult DatBan(DatBan datBan)
         {
             ModelState.Remove("MaDatBan");
+            ModelState.Remove("MaBanNavigation");
             //lấy ngày hiện tại
             string ngayHienTai = DateTime.Now.ToString("yyyyMMdd");
 
@@ -619,22 +630,51 @@ namespace QLNhaHang.Controllers
             }
             else
             {
-                DateTime ngayHT = DateTime.Now;
-                DateTime ngayDatBan = datBan.NgayDatBan.Value;
+                if (!string.IsNullOrEmpty(datBan.TenKh) || !string.IsNullOrWhiteSpace(datBan.TenKh))
+                {
+                    DateTime ngayHT = DateTime.Now;
+                    DateTime ngayDatBan = datBan.NgayDatBan.Value;
 
-                if (ngayDatBan.Date < ngayHT.Date)
-                {
-                    ModelState.AddModelError("NgayDatBan", "Ngày đặt bàn không được nhỏ hơn ngày hiện tại.");
+                    if (ngayDatBan.Date < ngayHT.Date)
+                    {
+                        ModelState.AddModelError("NgayDatBan", "Ngày đặt bàn không được nhỏ hơn ngày hiện tại.");
+                    }
+                    else if (ngayDatBan.Date == ngayHT.Date)
+                    {
+                        // Tính chênh lệch giờ dưới dạng số phút
+                        var diffInMinutes = (ngayHT - ngayDatBan).TotalMinutes;
+                        if (diffInMinutes < 120) // Kiểm tra nếu thời gian đặt ít hơn 2 tiếng (120 phút)
+                        {
+                            ModelState.AddModelError("NgayDatBan", "Nếu đặt trong cùng ngày, thời gian đặt phải cách hiện tại ít nhất 2 tiếng!");
+                        }
+                    }
                 }
-                else if (ngayDatBan.Date == ngayHT.Date && ngayDatBan.TimeOfDay < ngayHT.TimeOfDay.Add(TimeSpan.FromHours(5)))
+                else if (string.IsNullOrEmpty(datBan.TenKh) && string.IsNullOrWhiteSpace(datBan.TenKh))
                 {
-                    ModelState.AddModelError("NgayDatBan", "Nếu ngày đặt bàn là hôm nay, giờ đặt bàn phải lớn hơn giờ hiện tại ít nhất 5 giờ.");
+                    DateTime ngayHT = DateTime.Now;
+                    DateTime ngayDatBan = datBan.NgayDatBan.Value;
+
+                    if (ngayDatBan.Date < ngayHT.Date)
+                    {
+                        ModelState.AddModelError("NgayDatBan", "Ngày đặt bàn không được nhỏ hơn ngày hiện tại.");
+                    }
+                    else if (ngayDatBan.Date == ngayHT.Date && ngayDatBan.TimeOfDay > DateTime.Now.TimeOfDay)
+                    {
+                        ModelState.AddModelError("NgayDatBan", "Nếu ngày đặt bàn là hôm nay vui lòng ko chỉnh giờ lớn hơn giờ hiện tại");
+                    }
                 }
             }
 
             //kiểm tra trạng thái của ModelState
             if (!ModelState.IsValid)
             {
+                var errors = ModelState.Values.SelectMany(v => v.Errors).ToList();
+                foreach (var error in errors)
+                {
+                    // Log hoặc kiểm tra chi tiết lỗi
+                    Console.WriteLine(error.ErrorMessage);
+
+                }
                 ViewData["MaBan"] = datBan.MaBan;
                 return View(datBan);
             }
