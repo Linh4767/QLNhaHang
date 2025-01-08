@@ -777,7 +777,12 @@ namespace QLNhaHang.Controllers
             // Trả về view với model đã có dữ liệu
             return View(calam);
         }
-
+        [HttpGet]
+        public IActionResult DatBan(string maBan)
+        {
+            ViewData["MaBan"] = maBan;
+            return View();
+        }
         [HttpPost]
         public IActionResult DatBan(DatBan datBan)
         {
