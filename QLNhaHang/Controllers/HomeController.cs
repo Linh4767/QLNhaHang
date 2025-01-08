@@ -163,6 +163,7 @@ namespace QLNhaHang.Controllers
 
                         // Nếu khớp, đánh dấu email là "đã đọc"
                         MarkEmailAsRead(emailBody);
+                        SendConfirmationEmail(emailDetails.Email, emailDetails.Name);
                         return Json(new { success = true, message = "Xác nhận thành công và email đã được đánh dấu là đã đọc." });
                     }
                     return Json(new { success = false, message = "Không tìm thấy thông tin đặt bàn khớp." });
@@ -191,6 +192,7 @@ namespace QLNhaHang.Controllers
                 var dateMatch = Regex.Match(emailBody, @"Ngày Đặt Bàn:\s*(\d{4}-\d{2}-\d{2})<br/>", RegexOptions.IgnoreCase);
                 var timeMatch = Regex.Match(emailBody, @"Thời Gian Đặt Bàn:\s*(\d{2}:\d{2})<br/>", RegexOptions.IgnoreCase);
                 var peopleMatch = Regex.Match(emailBody, @"Số Người Đi:\s*(\d+)<br/>", RegexOptions.IgnoreCase);
+                var emailMatch = Regex.Match(emailBody, @"Email:\s*([\w\.-]+@[\w\.-]+\.\w+)<br/>", RegexOptions.IgnoreCase);
                 Console.WriteLine($"Name Match: {nameMatch.Value}");
                 Console.WriteLine($"Phone Match: {phoneMatch.Value}");
                 Console.WriteLine($"Date Match: {dateMatch.Value}");
@@ -198,7 +200,7 @@ namespace QLNhaHang.Controllers
                 Console.WriteLine($"People Match: {peopleMatch.Value}");
 
                 // Kiểm tra sự thành công của các regex matches
-                if (nameMatch.Success && phoneMatch.Success && dateMatch.Success && timeMatch.Success && peopleMatch.Success)
+                if (nameMatch.Success && phoneMatch.Success && dateMatch.Success && timeMatch.Success && peopleMatch.Success && emailMatch.Success)
                 {
                     DateTime date = DateTime.ParseExact(dateMatch.Groups[1].Value, "yyyy-MM-dd", null);
                     string time = timeMatch.Groups[1].Value;
@@ -208,6 +210,7 @@ namespace QLNhaHang.Controllers
                     {
                         Name = nameMatch.Groups[1].Value,
                         Phone = phoneMatch.Groups[1].Value,
+                        Email = emailMatch.Groups[1].Value,
                         Date = date,
                         Time = time,
                         People = people
@@ -357,6 +360,38 @@ namespace QLNhaHang.Controllers
             {
                 Console.WriteLine($"Error checking email read status: {ex.Message}");
                 return false;
+            }
+        }
+        private void SendConfirmationEmail(string customerEmail, string customerName)
+        {
+            try
+            {
+                var emailMessage = new MimeMessage();
+                emailMessage.From.Add(new MailboxAddress("Restaurant Admin", "ministorelaravel@gmail.com"));
+                emailMessage.To.Add(new MailboxAddress(customerName, customerEmail));
+                emailMessage.Subject = "Đặt bàn thành công";
+
+                // Nội dung email
+                var bodyBuilder = new BodyBuilder
+                {
+                    HtmlBody = $"<p>Chào {customerName},</p><p>Chúng tôi xin thông báo rằng bạn đã đặt bàn thành công.</p><p>Chúc bạn một ngày tuyệt vời tại nhà hàng của chúng tôi!</p>"
+                };
+
+                emailMessage.Body = bodyBuilder.ToMessageBody();
+
+                using (var client = new MailKit.Net.Smtp.SmtpClient())
+                {
+                    client.Connect("smtp.gmail.com", 587, MailKit.Security.SecureSocketOptions.StartTls);
+                    client.Authenticate("ministorelaravel@gmail.com", "z e n g t h d v w b g u f c t u");
+                    client.Send(emailMessage);
+                    client.Disconnect(true);
+                }
+
+                Console.WriteLine("Email gửi thành công");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error sending confirmation email: {ex.Message}");
             }
         }
 
