@@ -491,11 +491,21 @@ namespace QLNhaHang.Controllers
         {
             ViewData["CurrentFloor"] = floor;
 
+            var today = DateTime.Today;
+
             var dsBan = _QLNhaHangContext.Bans
                          .Where(b => b.ViTri.Contains($"Lầu {floor}"))
                          .ToList();
-
-            return View(dsBan);
+            var dsBanWithStatus = dsBan.Select(ban => new Ban
+            {
+                MaBan = ban.MaBan,
+                SoLuongNguoi = ban.SoLuongNguoi,
+                ViTri = ban.ViTri,
+                TrangThai = _QLNhaHangContext.DatBans.Any(db => db.MaBan == ban.MaBan && db.NgayDatBan.Value.Date == today.Date)
+                ? true // occupied
+                : false // available
+            }).ToList();
+            return View(dsBanWithStatus);
         }
 
         //thêm bàn mới
@@ -724,6 +734,7 @@ namespace QLNhaHang.Controllers
             //thông báo khi thêm thành công
             TempData["DatBan"] = "Đặt bàn thành công!";
             return RedirectToAction("DSBanAn");
+        }
         /*
          * Quản lý món ăn
          */

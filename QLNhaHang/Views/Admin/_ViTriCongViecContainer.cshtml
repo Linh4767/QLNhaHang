@@ -26,7 +26,7 @@
                 </td>
                 <td>
                     <a class="btn btn-warning btn-sm" asp-action="CapNhatViTriCV" asp-route-maVTCV="@item.MaViTriCv">Cập Nhật</a>
-                    <a class="btn btn-danger btn-sm" asp-action="XoaViTriCV" asp-route-maVTCV="@item.MaViTriCv">Xóa</a>
+                    <a class="btn btn-danger btn-sm" asp-action="XoaViTriCV" asp-route-maVTCV="@item.MaViTriCv" onclick="return confirm ('Bạn muốn thực hiện xóa vị trí công việc không ?')">Xóa</a>
                 </td>
             </tr>
         }
