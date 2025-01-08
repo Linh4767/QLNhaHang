@@ -491,21 +491,11 @@ namespace QLNhaHang.Controllers
         {
             ViewData["CurrentFloor"] = floor;
 
-            var today = DateTime.Today;
-
             var dsBan = _QLNhaHangContext.Bans
                          .Where(b => b.ViTri.Contains($"Lầu {floor}"))
                          .ToList();
-            var dsBanWithStatus = dsBan.Select(ban => new Ban
-            {
-                MaBan = ban.MaBan,
-                SoLuongNguoi = ban.SoLuongNguoi,
-                ViTri = ban.ViTri,
-                TrangThai = _QLNhaHangContext.DatBans.Any(db => db.MaBan == ban.MaBan && db.NgayDatBan.Value.Date == today.Date)
-                ? true // occupied
-                : false // available
-            }).ToList();
-            return View(dsBanWithStatus);
+
+            return View(dsBan);
         }
 
         //thêm bàn mới
@@ -550,7 +540,7 @@ namespace QLNhaHang.Controllers
             //kiểm tra trạng thái của ModelState
             if (!ModelState.IsValid)
             {
-                ViewData["Floor"] = ban.ViTri;
+
                 return View(ban);
             }
 

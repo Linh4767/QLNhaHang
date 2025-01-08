@@ -69,12 +69,7 @@
                 @TempData["SuaBan"]
             </div>
         }
-        @if (TempData["DatBan"] != null)
-        {
-            <div id="db" class="alert alert-success">
-                @TempData["DatBan"]
-            </div>
-        }
+
         <h2 class="mb-4 text-center">Quản lý Bàn</h2>
 
         <!-- Chọn tầng -->
@@ -97,10 +92,7 @@
                     <p>Vị trí: @item.ViTri</p>
                     <div class="actions">
                         <a class="btn btn-warning btn-sm" asp-action="CapNhatBan" asp-route-maBan="@item.MaBan">Cập nhật</a>
-                        @if (!item.TrangThai.HasValue || !item.TrangThai.Value)
-                        {
-                            <a class="btn btn-success btn-sm" asp-action="DatBan" asp-route-maBan="@item.MaBan" title="Đặt bàn này">Đặt bàn</a>
-                        }
+                        @* <a class="btn btn-danger btn-sm" asp-action="Delete" asp-route-id="@item.MaBan">Xóa</a> *@
                     </div>
                 </div>
             }
@@ -123,15 +115,11 @@
         setTimeout(function () {
             var them = document.getElementById("them");
             var sua = document.getElementById("sua");
-            var db = document.getElementById("db");
             if (them) {
                 them.style.display = "none";
             }
             if (sua) {
                 sua.style.display = "none";
-            }
-            if (db) {
-                db.style.display = "none";
             }
         }, 3000);
     </script>
