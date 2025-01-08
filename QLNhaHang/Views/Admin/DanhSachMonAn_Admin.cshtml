@@ -1,0 +1,106 @@
+﻿@model IEnumerable<QLNhaHang.Models.MonAn>
+@using X.PagedList.Mvc.Core;
+@using X.PagedList;
+@*
+    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
+*@
+@{
+    Layout = "Header";
+}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>Star Admin2 </title>
+</head>
+<body class="with-welcome-text">
+
+    @if (TempData["ThongBaoThemTC"] != null)
+    {
+        <div id="themtc" class="alert alert-success">
+            @TempData["ThongBaoThemTC"]
+        </div>
+    }
+    @if (TempData["ThongBaoXoaLoi"] != null)
+    {
+        <div id="xoaloi" class="alert alert-danger">
+            @TempData["ThongBaoXoaLoi"]
+        </div>
+    }
+    @if (TempData["ThongBaoXoaTC"] != null)
+    {
+        <div id="xoatc" class="alert alert-success">
+            @TempData["ThongBaoXoaTC"]
+        </div>
+    }
+    @if (TempData["ThongBaoSuaTC"] != null)
+    {
+        <div id="suatc" class="alert alert-success">
+            @TempData["ThongBaoSuaTC"]
+        </div>
+    }
+
+    <script>
+        // Ẩn thông báo sau 3 giây
+        setTimeout(function () {
+            var them = document.getElementById("themtc");
+            var xoaLoi = document.getElementById("xoaloi");
+            var xoaTC = document.getElementById("xoatc");
+            var suaTC = document.getElementById("suatc");
+            if (them) {
+                them.style.display = "none";
+            }
+            if (xoaLoi) {
+                xoaLoi.style.display = "none";
+            }
+            if (xoaTC) {
+                xoaTC.style.display = "none";
+            }
+            if (suaTC) {
+                suaTC.style.display = "none";
+            }
+        }, 3000);
+    </script>
+    <div class="container mt-4">
+        <h2 class="mb-4 text-center">Quản lý món ăn</h2>
+
+        <!-- Thanh tìm kiếm -->
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <input type="text" class="form-control w-50" placeholder="Tìm kiếm tên danh mục..." id="searchInput" />
+            <a class="btn btn-success mb-3 ms-auto" id="btnAdd" asp-controller="Admin" asp-action="ThemMonAn">Thêm mới</a>
+        </div>
+        <!-- Bảng -->
+        <div class="table-responsive" id="monAnTableContainer">
+            @await Html.PartialAsync("_MonAnTableContainer", Model)
+        </div>
+    </div>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        //Chờ trang web load xong
+        $(document).ready(function () {
+            //Khi người nhập
+            $('#searchInput').keyup(function () {
+                //Lấy giá trị mà người dùng nhập vào trong ô input (#searchInput) và lưu vào biến searchTerm.
+                var searchTerm = $('#searchInput').val();
+                $.ajax({
+                    //Gọi tới controller
+                    url: '/Admin/TimKiemMonAn',
+                    type: 'GET',
+                    //tuKhoa: là bên controller đặt sao là phải đặt dị/ searchTeam là ko đổi nha do khai báo biến ở trên
+                    data: { tuKhoa: searchTerm },
+                    success: function (data) {
+                        //Load dữ liệu vào chỗ id='loaiMATableContainer'
+                        $('#monAnTableContainer').html(data);
+                    },
+                    error: function (error) {
+                        //Ghi lỗi ra(nếu có)
+                        console.log(error);
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html>

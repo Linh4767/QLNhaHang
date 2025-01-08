@@ -228,7 +228,7 @@
                 <h2>Menu</h2>
                 <div><span>Check Our Tasty</span> <span class="description-title">Menu</span></div>
             </div><!-- End Section Title -->
-            
+
             <div class="container isotope-layout" data-default-filter="*" data-layout="masonry" data-sort="original-order">
 
                 <div class="row" data-aos="fade-up" data-aos-delay="100">
@@ -339,7 +339,7 @@
 
                 </div><!-- Menu Container -->
                 <div class="d-flex justify-content-end" style="text-decoration:none;">
-                    <a href="#"  id="openFilterDialog" class="btn">Hiển thị thêm &gt;&gt;</a>
+                    <a href="#" id="openFilterDialog" class="btn">Hiển thị thêm &gt;&gt;</a>
                 </div>
             </div>
 
@@ -351,7 +351,6 @@
                             <button type="button" id="closeModalMenu" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                         </div>
                         <div class="modal-body col-sm-12">
-                            
                         </div>
                     </div>
                 </div>
@@ -585,40 +584,10 @@
 
                     <div class="col-lg-4 reservation-img" style="background-image: url(./images/reservation.jpg);"></div>
 
-                    <div class="col-lg-8 d-flex align-items-center reservation-form-bg" data-aos="fade-up" data-aos-delay="200">
-                        <form action="" method="post" role="form" class="php-email-form">
-                            <div class="row gy-4">
-                                <div class="col-lg-4 col-md-6">
-                                    <input type="text" name="name" class="form-control" id="name" placeholder="Your Name" required="">
-                                </div>
-                                <div class="col-lg-4 col-md-6">
-                                    <input type="email" class="form-control" name="email" id="email" placeholder="Your Email" required="">
-                                </div>
-                                <div class="col-lg-4 col-md-6">
-                                    <input type="text" class="form-control" name="phone" id="phone" placeholder="Your Phone" required="">
-                                </div>
-                                <div class="col-lg-4 col-md-6">
-                                    <input type="date" name="date" class="form-control" id="date" placeholder="Date" required="">
-                                </div>
-                                <div class="col-lg-4 col-md-6">
-                                    <input type="time" class="form-control" name="time" id="time" placeholder="Time" required="">
-                                </div>
-                                <div class="col-lg-4 col-md-6">
-                                    <input type="number" class="form-control" name="people" id="people" placeholder="# of people" required="">
-                                </div>
-                            </div>
-
-                            <div class="form-group mt-3">
-                                <textarea class="form-control" name="message" rows="5" placeholder="Message"></textarea>
-                            </div>
-
-                            <div class="text-center mt-3">
-                                <div class="loading">Loading</div>
-                                <div class="error-message"></div>
-                                <div class="sent-message">Your booking request was sent. We will call back or send an Email to confirm your reservation. Thank you!</div>
-                                <button type="submit">Book a Table</button>
-                            </div>
-                        </form>
+                    <div class="col-lg-8 d-flex align-items-center reservation-form-bg" data-aos="fade-up" data-aos-delay="200" id="reservation-form-container">
+                        @{
+                            Html.RenderPartial("_FormGuiEmailDatBan");
+                        }
                     </div><!-- End Reservation Form -->
 
                 </div>
@@ -1040,6 +1009,7 @@
     <div id="preloader"></div>
 
     <!-- Vendor JS Files -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="~/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
     <script src="~/vendor/php-email-form/validate.js"></script>
     <script src="~/vendor/aos/aos.js"></script>
@@ -1051,5 +1021,140 @@
     <!-- Main JS File -->
     <script src="~/js/main.js"></script>
     <script src="~/js/opendialog.js"></script>
+    <script>
+        $(document).ready(function () {
+            // Load partial view vào container
+            $("#reservation-form-container").load('/Home/FormGuiEmailDatBan', function () {
+                // Sau khi load partial view xong, khởi tạo hàm kiểm tra form
+                console.log("Partial view đã được load xong!");
+                initFormValidation();
+            });
+        });
+
+        function initFormValidation() {
+            // Lấy các phần tử cần kiểm tra trong form
+            const submitBtn = document.getElementById("submitBtn");
+            const nameInput = document.getElementById("Name");
+            const emailInput = document.getElementById("Email");
+            const phoneInput = document.getElementById("Phone");
+            const dateInput = document.getElementById("Date");
+            const timeInput = document.getElementById("Time");
+            const peopleInput = document.getElementById("People");
+            const messageInput = document.getElementById("Message");
+
+            // Kiểm tra các phần tử có tồn tại hay không
+            if (!nameInput || !emailInput || !submitBtn || !phoneInput || !dateInput || !peopleInput || !messageInput) {
+                console.error("Một hoặc nhiều phần tử không tồn tại");
+                return;
+            }
+            // Kiểm tra số lượng người đi
+            function validatePeople(value) {
+                if (!value || value <= 0) return "Số lượng người đi phải lớn hơn 0.";
+                return ""; // Không có lỗi
+            }
+
+            // Kiểm tra name
+            function validateName(value) {
+                if (value.length > 30) return "Tên không được vượt quá 30 ký tự.";
+                if (/\s{2,}/.test(value)) return "Tên không được chứa 2 khoảng trắng liên tiếp.";
+                if (!/^[\p{L}\s]+$/u.test(value)) return "Tên chỉ được chứa chữ cái, dấu cách, và dấu '-'.";
+                return ""; // Không có lỗi
+            }
+            // Kiểm tra Email
+            function validateEmail(value) {
+                if (value.length > 30) return "Email không được vượt quá 30 ký tự.";
+                if (/\s{2,}/.test(value)) return "Email không được chứa 2 khoảng trắng liên tiếp.";
+                if (/^[\p{L}0-9\s_.-]+$/u.test(value)) return "Email chỉ được chứa chữ cái, dấu -, và dấu _ hoặc dấu ,";
+                return ""; // Không có lỗi
+            }
+
+            // Kiểm tra Mô tả
+            function validateMessage(value) {
+                if (value.length > 60) return "Ghi chú không được vượt quá 60 ký tự.";
+                if (/\s{2,}/.test(value)) return "Ghi chú không được chứa 2 khoảng trắng liên tiếp.";
+                if (!/^[\p{L}\s,.0-9-,.]+$/u.test(value)) return "Ghi chú chỉ được chứa chữ cái, số, dấu -, và không được có 2 khoảng trắng liên tiếp.";
+                return ""; // Không có lỗi
+            }
+
+            // Kiểm tra sđt
+            function validateSDT(value) {
+                if (value.length > 10) return "Số điện thoại không được vượt quá 10 ký tự.";
+                if (/\s{2,}/.test(value)) return "Số điện thoại không được chứa 2 khoảng trắng liên tiếp.";
+                if (!/^[0-9]+$/u.test(value)) return "Số điện thoại chỉ được chứa số";
+                return ""; // Không có lỗi
+            }
+            function validateDateTime() {
+                const currentDate = new Date();
+                const selectedDate = new Date(dateInput.value);
+                const selectedTime = timeInput.value;
+
+                if (!selectedDate || !selectedTime) {
+                    return "Nhập đầy đủ ngày giờ.";
+                }
+
+                const [hours, minutes] = selectedTime.split(":").map(Number);
+                selectedDate.setHours(hours, minutes, 0, 0);
+
+                if (selectedDate < currentDate) {
+                    return "Thời gian đặt phải lớn hơn hoặc bằng thời gian hiện tại!";
+                }
+
+                const isSameDay = currentDate.toDateString() === selectedDate.toDateString();
+                if (isSameDay) {
+                    const diffInHours = (selectedDate - currentDate) / (1000 * 60 * 60);
+                    if (diffInHours < 2) {
+                        return "Nếu đặt trong cùng ngày, thời gian đặt phải cách hiện tại ít nhất 2 tiếng!";
+                    }
+                }
+
+                return ""; // Không có lỗi
+            }
+
+            // Hàm kiểm tra toàn bộ form
+            function validateForm() {
+                const name = nameInput.value.trim();
+                const sdt = phoneInput.value.trim();
+                const email = emailInput.value.trim();
+                const date = dateInput.value.trim();
+                const time = timeInput.value.trim();
+                const people = peopleInput.value.trim();
+                const message = messageInput.value.trim();
+
+                const nameError = validateName(name);
+                const sdtError = validateSDT(sdt);
+                const emailError = validateEmail(email);
+                const dateError = validateDateTime(date);
+                const timeError = validateDateTime(time);
+                const peopleError = validatePeople(people);
+                const messageError = validateMessage(message);
+
+                // Hiển thị lỗi
+                document.getElementById("NameError").textContent = nameError || "";
+                document.getElementById("PhoneError").textContent = sdtError || "";
+                document.getElementById("EmailError").textContent = emailError || "";
+                document.getElementById("DateError").textContent = dateError || "";
+                document.getElementById("TimeError").textContent = timeError || "";
+                document.getElementById("PeopleError").textContent = peopleError || "";
+                document.getElementById("MessageError").textContent = messageError || "";
+
+                // Kiểm tra trạng thái nút submit
+                if (!name || nameError || !sdt || sdtError || !email || emailError || !date || dateError || !time
+                    || timeError || !people || peopleError || !message || messageError) {
+                    submitBtn.disabled = true;
+                } else {
+                    submitBtn.disabled = false;
+                }
+            }
+
+            // Gắn sự kiện cho các input
+            nameInput.addEventListener("input", validateForm);
+            emailInput.addEventListener("input", validateForm);
+            phoneInput.addEventListener("input", validateForm);
+            dateInput.addEventListener("change", validateForm);
+            timeInput.addEventListener("change", validateForm);
+            peopleInput.addEventListener("input", validateForm);
+            messageInput.addEventListener("input", validateForm);
+        }
+    </script>
 </body>
 </html>

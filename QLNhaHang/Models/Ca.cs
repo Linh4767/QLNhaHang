@@ -11,7 +11,8 @@ namespace QLNhaHang.Models
         }
 
         public string MaCa { get; set; } = null!;
-        public string Ca1 { get; set; } = null!;
+        public TimeSpan? ThoiGianBatDau { get; set; }
+        public TimeSpan? ThoiGianKetThuc { get; set; }
         public string LoaiCa { get; set; } = null!;
 
         public virtual ICollection<SoLuongTrongCa> SoLuongTrongCas { get; set; }

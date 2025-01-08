@@ -1,0 +1,253 @@
+﻿@model QLNhaHang.Models.GuiEmailDatBan
+@if (TempData["Success"] != null)
+{
+    <div id="success" class="alert alert-success">
+        @TempData["Success"]
+    </div>
+}
+@if (TempData["Error"] != null)
+{
+    <div id="error" class="alert alert-danger">
+        @TempData["Error"]
+    </div>
+}
+@* <script>
+    // Ẩn thông báo sau 3 giây
+    setTimeout(function () {
+        var success = document.getElementById("success");
+        var error = document.getElementById("error");
+        if (success) {
+            success.style.display = "none";
+        }
+        if (error) {
+            error.style.display = "none";
+        }
+    }, 3000);
+</script>
+ *@
+
+
+<form asp-action="SendEmail" asp-controller="Home" method="post" role="form" class="php-email-form" id="form-container">
+    <div class="row gy-4">
+        <div class="col-lg-4 col-md-6">
+            <input type="text" asp-for="Name" class="form-control" id="Name" placeholder="Your Name" required="">
+            <span asp-validation-for="Name" id="NameError" class="text-danger"></span>
+        </div>
+        <div class="col-lg-4 col-md-6">
+            <input type="email" class="form-control" asp-for="Email" id="Email" placeholder="Your Email" required="">
+            <span asp-validation-for="Email" id="EmailError" class="text-danger"></span>
+        </div>
+        <div class="col-lg-4 col-md-6">
+            <input type="text" class="form-control" asp-for="Phone" maxlength="10" id="Phone" placeholder="Your Phone" required="">
+            <span asp-validation-for="Phone" id="PhoneError" class="text-danger"></span>
+        </div>
+        <div class="col-lg-4 col-md-6">
+            <input type="date" asp-for="Date" class="form-control" id="Date" placeholder="Date" required="">
+            <span asp-validation-for="Date" id="DateError" class="text-danger"></span>
+        </div>
+        <div class="col-lg-4 col-md-6">
+            <input type="time" class="form-control" asp-for="Time" id="Time" placeholder="Time" required="">
+            <span asp-validation-for="Time" id="TimeError" class="text-danger"></span>
+        </div>
+        <div class="col-lg-4 col-md-6">
+            <input type="number" class="form-control" asp-for="People" id="People" placeholder="# of people" required="">
+            <span asp-validation-for="People" id="PeopleError" class="text-danger"></span>
+        </div>
+    </div>
+
+    <div class="form-group mt-3">
+        <textarea asp-for="Message" id="Message" class="form-control" rows="5" placeholder="Message"></textarea>
+        <span asp-validation-for="Message" id="Message" class="text-danger"></span>
+    </div>
+
+    <div class="text-center mt-3">
+        <button type="submit" id="submitBtn">Book a Table</button>
+    </div>
+    <div class="text-center mt-3">
+        <div class="loading">Loading</div>
+        <div class="error-message" id="error"></div>
+        <div class="sent-message" id="success">Your booking request was sent. We will call back or send an Email to confirm your reservation. Thank you!</div>
+    </div>
+</form>
+@* <div id="success" class="alert alert-success" style="display: none;">
+    <!-- Success message will appear here -->
+</div>
+<div id="error" class="alert alert-danger" style="display: none;">
+    <!-- Error message will appear here -->
+</div> *@
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+@* <script>
+    document.addEventListener("DOMContentLoaded", function () {
+        // Lấy các phần tử cần kiểm tra
+        const submitBtn = document.getElementById("submitBtn");
+        const nameInput = document.getElementById("Name");
+        const emailInput = document.getElementById("Email");
+        const phoneInput = document.getElementById("Phone");
+        const dateInput = document.getElementById("Date");
+        const timeInput = document.getElementById("Time");
+        const peopleInput = document.getElementById("People");
+        const messageInput = document.getElementById("Message");
+        // Kiểm tra các phần tử
+        if (!nameInput || !emailInput || !submitBtn || !phoneInput || !dateInput || !peopleInput || !messageInput) {
+            console.error("Một hoặc nhiều phần tử không tồn tại");
+            return;
+        }
+        // Kiểm tra số lượng người đi
+        function validatePeople(value) {
+            if (!value || value <= 0) return "Số lượng người đi phải lớn hơn 0.";
+            return ""; // Không có lỗi
+        }
+
+        // Kiểm tra name
+        function validateName(value) {
+            console.log("Validating Name:", value);
+            if (!value) return "Tên là bắt buộc.";
+            if (value.length > 30) return "Tên không được vượt quá 30 ký tự.";
+            if (/\s{2,}/.test(value)) return "Tên không được chứa 2 khoảng trắng liên tiếp.";
+            if (!/^[\p{L}\s]+$/u.test(value)) return "Tên chỉ được chứa chữ cái, dấu cách, và dấu '-'.";
+            return ""; // Không có lỗi
+        }
+        // Kiểm tra Email
+        function validateEmail(value) {
+            if (!value) return "Email là bắt buộc.";
+            if (value.length > 30) return "Email không được vượt quá 30 ký tự.";
+            if (/\s{2,}/.test(value)) return "Email không được chứa 2 khoảng trắng liên tiếp.";
+            if (/^[\p{L}\s_.-]+$/u.test(value)) return "Email chỉ được chứa chữ cái, dấu -, và dấu _ hoặc dấu ,";
+            return ""; // Không có lỗi
+        }
+
+        // Kiểm tra Mô tả
+        function validateMessage(value) {
+            if (!value) return "Ghi chú là bắt buộc.";
+            if (value.length > 60) return "Ghi chú không được vượt quá 60 ký tự.";
+            if (/\s{2,}/.test(value)) return "Ghi chú không được chứa 2 khoảng trắng liên tiếp.";
+            if (!/^[\p{L}\s,.0-9-,.]+$/u.test(value)) return "Ghi chú chỉ được chứa chữ cái, số, dấu -, và không được có 2 khoảng trắng liên tiếp.";
+            return ""; // Không có lỗi
+        }
+
+        // Kiểm tra sđt
+        function validateSDT(value) {
+            if (!value) return "Số điện thoại là bắt buộc.";
+            if (value.length > 10) return "Số điện thoại không được vượt quá 10 ký tự.";
+            if (/\s{2,}/.test(value)) return "Số điện thoại không được chứa 2 khoảng trắng liên tiếp.";
+            if (!/^[0-9]+$/u.test(value)) return "Số điện thoại chỉ được chứa số";
+            return ""; // Không có lỗi
+        }
+        function validateDateTime() {
+            const currentDate = new Date();
+            const selectedDate = new Date(dateInput.value);
+            const selectedTime = timeInput.value;
+
+            if (!selectedDate || !selectedTime) {
+                return "Nhập đầy đủ ngày giờ.";
+            }
+
+            const [hours, minutes] = selectedTime.split(":").map(Number);
+            selectedDate.setHours(hours, minutes, 0, 0);
+
+            if (selectedDate < currentDate) {
+                return "Thời gian đặt phải lớn hơn hoặc bằng thời gian hiện tại!";
+            }
+
+            const isSameDay = currentDate.toDateString() === selectedDate.toDateString();
+            if (isSameDay) {
+                const diffInHours = (selectedDate - currentDate) / (1000 * 60 * 60);
+                if (diffInHours < 2) {
+                    return "Nếu đặt trong cùng ngày, thời gian đặt phải cách hiện tại ít nhất 2 tiếng!";
+                }
+            }
+
+            return ""; // Không có lỗi
+        }
+
+
+
+        // Hàm kiểm tra toàn bộ form
+        function validateForm() {
+            const name = nameInput.value.trim();
+            // const moTa = emailInput.value.trim();
+            const sdt = phoneInput.value.trim();
+            const email = emailInput.value.trim();
+            const date = dateInput.value.trim();
+            const time = timeInput.value.trim();
+            const people = peopleInput.value.trim();
+            const message = messageInput.value.trim();
+            console.log(phoneInput.value.trim());
+            const nameError = validateName(name);
+            const sdtError = validateSDT(sdt);
+            const emailError = validateEmail(email);
+            const dateError = validateDateTime(date);
+            const timeError = validateDateTime(time);
+            const peopleError = validatePeople(people);
+            const messageError = validateMessage(message);
+
+            // Hiển thị lỗi
+            document.getElementById("NameError").textContent = nameError || "";
+            document.getElementById("PhoneError").textContent = sdtError || "";
+            document.getElementById("EmailError").textContent = emailError || "";
+            document.getElementById("DateError").textContent = dateError || "";
+            document.getElementById("TimeError").textContent = timeError || "";
+            document.getElementById("PeopleError").textContent = peopleError || "";
+            document.getElementById("MessageError").textContent = messageError || "";
+            // Kiểm tra trạng thái nút submit
+            if (!name || nameError || !sdt || sdtError || !email || emailError || !date || dateError || !time
+                || timeError || !people || peopleError || !message || messageError) {
+                submitBtn.disabled = true;
+            } else {
+                submitBtn.disabled = false;
+            }
+        }
+        // Gắn sự kiện
+        nameInput.addEventListener("input", validateForm);
+        emailInput.addEventListener("input", validateForm);
+        phoneInput.addEventListener("input", validateForm);
+        dateInput.addEventListener("change", validateForm);
+        timeInput.addEventListener("change", validateForm);
+        peopleInput.addEventListener("input", validateForm);
+        messageInput.addEventListener("input", validateForm);
+    });
+
+</script> *@
+<script>
+    $(document).ready(function () {
+        $('form').on('submit', function (e) {
+            e.preventDefault(); // Ngừng gửi form thông thường
+
+            var form = $(this);
+            var actionUrl = form.attr('action'); // Lấy URL
+            console.log("Sending request to:", actionUrl); // Debug URL
+
+            // Ẩn thông báo trước
+            $('#success').hide();
+            $('#error').hide();
+
+            $.ajax({
+                type: 'POST',
+                url: actionUrl,
+                data: form.serialize(),
+                success: function (response) {
+                    console.log("Response:", response); // Debug response
+                    if (response.success) {
+                        $('#success').text(response.message).show();
+                    } else {
+                        $('#error').text(response.message).show();
+                    }
+
+                    setTimeout(function () {
+                        $('#success, #error').fadeOut(500);
+                    }, 3000);
+                },
+                error: function (xhr, status, error) {
+                    console.error("Error:", error); // Debug lỗi
+                    $('#error').text("Có lỗi xảy ra. Vui lòng thử lại.").show();
+
+                    setTimeout(function () {
+                        $('#error').fadeOut(500);
+                    }, 3000);
+                }
+            });
+        });
+    });
+</script>

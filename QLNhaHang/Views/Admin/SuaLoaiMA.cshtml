@@ -1,0 +1,78 @@
+﻿@model QLNhaHang.Models.LoaiMonAn
+
+@{
+    Layout = "Header";
+}
+<html lang="en">
+<head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>Star Admin2 </title>
+
+</head>
+<body class="with-welcome-text">
+    @if (TempData["ThongBaoSuaLoi"] != null)
+    {
+        <div id="suaLoi" class="alert alert-danger">
+            @TempData["ThongBaoSuaLoi"]
+        </div>
+    }
+    @if (TempData["ThongBaoTrong"] != null)
+    {
+        <div id="tbTrong" class="alert alert-warning">
+            @TempData["ThongBaoTrong"]
+        </div>
+    }
+   @*  @if (TempData["ThongBaoVuotQuaGH"] != null)
+    {
+        <div id="tbVuotQuaGH" class="alert alert-warning">
+            @TempData["ThongBaoVuotQuaGH"]
+        </div>
+    } *@
+    <script>
+        // Ẩn thông báo sau 3 giây
+        setTimeout(function () {
+            var sua = document.getElementById("suaLoi");
+            var tbTrong = document.getElementById("tbTrong");
+            var tbVuotQuaGH = document.getElementById("tbVuotQuaGH");
+            if (sua) {
+                sua.style.display = "none";
+            }
+            if (tbTrong) {
+                tbTrong.style.display = "none";
+            }
+            // if (tbVuotQuaGH) {
+            //     tbVuotQuaGH.style.display = "none";
+            // }
+        }, 3000);
+    </script>
+    <div class="col-12 grid-margin">
+        <div class="card">
+            <div class="card-body">
+                <h4 class="card-title">Quản Lý Danh Mục Món Ăn</h4>
+                <form class="form-sample" method="post" asp-action="SuaLoaiMA">
+                    <p class="card-description"> Sửa Danh Mục Món Ăn </p>
+                    <div class="row">
+
+                        <div class="col-md-12">
+                            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+                            <div class="form-group row">
+                                
+                                <input type="hidden" asp-for="MaLoaiMa" />
+                                <label class="col-sm-3 col-form-label" asp-for="TenLoaiMa">Tên Danh Mục Món Ăn</label>
+                                <div class="col-sm-9">
+                                    <input type="text" class="form-control" asp-for="TenLoaiMa" />
+                                    <span asp-validation-for="TenLoaiMa" class="text-danger"></span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <button class="btn btn-primary me-2" type="submit">Sửa Danh Mục Món Ăn</button>
+                    <a class="btn btn-light" asp-action="DanhSachLoaiMonAn_Admin">Quay lại danh sách</a>
+                </form>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
