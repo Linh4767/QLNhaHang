@@ -1,0 +1,425 @@
+﻿@model QLNhaHang.Models.MonAn
+@*
+    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
+*@
+@{
+    Layout = "Header";
+}
+<html lang="en">
+<head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>Star Admin2 </title>
+</head>
+<body class="with-welcome-text">
+    @if (TempData["ThongBaoThemLoi"] != null)
+    {
+        <div id="themLoi" class="alert alert-danger">
+            @TempData["ThongBaoThemLoi"]
+        </div>
+    }
+    @if (TempData["ThongBaoTrong"] != null)
+    {
+        <div id="tbTrong" class="alert alert-warning">
+            @TempData["ThongBaoTrong"]
+        </div>
+    }
+    @if (TempData["DinhDangAnhLoi"] != null)
+    {
+        <div id="tbDinhDangAnhLoi" class="alert alert-warning">
+            @TempData["DinhDangAnhLoi"]
+        </div>
+    }
+    @*  @if (TempData["ThongBaoVuotQuaGH"] != null)
+    {
+    <div id="tbVuotQuaGH" class="alert alert-warning">
+    @TempData["ThongBaoVuotQuaGH"]
+    </div>
+    } *@
+    <script>
+        // Ẩn thông báo sau 3 giây
+        setTimeout(function () {
+            var them = document.getElementById("themLoi");
+            var dinhDangAnhLoi = document.getElementById("tbDinhDangAnhLoi");
+            var tbTrong = document.getElementById("tbTrong");
+            // var tbVuotQuaGH = document.getElementById("tbVuotQuaGH");
+            if (them) {
+                them.style.display = "none";
+            }
+            if (tbTrong) {
+                tbTrong.style.display = "none";
+            }
+            if (dinhDangAnhLoi) {
+                dinhDangAnhLoi.style.display = "none";
+            }
+        }, 3000);
+    </script>
+    <div id="TenMonAnErrorContainer"></div>
+    <div class="col-12 grid-margin">
+        <div class="card">
+            <div class="card-body">
+                <h4 class="card-title">Quản lý món ăn</h4>
+                <form class="form-sample" id="monAnForm" method="post" enctype="multipart/form-data" asp-controller="Admin" asp-action="ThemMonAn">
+                    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+                    <p class="card-description"> Thêm món ăn </p>
+                    <div class="row">
+                        <div class="col-md-12">
+                            <div class="form-group row">
+                                @* Nhớ thêm asp-for vào mỗi label và input theo trường dữ liệu của table*@
+                                <label class="col-sm-3 col-form-label" asp-for="TenMonAn">Tên món ăn</label>
+                                <div class="col-sm-9">
+                                    <input type="text" class="form-control" asp-for="TenMonAn" id="TenMonAn" />
+                                    <span asp-validation-for="TenMonAn" id="TenMonAnError" class="text-danger"></span>
+                                </div>
+                            </div>
+                        </div>
+                        @* <div class="col-md-6">
+                        <div class="form-group row">
+                        <label class="col-sm-3 col-form-label">Last Name</label>
+                        <div class="col-sm-9">
+                        <input type="text" class="form-control" />
+                        </div>
+                        </div>
+                        </div> *@
+                    </div>
+                    <div class="row">
+                        <div class="col-md-12">
+                            <div class="form-group row">
+                                <label class="col-sm-3 col-form-label">Danh mục món ăn</label>
+                                <div class="col-sm-9">
+                                    <select asp-for="LoaiMa" class="form-select" style="color:black" asp-items="@ViewBag.danhMucMAList">
+                                        @*  <option value="none">Select</option> *@
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        @* <div class="col-md-6">
+                        <div class="form-group row">
+                        <label class="col-sm-3 col-form-label">Date of Birth</label>
+                        <div class="col-sm-9">
+                        <input class="form-control" type="date" />
+                        </div>
+                        </div>
+                        </div> *@
+                    </div>
+                    @* <p class="card-description"> Address </p> *@
+                    <div class="row mb-5">
+                        <div class="col-md-12">
+                            <div class="form-group row">
+                                <label asp-for="MoTa" class="col-sm-3 col-form-label">Mô tả</label>
+                                <div class="col-sm-9">
+                                    <textarea class="form-control" asp-for="MoTa" id="MoTa" style="height:160%"></textarea>
+                                    <span asp-validation-for="MoTa" id="MoTaError" class="text-danger"></span>
+                                </div>
+                            </div>
+                        </div>
+
+                        @*                         <div class="col-md-6">
+                        <div class="form-group row">
+                        <label class="col-sm-3 col-form-label">State</label>
+                        <div class="col-sm-9">
+                        <input type="text" class="form-control" />
+                        </div>
+                        </div>
+                        </div> *@
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group row">
+                                <label class="col-sm-3 col-form-label" asp-for="Gia">Giá</label>
+                                <div class="col-sm-9">
+                                    <input class="form-control" type="number" asp-for="Gia" id="Gia" />
+                                    <span asp-validation-for="Gia" class="text-danger" id="GiaError"></span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group row">
+                                <label class="col-sm-3 col-form-label">Trạng thái</label>
+                                <div class="col-sm-3">
+                                    <div class="form-check">
+                                        <label class="form-check-label">
+                                            <input type="radio" class="form-check-input" id="membershipRadios1" value="0" checked asp-for="TrangThai">  Đang bán
+                                        </label>
+                                    </div>
+                                </div>
+                                @* <div class="col-sm-3">
+                                <div class="form-check">
+                                <label class="form-check-label">
+                                <input type="radio" class="form-check-input"  id="membershipRadios2" value="1" asp-for="TrangThai"> Tạm Ngưng Bán
+                                </label>
+                                </div>
+                                </div>
+                                <div class="col-sm-3">
+                                <div class="form-check">
+                                <label class="form-check-label">
+                                <input type="radio" class="form-check-input" id="membershipRadios2" value="2" asp-for="TrangThai"> Ngừng Vĩnh Viễn
+                                </label>
+                                </div>
+                                </div> *@
+                            </div>
+                        </div>
+                    </div>
+                    @* <p class="card-description"> Address </p> *@
+                    @* <div class="row">
+                    <div class="col-md-6">
+                    <div class="form-group row">
+                    <label class="col-sm-3 col-form-label">Address 1</label>
+                    <div class="col-sm-9">
+                    <input type="text" class="form-control" />
+                    </div>
+                    </div>
+                    </div>
+                    <div class="col-md-6">
+                    <div class="form-group row">
+                    <label class="col-sm-3 col-form-label">State</label>
+                    <div class="col-sm-9">
+                    <input type="text" class="form-control" />
+                    </div>
+                    </div>
+                    </div>
+                    </div> *@
+                    @* <div class="row">
+                    <div class="col-md-6">
+                    <div class="form-group row">
+                    <label class="col-sm-3 col-form-label">Address 2</label>
+                    <div class="col-sm-9">
+                    <input type="text" class="form-control" />
+                    </div>
+                    </div>
+                    </div>
+                    <div class="col-md-6">
+                    <div class="form-group row">
+                    <label class="col-sm-3 col-form-label">Postcode</label>
+                    <div class="col-sm-9">
+                    <input type="text" class="form-control" />
+                    </div>
+                    </div>
+                    </div>
+                    </div> *@
+                    <div class="row">
+                        @* <div class="col-md-6">
+                        <div class="form-group row">
+                        <label class="col-sm-3 col-form-label">City</label>
+                        <div class="col-sm-9">
+                        <input type="text" class="form-control" />
+                        </div>
+                        </div>
+                        </div>
+                        <div class="col-md-6">
+                        <div class="form-group row">
+                        <label class="col-sm-3 col-form-label">Country</label>
+                        <div class="col-sm-9">
+                        <select class="form-select">
+                        <option>America</option>
+                        <option>Italy</option>
+                        <option>Russia</option>
+                        <option>Britain</option>
+                        </select>
+                        </div>
+                        </div>
+
+                        </div> *@
+                        <div class="row">
+                            <div class="col-md-12">
+                                <div class="form-group row">
+                                    <label asp-for="HinhAnh">Hình Ảnh</label>
+                                    <input type="file" asp-for="HinhAnh" class="file-upload-default" id="fileInput">
+                                    <div class="input-group col-xs-12">
+                                        <input type="text" class="form-control file-upload-info" disabled placeholder="Upload Image" id="fileInfoInput">
+                                        <span class="input-group-append">
+                                            <button class="file-upload-browse btn btn-primary" type="button">Upload</button>
+                                        </span>
+                                    </div>
+                                    <span asp-validation-for="HinhAnh" id="fileError" class="text-danger"></span>
+                                </div>
+                            </div>
+                        </div>
+                        @* <div class="row">
+                        <div class="col-md-12">
+                        <div class="form-group row">
+                        <label class="form-check-label">
+                        <input type="checkbox" class="form-check-input"> Default
+                        </label>
+                        </div>
+                        </div>
+                        </div> *@
+                    </div>
+                    <button type="submit" id="submitBtn" class="btn btn-primary me-2">Thêm Món Ăn</button>
+                    <a class="btn btn-light" asp-action="DanhSachNhanVien_Admin">Quay Lại Danh Sách</a>
+                </form>
+            </div>
+        </div>
+    </div>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jquery-validation@1.19.5/dist/jquery.validate.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/typeahead.js/0.11.1/typeahead.bundle.min.js"></script>
+
+    <script src="~/js/file-upload.js"></script>
+    <script src="~/js/typeahead.js"></script>
+    <script src="~/js/select2.js"></script>
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            // Lấy các phần tử cần kiểm tra
+            const submitBtn = document.getElementById("submitBtn");
+            const tenMonAnInput = document.getElementById("TenMonAn");
+            const moTaInput = document.getElementById("MoTa");
+            const fileInput = document.getElementById("fileInput");
+            const fileInfoInput = document.getElementById("fileInfoInput");
+            const fileErrorSpan = document.getElementById("fileError");
+            const giaInput = document.getElementById("Gia");
+            // Kiểm tra các phần tử
+            if (!tenMonAnInput || !moTaInput || !fileInput || !fileErrorSpan || !submitBtn || !giaInput) {
+                console.error("Một hoặc nhiều phần tử không tồn tại");
+                return;
+            }
+            // Kiểm tra Giá
+            function validateGia(value) {
+                if (!value || value <= 0) return "Giá không được bỏ trống và phải lớn hơn 0.";
+                return ""; // Không có lỗi
+            }
+
+            // Kiểm tra Tên món ăn
+            function validateTenMonAn(value) {
+                if (!value) return "Tên món ăn là bắt buộc.";
+                if (value.length > 30) return "Tên món ăn không được vượt quá 30 ký tự.";
+                if (/\s{2,}/.test(value)) return "Tên món ăn không được chứa 2 khoảng trắng liên tiếp.";
+                if (!/^[\p{L}\s-]+$/u.test(value)) return "Tên món ăn chỉ được chứa chữ cái, dấu cách, và dấu '-'.";
+                return ""; // Không có lỗi
+            }
+
+            // Kiểm tra Mô tả
+            function validateMoTa(value) {
+                if (!value) return "Mô tả là bắt buộc.";
+                if (value.length > 60) return "Mô tả không được vượt quá 60 ký tự.";
+                if (/\s{2,}/.test(value)) return "Mô tả không được chứa 2 khoảng trắng liên tiếp.";
+                if (!/^[\p{L}\s,.0-9-]+$/u.test(value)) return "Mô tả chỉ được chứa chữ cái, số, dấu -, và không được có 2 khoảng trắng liên tiếp.";
+                return ""; // Không có lỗi
+            }
+
+            // Kiểm tra File ảnh
+            function validateFileInput() {
+                const file = fileInput.files.length > 0 ? fileInput.files[0] : null;
+                const validExtensions = ["jpg", "jpeg", "png", "gif"];
+                fileInfoInput.value = file ? file.name : ""; // Hiển thị tên file nếu có
+
+                if (!file) {
+                    fileErrorSpan.textContent = "Vui lòng chọn một file ảnh.";
+                    submitBtn.disabled = true;
+                    return;
+                }
+
+                const fileExtension = file.name.split('.').pop().toLowerCase();
+                if (!validExtensions.includes(fileExtension)) {
+                    fileErrorSpan.textContent = "Chỉ chấp nhận file ảnh (jpg, jpeg, png, gif).";
+                    fileInput.value = ""; // Reset nếu file không hợp lệ
+                    fileInfoInput.value = ""; // Xóa tên file hiển thị
+                    submitBtn.disabled = true;
+                } else {
+                    fileErrorSpan.textContent = ""; // Xóa lỗi
+                    validateForm(); // Kiểm tra lại form
+                }
+            }
+
+            // Hàm kiểm tra toàn bộ form
+            function validateForm() {
+                const tenMonAn = tenMonAnInput.value.trim();
+                const moTa = moTaInput.value.trim();
+                const gia = giaInput.value.trim();
+                console.log(giaInput.value.trim());
+                const tenMonAnError = validateTenMonAn(tenMonAn);
+                const moTaError = validateMoTa(moTa);
+                const giaError = validateGia(gia);
+
+                // Hiển thị lỗi
+                document.getElementById("TenMonAnError").textContent = tenMonAnError || "";
+                document.getElementById("MoTaError").textContent = moTaError || "";
+                document.getElementById("GiaError").textContent = giaError || "";
+
+                // Kiểm tra trạng thái nút submit
+                if (tenMonAnError || moTaError || !tenMonAn || !moTa || !fileInput.files[0] || giaError || !gia) {
+                    submitBtn.disabled = true;
+                } else {
+                    submitBtn.disabled = false;
+                }
+            }
+
+            // Gắn sự kiện
+            tenMonAnInput.addEventListener("input", validateForm);
+            moTaInput.addEventListener("input", validateForm);
+            giaInput.addEventListener("input", validateForm);
+            // fileInput.addEventListener("change", validateFileInput);
+            fileInput.addEventListener("change", function () {
+                // Cập nhật lại khi ảnh thay đổi
+                validateFileInput();
+                validateForm();
+            });
+            // Kiểm tra lần đầu khi load trang
+            validateForm();
+            validateFileInput();
+        });
+
+
+    </script>
+
+    <script>
+        $(document).ready(function () {
+            let isNameExist = false; // Biến kiểm tra trạng thái tên món ăn
+
+            // Kiểm tra tên món ăn khi rời khỏi input
+            $('#TenMonAn').on('blur', function () {
+                const tenMonAn = $(this).val().trim(); // Loại bỏ khoảng trắng thừa
+                if (tenMonAn) {
+                    $.ajax({
+                        url: '/Admin/KiemTraTenMonAn', // Đảm bảo đường dẫn đúng
+                        type: 'POST',
+                        data: { tenMonAn: tenMonAn },
+                        success: function (response) {
+                            if (response.isExist) {
+                                // Nếu tên món ăn trùng, hiển thị lỗi
+                                $('#TenMonAnError')
+                                    .text(response.errorMessage) // Lỗi từ server
+                                    .addClass('text-danger')
+                                    .show();
+                                isNameExist = true; // Đặt trạng thái là trùng
+                            } else {
+                                // Nếu không trùng, xóa lỗi
+                                $('#TenMonAnError').text('').removeClass('text-danger').hide();
+                                isNameExist = false; // Đặt trạng thái là không trùng
+                            }
+                        },
+                        error: function () {
+                            // Xử lý khi request bị lỗi
+                            $('#TenMonAnError')
+                                .text('Đã xảy ra lỗi khi kiểm tra.')
+                                .addClass('text-danger')
+                                .show();
+                            isNameExist = true; // Giả sử có lỗi trong request
+                        }
+                    });
+                } else {
+                    // Nếu input trống, xóa lỗi
+                    $('#TenMonAnError').text('').removeClass('text-danger').hide();
+                    isNameExist = false; // Đặt lại trạng thái
+                }
+            });
+
+            // Kiểm tra lỗi trước khi submit form
+            $('#monAnForm').on('submit', function (e) {
+                // Kiểm tra nếu tên món ăn trùng
+                if (isNameExist) {
+                    e.preventDefault(); // Ngừng submit nếu có lỗi trùng
+                    const errorHtml = `<div id="themLoi" class="alert alert-danger">Tên món ăn đã tồn tại. Vui lòng chọn tên khác.</div>`;
+                    $('#TenMonAnErrorContainer').html(errorHtml);
+
+                    // Tự động ẩn thông báo sau 3 giây
+                    setTimeout(() => $('#themLoi').fadeOut(), 3000);
+
+                    return;
+                }
+            });
+        });
+    </script>
+</body>
+</html>
