@@ -9,6 +9,8 @@ using System.Net;
 using X.PagedList;
 using X.PagedList.Extensions;
 using Microsoft.Extensions.Options;
+using System.Globalization;
+using System.Text;
 
 
 namespace QLNhaHang.Controllers
@@ -57,22 +59,27 @@ namespace QLNhaHang.Controllers
             int pageNumber = page ?? 1; // Trang hiện tại, mặc định là trang 1
 
             // Lấy dữ liệu từ database
-            var query = _QLNhaHangContext.ViTriCongViecs.AsQueryable();
+            var query = _QLNhaHangContext.ViTriCongViecs.ToList();
 
             // Kiểm tra nếu có từ khóa tìm kiếm
             if (!string.IsNullOrEmpty(searchQuery))
             {
-                query = query.Where(vtcv => vtcv.TenViTriCv.Contains(searchQuery));
+                // Chuyển đổi từ khóa và dữ liệu sang không dấu
+                string searchQueryKhongDau = RemoveDiacritics(searchQuery.ToLower());
+                query = query
+                    .Where(vtcv => RemoveDiacritics(vtcv.TenViTriCv.ToLower()).Contains(searchQueryKhongDau))
+                    .ToList();
             }
 
             // Phân trang và sắp xếp
-            var dsTimKiem = query.OrderBy(vtcv => vtcv.MaViTriCv).ToPagedList(pageNumber, pageSize);
+            var dsTimKiem = query
+                .OrderBy(vtcv => vtcv.MaViTriCv)
+                .ToPagedList(pageNumber, pageSize);
 
             ViewBag.SearchQuery = searchQuery; // Lưu từ khóa tìm kiếm vào ViewBag (nếu có)
 
             return PartialView("_ViTriCongViecContainer", dsTimKiem); // Trả về PartialView
         }
-
 
         //Thêm vị trí công việc
         public string VietHoa(string s)
@@ -285,13 +292,47 @@ namespace QLNhaHang.Controllers
                 return View("SuaLoaiMA");
             }
         }
+        public static string RemoveDiacritics(string text)
+        {
+            if (string.IsNullOrEmpty(text)) return text;
+            var normalizedString = text.Normalize(NormalizationForm.FormD);
+            var stringBuilder = new StringBuilder();
+
+            foreach (var c in normalizedString)
+            {
+                var unicodeCategory = CharUnicodeInfo.GetUnicodeCategory(c);
+                if (unicodeCategory != UnicodeCategory.NonSpacingMark)
+                {
+                    stringBuilder.Append(c);
+                }
+            }
+
+            return stringBuilder.ToString().Normalize(NormalizationForm.FormC);
+        }
+
         //Tìm kiếm tên danh mục
         [HttpGet]
         public IActionResult TimKiemLoaiMonAn(string tuKhoa)
         {
-            var dsTimKiem = string.IsNullOrEmpty(tuKhoa) ? _QLNhaHangContext.LoaiMonAns.ToList() : _QLNhaHangContext.LoaiMonAns.Where(lma => lma.TenLoaiMa.Contains(tuKhoa)).ToList();
-            return PartialView("_LoaiMATableContainer", dsTimKiem);
+            // Lấy toàn bộ dữ liệu từ cơ sở dữ liệu
+            var dsLoaiMonAn = _QLNhaHangContext.LoaiMonAns.ToList();
+
+            // Nếu có từ khóa tìm kiếm
+            if (!string.IsNullOrEmpty(tuKhoa))
+            {
+                // Chuyển đổi từ khóa sang không dấu
+                string tuKhoaKhongDau = RemoveDiacritics(tuKhoa.ToLower());
+
+                // Lọc dữ liệu trên bộ nhớ
+                dsLoaiMonAn = dsLoaiMonAn
+                    .Where(lma => RemoveDiacritics(lma.TenLoaiMa.ToLower()).Contains(tuKhoaKhongDau))
+                    .ToList();
+            }
+
+            // Trả về kết quả
+            return PartialView("_LoaiMATableContainer", dsLoaiMonAn);
         }
+
         public IActionResult ThemViTriCV()
         {
             var danhSachMaVTCV = _QLNhaHangContext.ViTriCongViecs
