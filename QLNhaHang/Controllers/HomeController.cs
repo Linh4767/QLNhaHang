@@ -154,6 +154,13 @@ namespace QLNhaHang.Controllers
                     bool isMatch = CheckDatBanMatch(emailDetails); // Kiểm tra khớp với dữ liệu đặt bàn
                     if (isMatch)
                     {
+                        bool isEmailRead = IsEmailMarkedAsRead(emailBody);  // Hàm kiểm tra trạng thái email đã đọc
+
+                        if (isEmailRead)
+                        {
+                            return Json(new { success = false, message = "Email đã được đánh dấu là đã đọc trước đó." });
+                        }
+
                         // Nếu khớp, đánh dấu email là "đã đọc"
                         MarkEmailAsRead(emailBody);
                         return Json(new { success = true, message = "Xác nhận thành công và email đã được đánh dấu là đã đọc." });
@@ -305,5 +312,53 @@ namespace QLNhaHang.Controllers
                 client.Disconnect(true);
             }
         }
+
+        // Hàm kiểm tra trạng thái "đã đọc" của email
+        private bool IsEmailMarkedAsRead(string emailBody)
+        {
+            try
+            {
+                using (var client = new MailKit.Net.Imap.ImapClient())
+                {
+                    client.Connect("imap.gmail.com", 993, true); // Kết nối tới IMAP
+                    client.Authenticate("ministorelaravel@gmail.com", "z e n g t h d v w b g u f c t u");
+
+                    var inbox = client.GetFolder("[Gmail]/All Mail");
+                    inbox.Open(MailKit.FolderAccess.ReadWrite);
+
+                    // Tìm email chứa nội dung khớp với emailBody
+                    var query = MailKit.Search.SearchQuery.BodyContains(emailBody);
+                    var results = inbox.Search(query);
+
+                    if (results.Any())
+                    {
+                        // Lấy thông tin email từ kết quả tìm kiếm
+                        var email = inbox.GetMessage(results.First());
+
+                        // Kiểm tra nếu email không còn trong INBOX, tức là đã đọc
+                        var inboxFolder = client.GetFolder("INBOX");
+                        inboxFolder.Open(MailKit.FolderAccess.ReadOnly);
+
+                        var inboxResults = inboxFolder.Search(MailKit.Search.SearchQuery.BodyContains(emailBody));
+
+                        if (!inboxResults.Any())
+                        {
+                            // Nếu email không còn trong INBOX, nghĩa là đã được đọc
+                            return true;
+                        }
+                    }
+
+                    client.Disconnect(true);
+                }
+
+                return false;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error checking email read status: {ex.Message}");
+                return false;
+            }
+        }
+
     }
 }
