@@ -596,6 +596,9 @@ namespace QLNhaHang.Controllers
         [HttpPost]
         public IActionResult ThemCaLam(Ca calam)
         {
+            calam.MaCa = TaoMaCaTuDong(); // Hoặc giữ nguyên giá trị của calam.MaCa
+
+            ModelState.Remove("MaCa");
             // Lấy giá trị TimeSpan từ nullable
             if (!calam.ThoiGianBatDau.HasValue || !calam.ThoiGianKetThuc.HasValue)
             {
@@ -638,13 +641,23 @@ namespace QLNhaHang.Controllers
                 ModelState.AddModelError("", "Ca làm part-time phải có thời gian làm việc đúng 4 tiếng.");
             }
 
+
             // Nếu có lỗi, trả về lại view với thông báo lỗi
             if (!ModelState.IsValid)
             {
+                var errors = ModelState.Values.SelectMany(v => v.Errors).ToList();
+                foreach (var error in errors)
+                {
+                    // Log hoặc kiểm tra chi tiết lỗi
+                    Console.WriteLine(error.ErrorMessage);
+
+                }
                 // Đảm bảo giữ lại mã ca nếu có lỗi
-                calam.MaCa = TaoMaCaTuDong(); // Hoặc giữ nguyên giá trị của calam.MaCa
                 return View(calam);
+
+
             }
+
 
             // Nếu hợp lệ, tạo mã ca tự động và thêm vào database
             _QLNhaHangContext.Cas.Add(calam);
@@ -711,6 +724,9 @@ namespace QLNhaHang.Controllers
 
         public IActionResult SuaCaLam (Ca calam)
         {
+
+            ModelState.Remove("MaCa");
+
             // Kiểm tra nếu thời gian không được cung cấp
             if (!calam.ThoiGianBatDau.HasValue || !calam.ThoiGianKetThuc.HasValue)
             {
@@ -752,6 +768,13 @@ namespace QLNhaHang.Controllers
             // Nếu có lỗi, trả về lại view với thông báo lỗi
             if (!ModelState.IsValid)
             {
+                var errors = ModelState.Values.SelectMany(v => v.Errors).ToList();
+                foreach (var error in errors)
+                {
+                    // Log hoặc kiểm tra chi tiết lỗi
+                    Console.WriteLine(error.ErrorMessage);
+
+                }
                 return View(calam);
             }
 
