@@ -150,9 +150,15 @@ namespace QLNhaHang.Controllers
                 var emailDetails = ExtractEmailDetails(emailBody);
 
                 if (emailDetails != null)
-                {
+                {                    
                     bool isMatch = CheckDatBanMatch(emailDetails); // Kiểm tra khớp với dữ liệu đặt bàn
-                    return Json(new { success = isMatch });
+                    if (isMatch)
+                    {
+                        // Nếu khớp, đánh dấu email là "đã đọc"
+                        MarkEmailAsRead(emailBody);
+                        return Json(new { success = true, message = "Xác nhận thành công và email đã được đánh dấu là đã đọc." });
+                    }
+                    return Json(new { success = false, message = "Không tìm thấy thông tin đặt bàn khớp." });
                 }
 
                 return Json(new { success = false }); // Trả về false nếu không có dữ liệu phù hợp
@@ -210,8 +216,6 @@ namespace QLNhaHang.Controllers
             }
         }
 
-
-        // Method to check if reservation matches
         // Method to check if reservation matches
         private bool CheckDatBanMatch(GuiEmailDatBan emailDetails)
         {
@@ -266,6 +270,39 @@ namespace QLNhaHang.Controllers
             {
                 Console.WriteLine($"Error checking DatBan match: {ex.Message}");
                 return false;
+            }
+        }
+        private void MarkEmailAsRead(string emailBody)
+        {
+            using (var client = new MailKit.Net.Imap.ImapClient())
+            {
+                client.Connect("imap.gmail.com", 993, true); // Kết nối tới IMAP
+                client.Authenticate("ministorelaravel@gmail.com", "z e n g t h d v w b g u f c t u");
+
+                // Chọn hộp thư (vd: "INBOX")
+                var inbox = client.GetFolder("[Gmail]/All Mail");
+                inbox.Open(MailKit.FolderAccess.ReadWrite);
+                if (inbox.IsOpen)
+                {
+                    Console.WriteLine("Hộp thư [Gmail]/All Mail đã mở thành công.");
+                }
+                else
+                {
+                    Console.WriteLine("Không thể mở hộp thư [Gmail]/All Mail.");
+                    return; // Dừng xử lý nếu không mở được
+                }
+                // Tìm email chứa nội dung khớp với emailBody
+                string cleanedBody = Regex.Replace(emailBody, @"<.*?>", string.Empty).Trim();
+                var query = MailKit.Search.SearchQuery.BodyContains(cleanedBody);
+                var results = inbox.Search(query);
+                Console.WriteLine(results);
+                if (results.Any())
+                {
+                    // Đánh dấu email đầu tiên khớp là "đã đọc"
+                    inbox.AddFlags(results.First(), MailKit.MessageFlags.Seen, true);
+                }
+
+                client.Disconnect(true);
             }
         }
     }
