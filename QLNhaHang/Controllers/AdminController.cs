@@ -546,6 +546,219 @@ namespace QLNhaHang.Controllers
             TempData["SuaBan"] = "Cập nhật bàn thành công";
             return RedirectToAction("DSBanAn");
         }
+
+        /// <summary>
+        /// CRUD Ca Làm.
+        /// </summary>
+        /// <returns></returns>
+        
+        public string TaoMaCaTuDong()
+        {
+            // Lấy danh sách ca làm hiện có
+            var dsCaLam = _QLNhaHangContext.Cas.ToList();
+
+            // Tìm mã ca lớn nhất từ danh sách
+            int maCaLonNhat = dsCaLam
+                              .Select(maca => int.Parse(maca.MaCa.Substring(3)))
+                              .Max();
+
+            // Tạo mã ca mới
+            int maCaMoi = maCaLonNhat + 1;
+
+            // Kiểm tra nếu mã ca mới đã tồn tại trong cơ sở dữ liệu
+            string maCa = "C" + maCaMoi.ToString("D3");
+
+            // Lặp lại kiểm tra mã ca mới cho đến khi mã ca không bị trùng
+            while (_QLNhaHangContext.Cas.Any(c => c.MaCa == maCa))
+            {
+                maCaMoi++;  // Tăng mã ca
+                maCa = "C" + maCaMoi.ToString("D3");  // Tạo lại mã ca mới
+            }
+
+            return maCa;
+        }
+
+        public IActionResult XemDSThongTinCa()
+        {
+            var dsCaLam = _QLNhaHangContext.Cas.ToList();
+            return View(dsCaLam);
+        }
+
+        public IActionResult ThemCaLam()
+        {
+            var loaiMA = new Ca
+            {
+                MaCa = TaoMaCaTuDong()
+            };
+            return View(loaiMA);
+        }
+
+        [HttpPost]
+        public IActionResult ThemCaLam(Ca calam)
+        {
+            // Lấy giá trị TimeSpan từ nullable
+            if (!calam.ThoiGianBatDau.HasValue || !calam.ThoiGianKetThuc.HasValue)
+            {
+                ModelState.AddModelError("", "Thời gian bắt đầu và kết thúc không được để trống.");
+                return View(calam);
+            }
+
+            TimeSpan gioBatDau = calam.ThoiGianBatDau.Value;
+            TimeSpan gioKetThuc = calam.ThoiGianKetThuc.Value;
+            TimeSpan thoiGianLamViec = gioKetThuc - gioBatDau;
+
+            // Debug: In ra thời gian làm việc để kiểm tra
+            Console.WriteLine("Thời gian làm việc: " + thoiGianLamViec.TotalHours + " hours");
+
+            // Kiểm tra thời gian bắt đầu (phải sau 7:00 sáng)
+            if (gioBatDau < new TimeSpan(7, 0, 0))
+            {
+                ModelState.AddModelError("ThoiGianBatDau", "Thời gian bắt đầu phải sau 7:00 sáng.");
+            }
+
+            // Kiểm tra thời gian kết thúc (phải trước hoặc bằng 22:30 tối)
+            if (gioKetThuc > new TimeSpan(22, 30, 0))
+            {
+                ModelState.AddModelError("ThoiGianKetThuc", "Thời gian kết thúc không được quá 22:30 tối.");
+            }
+
+            // Kiểm tra thời gian làm việc (phải từ 4 đến 8 tiếng)
+            double thoiGianLamViecInHours = thoiGianLamViec.TotalHours;
+            Console.WriteLine("Thời gian làm việc (hours): " + thoiGianLamViecInHours);
+
+            // Kiểm tra nếu là Full-time, thời gian làm việc phải đúng 8 tiếng
+            if (calam.LoaiCa == "fulltime" && thoiGianLamViecInHours != 8)
+            {
+                ModelState.AddModelError("", "Ca làm full-time phải có thời gian làm việc đúng 8 tiếng.");
+            }
+
+            // Kiểm tra nếu là Part-time, mặc định thời gian làm việc là 4 tiếng
+            if (calam.LoaiCa == "parttime" && thoiGianLamViecInHours != 4)
+            {
+                ModelState.AddModelError("", "Ca làm part-time phải có thời gian làm việc đúng 4 tiếng.");
+            }
+
+            // Nếu có lỗi, trả về lại view với thông báo lỗi
+            if (!ModelState.IsValid)
+            {
+                // Đảm bảo giữ lại mã ca nếu có lỗi
+                calam.MaCa = TaoMaCaTuDong(); // Hoặc giữ nguyên giá trị của calam.MaCa
+                return View(calam);
+            }
+
+            // Nếu hợp lệ, tạo mã ca tự động và thêm vào database
+            _QLNhaHangContext.Cas.Add(calam);
+            _QLNhaHangContext.SaveChanges();
+
+            return RedirectToAction("XemDSThongTinCa");
+        }
+
+
+        public IActionResult XoaCaLam (string id)
+        {
+            // Kiểm tra nếu id không hợp lệ
+            if (string.IsNullOrEmpty(id))
+            {
+                ModelState.AddModelError("", "Mã ca không hợp lệ.");
+                return RedirectToAction("XemDSThongTinCa");
+            }
+
+            // Tìm ca làm với mã ca tương ứng
+            var calam = _QLNhaHangContext.Cas.FirstOrDefault(c => c.MaCa == id);
+
+            // Nếu không tìm thấy ca làm, trả về NotFound
+            if (calam == null)
+            {
+                ModelState.AddModelError("", "Ca làm không tồn tại.");
+                return RedirectToAction("XemDSThongTinCa");
+            }
+
+            try
+            {
+                // Xóa ca làm
+                _QLNhaHangContext.Cas.Remove(calam);
+                _QLNhaHangContext.SaveChanges(); // Lưu thay đổi vào cơ sở dữ liệu
+
+                // Thông báo xóa thành công
+                TempData["Message"] = "Ca làm đã được xóa thành công.";
+            }
+            catch (Exception ex)
+            {
+                // Nếu gặp lỗi khi xóa, hiển thị thông báo lỗi
+                ModelState.AddModelError("", "Có lỗi xảy ra khi xóa ca làm: " + ex.Message);
+            }
+
+            // Quay lại trang danh sách ca làm
+            return RedirectToAction("XemDSThongTinCa");
+        }
+
+
+        public IActionResult SuaCalam(string id)
+        {
+            // Giả sử bạn lấy ca làm từ cơ sở dữ liệu
+            var calam = _QLNhaHangContext.Cas.FirstOrDefault(c => c.MaCa == id);
+
+            if (calam == null)
+            {
+                return NotFound();
+            }
+
+            // Trả về view với model đã có dữ liệu
+            return View(calam);
+        }
+
+        [HttpPost]
+
+        public IActionResult SuaCaLam (Ca calam)
+        {
+            // Kiểm tra nếu thời gian không được cung cấp
+            if (!calam.ThoiGianBatDau.HasValue || !calam.ThoiGianKetThuc.HasValue)
+            {
+                ModelState.AddModelError("", "Thời gian bắt đầu và kết thúc không được để trống.");
+                return View(calam);
+            }
+
+            // Lấy giá trị TimeSpan từ nullable
+            TimeSpan gioBatDau = calam.ThoiGianBatDau.Value;
+            TimeSpan gioKetThuc = calam.ThoiGianKetThuc.Value;
+            TimeSpan thoiGianLamViec = gioKetThuc - gioBatDau;
+
+            // Kiểm tra thời gian bắt đầu (phải sau 7:00 sáng)
+            if (gioBatDau < new TimeSpan(7, 0, 0))
+            {
+                ModelState.AddModelError("ThoiGianBatDau", "Thời gian bắt đầu phải sau 7:00 sáng.");
+            }
+
+            // Kiểm tra thời gian kết thúc (phải trước hoặc bằng 22:30 tối)
+            if (gioKetThuc > new TimeSpan(22, 30, 0))
+            {
+                ModelState.AddModelError("ThoiGianKetThuc", "Thời gian kết thúc không được quá 22:30 tối.");
+            }
+
+            // Kiểm tra thời gian làm việc (phải từ 4 đến 8 tiếng)
+            double thoiGianLamViecInHours = thoiGianLamViec.TotalHours;
+
+            // Kiểm tra nếu là Full-time, thời gian làm việc phải đúng 8 tiếng
+            if (calam.LoaiCa == "fulltime" && thoiGianLamViecInHours != 8)
+            {
+                ModelState.AddModelError("", "Ca làm full-time phải có thời gian làm việc đúng 8 tiếng.");
+            }
+            // Kiểm tra nếu là Part-time, thời gian làm việc phải từ 4 đến 8 tiếng
+            else if (calam.LoaiCa == "parttime" && thoiGianLamViecInHours != 4)
+            {
+                ModelState.AddModelError("", "Ca làm part-time phải có thời gian làm việc đúng 4 tiếng.");
+            }
+
+            // Nếu có lỗi, trả về lại view với thông báo lỗi
+            if (!ModelState.IsValid)
+            {
+                return View(calam);
+            }
+
+            _QLNhaHangContext.Cas.Update(calam);
+            _QLNhaHangContext.SaveChanges();
+            return RedirectToAction("XemDSThongTinCa");
+        }
     }
 }
 
