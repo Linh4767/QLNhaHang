@@ -28,6 +28,12 @@
     <link rel="stylesheet" href="~/css/style.css">
     <!-- endinject -->
     <link rel="shortcut icon" href="~/images/favicon.png" />
+    <style>
+        #emailDropdown {
+            max-height: 300px;
+            overflow-y: auto;
+        }
+    </style>
 </head>
 <body class="with-welcome-text">
     <div class="container-scroller">
@@ -132,38 +138,15 @@
                             <i class="icon-mail icon-lg"></i>
                         </a>
                         <div class="dropdown-menu dropdown-menu-right navbar-dropdown preview-list pb-0" aria-labelledby="countDropdown">
+
                             <a class="dropdown-item py-3">
-                                <p class="mb-0 fw-medium float-start">You have 7 unread mails </p>
+                                <p class="mb-0 fw-medium float-start">You have <span id="unreadCount"></span> unread mails </p>
                                 <span class="badge badge-pill badge-primary float-end">View all</span>
                             </a>
                             <div class="dropdown-divider"></div>
-                            <a class="dropdown-item preview-item">
-                                <div class="preview-thumbnail">
-                                    <img src="~/images/faces/face10.jpg" alt="image" class="img-sm profile-pic">
-                                </div>
-                                <div class="preview-item-content flex-grow py-2">
-                                    <p class="preview-subject ellipsis fw-medium text-dark">Marian Garner </p>
-                                    <p class="fw-light small-text mb-0"> The meeting is cancelled </p>
-                                </div>
-                            </a>
-                            <a class="dropdown-item preview-item">
-                                <div class="preview-thumbnail">
-                                    <img src="~/images/faces/face12.jpg" alt="image" class="img-sm profile-pic">
-                                </div>
-                                <div class="preview-item-content flex-grow py-2">
-                                    <p class="preview-subject ellipsis fw-medium text-dark">David Grey </p>
-                                    <p class="fw-light small-text mb-0"> The meeting is cancelled </p>
-                                </div>
-                            </a>
-                            <a class="dropdown-item preview-item">
-                                <div class="preview-thumbnail">
-                                    <img src="~/images/faces/face1.jpg" alt="image" class="img-sm profile-pic">
-                                </div>
-                                <div class="preview-item-content flex-grow py-2">
-                                    <p class="preview-subject ellipsis fw-medium text-dark">Travis Jenkins </p>
-                                    <p class="fw-light small-text mb-0"> The meeting is cancelled </p>
-                                </div>
-                            </a>
+                            <div id="emailDropdown">
+                                <!-- Danh sách email sẽ được chèn vào đây -->
+                            </div>
                         </div>
                     </li>
                     <li class="nav-item dropdown d-none d-lg-block user-dropdown">
@@ -331,6 +314,157 @@
         <!-- Custom js for this page-->
         <script src="~/js/jquery.cookie.js" type="text/javascript"></script>
         <script src="~/js/dashboard.js"></script>
+        @* <script>
+            $(document).ready(function () {
+                // Lấy danh sách email chưa đọc và hiển thị trong dropdown
+                $.ajax({
+                    url: '@Url.Action("GetUnreadEmails", "Home")',  // URL để lấy email chưa đọc
+                    method: 'GET',
+                    dataType: 'json',
+                    beforeSend: function () {
+                        $('#emailDropdown').html('<p>Loading...</p>');  // Hiển thị loading trong dropdown
+                    },
+                    success: function (response) {
+                        // Kiểm tra xem có email chưa đọc hay không
+                        if (Array.isArray(response.data) && response.data.length > 0) {
+                            var unreadCount = response.data.length;
+                            $('#unreadCount').text(unreadCount);  // Cập nhật số lượng email chưa đọc
+
+                            var dropdownContent = '';
+                            // Duyệt qua các email và hiển thị chúng
+                            response.data.forEach(function (email) {
+                                var emailBody = email.body;  // Lấy nội dung email
+
+                                // Tạo HTML cho mỗi email
+                                dropdownContent += `
+                                                <a class="dropdown-item preview-item">
+                                                    <div class="preview-item-content flex-grow py-2">
+                                                        <p class="fw-light small-text mb-0">${emailBody}</p>
+                                                        <button class="btn btn-primary confirm-btn mt-3" data-email-body="${encodeURIComponent(emailBody)}">Confirm</button>
+                                                    </div>
+                                                </a>
+                                                <div class="dropdown-divider"></div>
+                                            `;
+                            });
+
+                            // Thêm các email vào dropdown
+                            $('#emailDropdown').html(dropdownContent);
+                        } else {
+                            $('#emailDropdown').html('<p>No unread emails found.</p>');  // Không có email chưa đọc
+                        }
+                    },
+                    error: function () {
+                        $('#emailDropdown').html('<p>Error fetching emails.</p>');  // Xử lý khi gặp lỗi
+                    }
+                });
+
+                // Hàm xác nhận đặt bàn
+                function confirmReservation(emailBody) {
+                    $.ajax({
+                        url: '@Url.Action("CheckReservationMatch", "Home")',  // URL để kiểm tra khớp đặt bàn
+                        method: 'POST',
+                        data: { emailBody: emailBody },  // Gửi nội dung email lên server
+                        success: function (response) {
+                            console.log(emailBody);
+                            if (response.success) {
+                                alert('Xác nhận thành công!');  // Thông báo khi đặt bàn thành công
+                            } else {
+                                alert('Chưa đặt bàn không thể xác nhận.');  // Thông báo khi không khớp
+                            }
+                        },
+                        error: function () {
+                            alert('Error checking reservation.');  // Thông báo lỗi nếu có
+                        }
+                    });
+                }
+
+                // Sự kiện khi nhấn nút "Confirm"
+                $(document).on('click', '.confirm-btn', function () {
+                    var emailBody = decodeURIComponent($(this).data('email-body'));  // Lấy nội dung email từ data attribute
+                    confirmReservation(emailBody);  // Gọi hàm xác nhận đặt bàn
+                });
+            });
+
+        </script> *@
+        <script>
+            $(document).ready(function () {
+                // Hàm để tải lại danh sách email chưa đọc
+                function loadUnreadEmails() {
+                    $.ajax({
+                        url: '@Url.Action("GetUnreadEmails", "Home")',  // URL để lấy email chưa đọc
+                        method: 'GET',
+                        dataType: 'json',
+                        beforeSend: function () {
+                            $('#emailDropdown').html('<p>Loading...</p>');  // Hiển thị loading trong dropdown
+                        },
+                        success: function (response) {
+                            // Kiểm tra xem có email chưa đọc hay không
+                            if (Array.isArray(response.data) && response.data.length > 0) {
+                                var unreadCount = response.data.length;
+                                $('#unreadCount').text(unreadCount);  // Cập nhật số lượng email chưa đọc
+
+                                var dropdownContent = '';
+                                // Duyệt qua các email và hiển thị chúng
+                                response.data.forEach(function (email) {
+                                    var emailBody = email.body;  // Lấy nội dung email
+
+                                    // Tạo HTML cho mỗi email
+                                    dropdownContent += `
+                                        <a class="dropdown-item preview-item">
+                                            <div class="preview-item-content flex-grow py-2">
+                                                <p class="fw-light small-text mb-0">${emailBody}</p>
+                                                <button class="btn btn-primary confirm-btn mt-3" data-email-body="${encodeURIComponent(emailBody)}">Confirm</button>
+                                            </div>
+                                        </a>
+                                        <div class="dropdown-divider"></div>
+                                    `;
+                                });
+
+                                // Thêm các email vào dropdown
+                                $('#emailDropdown').html(dropdownContent);
+                            } else {
+                                $('#emailDropdown').html('<p>No unread emails found.</p>');  // Không có email chưa đọc
+                            }
+                        },
+                        error: function () {
+                            $('#emailDropdown').html('<p>Error fetching emails.</p>');  // Xử lý khi gặp lỗi
+                        }
+                    });
+                }
+
+                // Gọi hàm để tải email chưa đọc ngay khi trang được tải
+                loadUnreadEmails();
+
+                // Sự kiện khi nhấn nút "Confirm"
+                $(document).on('click', '.confirm-btn', function () {
+                    var emailBody = decodeURIComponent($(this).data('email-body'));  // Lấy nội dung email từ data attribute
+                    confirmReservation(emailBody);  // Gọi hàm xác nhận đặt bàn
+                });
+
+                // Hàm xác nhận đặt bàn
+                function confirmReservation(emailBody) {
+                    $.ajax({
+                        url: '@Url.Action("CheckReservationMatch", "Home")',  // URL để kiểm tra khớp đặt bàn
+                        method: 'POST',
+                        data: { emailBody: emailBody },  // Gửi nội dung email lên server
+                        success: function (response) {
+                            console.log(emailBody);
+                            if (response.success) {
+                                alert('Xác nhận thành công!');  // Thông báo khi đặt bàn thành công
+                                // Gọi lại AJAX để tải lại danh sách email chưa đọc
+                                loadUnreadEmails();  // Gọi lại hàm tải email chưa đọc
+                            } else {
+                                alert('Chưa đặt bàn không thể xác nhận.');  // Thông báo khi không khớp
+                            }
+                        },
+                        error: function () {
+                            alert('Error checking reservation.');  // Thông báo lỗi nếu có
+                        }
+                    });
+                }
+            });
+
+        </script>
     </div>
 </body>
 </html>
