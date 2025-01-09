@@ -860,10 +860,24 @@ namespace QLNhaHang.Controllers
                     else if (ngayDatBan.Date == ngayHT.Date)
                     {
                         // Tính chênh lệch giờ dưới dạng số phút
-                        var diffInMinutes = (ngayHT - ngayDatBan).TotalMinutes;
-                        if (diffInMinutes < 120) // Kiểm tra nếu thời gian đặt ít hơn 2 tiếng (120 phút)
+                        if (ngayDatBan <= ngayHT) // Kiểm tra nếu ngày đặt bàn nhỏ hơn ngày hiện tại
                         {
-                            ModelState.AddModelError("NgayDatBan", "Nếu đặt trong cùng ngày, thời gian đặt phải cách hiện tại ít nhất 2 tiếng!");
+                            ModelState.AddModelError("NgayDatBan", "Thời gian đặt bàn không thể nhỏ hơn thời gian hiện tại!");
+                        }
+                        else
+                        {
+                            // Lấy giờ và phút từ ngayDatBan và ngayHT, bỏ phần giây và mili giây
+                            var ngayDatBanWithoutSeconds = ngayDatBan.AddSeconds(-ngayDatBan.Second).AddMilliseconds(-ngayDatBan.Millisecond);
+                            var ngayHTWithoutSeconds = ngayHT.AddSeconds(-ngayHT.Second).AddMilliseconds(-ngayHT.Millisecond);
+
+                            // Tính khoảng cách thời gian giữa hai đối tượng DateTime
+                            // Tính khoảng cách thời gian giữa hai đối tượng DateTime
+                            var diffInMinutes = Math.Round((ngayDatBanWithoutSeconds - ngayHTWithoutSeconds).TotalMinutes); // Làm tròn xuống để bỏ phần nhỏ
+                            Console.WriteLine($"Khoảng cách thời gian (phút): {diffInMinutes}");
+                            if (diffInMinutes < 120) // Nếu khoảng cách nhỏ hơn 120 phút
+                            {
+                                ModelState.AddModelError("NgayDatBan", "Nếu đặt trong cùng ngày, thời gian đặt phải cách hiện tại ít nhất 2 tiếng!");
+                            }
                         }
                     }
                 }
