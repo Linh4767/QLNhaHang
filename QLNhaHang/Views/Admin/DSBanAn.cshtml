@@ -53,6 +53,9 @@
             color: black;
         }
     </style>
+    <!-- Thêm vào phần <head> -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
 
 </head>
 <body>
@@ -84,6 +87,10 @@
                 <option value="2" selected="@(ViewData["CurrentFloor"]?.ToString() == "2")">Lầu 2</option>
                 <option value="3" selected="@(ViewData["CurrentFloor"]?.ToString() == "3")">Lầu 3</option>
             </select>
+            <div class="d-flex align-items-center">
+                <!-- DateTimePicker -->
+                <input type="text" id="datePicker" class="form-control me-2" value="@ViewData["SelectedDate"]" onchange="filterByDate()" />
+            </div>
             <button class="btn btn-success" id="btnAdd" onclick="addNewTable()">Thêm mới</button>
         </div>
 
@@ -108,17 +115,35 @@
     </div>
 
     <script>
-        function filterByFloor() {
-            const floor = document.getElementById("floorSelect").value;
-            const url = `@Url.Action("DSBanAn", "Admin")?floor=${encodeURIComponent(floor)}`;
-            window.location.href = url;
-        }
-
+        document.addEventListener("DOMContentLoaded", function () {
+            flatpickr("#datePicker", {
+                dateFormat: "m/d/Y", // Định dạng tháng/ngày/năm
+                defaultDate: "@ViewData["SelectedDate"]" // Ngày mặc định
+            });
+        });
         function addNewTable() {
             const floor = document.getElementById("floorSelect").value;
             const url = `@Url.Action("ThemBan", "Admin")?floor=${encodeURIComponent(floor)}`;
             window.location.href = url;
         }
+
+        function filterByFloor() {
+            const floor = document.getElementById("floorSelect").value;
+            const selectedDate = document.getElementById("datePicker").value || new Date().toISOString().split("T")[0];
+            const url = `@Url.Action("DSBanAn", "Admin")?floor=${encodeURIComponent(floor)}&date=${encodeURIComponent(selectedDate)}`;
+            window.location.href = url;
+        }
+
+        function filterByDate() {
+            const selectedDate = document.getElementById("datePicker").value;
+            const floor = document.getElementById("floorSelect").value || 1;
+            if (!selectedDate) {
+                return; // Nếu không có ngày được chọn, không thực hiện gì cả
+            }
+            const url = `@Url.Action("DSBanAn", "Admin")?floor=${encodeURIComponent(floor)}&date=${encodeURIComponent(selectedDate)}`;
+            window.location.href = url;
+        }
+
         // Ẩn thông báo sau 3 giây
         setTimeout(function () {
             var them = document.getElementById("them");
