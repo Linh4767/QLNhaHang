@@ -13,59 +13,50 @@
     <title>Star Admin2 </title>
 </head>
 <body class="with-welcome-text">
-    @if (TempData["ThongBaoThemLoi"] != null)
+    @if (TempData["ThongBaoSuaLoi"] != null)
     {
         <div id="themLoi" class="alert alert-danger">
-            @TempData["ThongBaoThemLoi"]
+            @TempData["ThongBaoSuaLoi"]
         </div>
     }
-    @if (TempData["ThongBaoTrong"] != null)
+    @if (TempData["DoiTenAnh"] != null)
     {
-        <div id="tbTrong" class="alert alert-warning">
-            @TempData["ThongBaoTrong"]
+        <div id="doiTenAnh" class="alert alert-danger">
+            @TempData["DoiTenAnh"]
         </div>
     }
-    @if (TempData["DinhDangAnhLoi"] != null)
+    @if (TempData["XoaLoi"] != null)
     {
-        <div id="tbDinhDangAnhLoi" class="alert alert-warning">
-            @TempData["DinhDangAnhLoi"]
+        <div id="xoaLoi" class="alert alert-danger">
+            @TempData["XoaLoi"]
         </div>
     }
-    @*  @if (TempData["ThongBaoVuotQuaGH"] != null)
-    {
-    <div id="tbVuotQuaGH" class="alert alert-warning">
-    @TempData["ThongBaoVuotQuaGH"]
-    </div>
-    } *@
     <script>
         // Ẩn thông báo sau 3 giây
         setTimeout(function () {
-            var them = document.getElementById("themLoi");
-            var dinhDangAnhLoi = document.getElementById("tbDinhDangAnhLoi");
-            var tbTrong = document.getElementById("tbTrong");
-            // var tbVuotQuaGH = document.getElementById("tbVuotQuaGH");
-            if (them) {
-                them.style.display = "none";
+            var doiTenAnhLoi = document.getElementById("doiTenAnh");
+            var xoaLoi = document.getElementById("xoaLoi");
+            if (doiTenAnhLoi) {
+                doiTenAnhLoi.style.display = "none";
             }
-            if (tbTrong) {
-                tbTrong.style.display = "none";
-            }
-            if (dinhDangAnhLoi) {
-                dinhDangAnhLoi.style.display = "none";
+            if (xoaLoi) {
+                xoaLoi.style.display = "none";
             }
         }, 3000);
     </script>
+
     <div id="TenMonAnErrorContainer"></div>
     <div class="col-12 grid-margin">
         <div class="card">
             <div class="card-body">
                 <h4 class="card-title">Quản lý món ăn</h4>
-                <form class="form-sample" id="monAnForm" method="post" enctype="multipart/form-data" asp-controller="Admin" asp-action="ThemMonAn">
+                <form class="form-sample" id="monAnForm" method="post" enctype="multipart/form-data" asp-controller="Admin" asp-action="SuaMonAn">
                     <div asp-validation-summary="ModelOnly" class="text-danger"></div>
-                    <p class="card-description"> Thêm món ăn </p>
+                    <p class="card-description"> Sửa món ăn </p>
                     <div class="row">
                         <div class="col-md-12">
                             <div class="form-group row">
+                                <input type="hidden" asp-for="MaMonAn" id="maMonAnInput" />
                                 @* Nhớ thêm asp-for vào mỗi label và input theo trường dữ liệu của table*@
                                 <label class="col-sm-3 col-form-label" asp-for="TenMonAn">Tên món ăn</label>
                                 <div class="col-sm-9">
@@ -140,24 +131,24 @@
                                 <div class="col-sm-3">
                                     <div class="form-check">
                                         <label class="form-check-label">
-                                            <input type="radio" class="form-check-input" id="membershipRadios1" value="0" checked asp-for="TrangThai">  Đang bán
+                                            <input type="radio" class="form-check-input" id="membershipRadios1" value="0" asp-for="TrangThai">  Đang bán
                                         </label>
                                     </div>
                                 </div>
-                                @* <div class="col-sm-3">
-                                <div class="form-check">
-                                <label class="form-check-label">
-                                <input type="radio" class="form-check-input"  id="membershipRadios2" value="1" asp-for="TrangThai"> Tạm Ngưng Bán
-                                </label>
-                                </div>
+                                <div class="col-sm-3">
+                                    <div class="form-check">
+                                        <label class="form-check-label">
+                                            <input type="radio" class="form-check-input" id="membershipRadios2" value="1" asp-for="TrangThai"> Tạm Ngưng Bán
+                                        </label>
+                                    </div>
                                 </div>
                                 <div class="col-sm-3">
-                                <div class="form-check">
-                                <label class="form-check-label">
-                                <input type="radio" class="form-check-input" id="membershipRadios2" value="2" asp-for="TrangThai"> Ngừng Vĩnh Viễn
-                                </label>
+                                    <div class="form-check">
+                                        <label class="form-check-label">
+                                            <input type="radio" class="form-check-input" id="membershipRadios2" value="2" asp-for="TrangThai"> Ngừng Vĩnh Viễn
+                                        </label>
+                                    </div>
                                 </div>
-                                </div> *@
                             </div>
                         </div>
                     </div>
@@ -236,6 +227,14 @@
                                 </div>
                             </div>
                         </div>
+                        <!-- Hiển thị ảnh cũ nếu có -->
+                        @if (!string.IsNullOrEmpty(ViewBag.CurrentImage))
+                        {
+                            <div class="form-group row">
+                                <label>Ảnh Cũ</label>
+                                <img src="@ViewBag.CurrentImage" alt="Ảnh cũ" style="max-width: 200px; height: auto;" />
+                            </div>
+                        }
                         @* <div class="row">
                         <div class="col-md-12">
                         <div class="form-group row">
@@ -246,7 +245,7 @@
                         </div>
                         </div> *@
                     </div>
-                    <button type="submit" id="submitBtn" class="btn btn-primary me-2">Thêm Món Ăn</button>
+                    <button type="submit" id="submitBtn" class="btn btn-primary me-2">Sửa Món Ăn</button>
                     <a class="btn btn-light" asp-action="DanhSachMonAn_Admin" asp-controller="Admin">Quay Lại Danh Sách</a>
                 </form>
             </div>
@@ -304,12 +303,6 @@
                 const validExtensions = ["jpg", "jpeg", "png", "gif"];
                 fileInfoInput.value = file ? file.name : ""; // Hiển thị tên file nếu có
 
-                if (!file) {
-                    fileErrorSpan.textContent = "Vui lòng chọn một file ảnh.";
-                    submitBtn.disabled = true;
-                    return;
-                }
-
                 const fileExtension = file.name.split('.').pop().toLowerCase();
                 if (!validExtensions.includes(fileExtension)) {
                     fileErrorSpan.textContent = "Chỉ chấp nhận file ảnh (jpg, jpeg, png, gif).";
@@ -338,7 +331,7 @@
                 document.getElementById("GiaError").textContent = giaError || "";
 
                 // Kiểm tra trạng thái nút submit
-                if (tenMonAnError || moTaError || !tenMonAn || !moTa || !fileInput.files[0] || giaError || !gia) {
+                if (tenMonAnError || moTaError || !tenMonAn || !moTa || giaError || !gia) {
                     submitBtn.disabled = true;
                 } else {
                     submitBtn.disabled = false;
@@ -366,15 +359,16 @@
     <script>
         $(document).ready(function () {
             let isNameExist = false; // Biến kiểm tra trạng thái tên món ăn
-
+            var maMonAn = $('#maMonAnInput').val();
             // Kiểm tra tên món ăn khi rời khỏi input
             $('#TenMonAn').on('blur', function () {
                 const tenMonAn = $(this).val().trim(); // Loại bỏ khoảng trắng thừa
+                
                 if (tenMonAn) {
                     $.ajax({
-                        url: '/Admin/KiemTraTenMonAn', // Đảm bảo đường dẫn đúng
+                        url: '/Admin/KiemTraTenMonAnTrung', // Đảm bảo đường dẫn đúng
                         type: 'POST',
-                        data: { tenMonAn: tenMonAn },
+                        data: { tenMonAn: tenMonAn, maMonAn: maMonAn },
                         success: function (response) {
                             if (response.isExist) {
                                 // Nếu tên món ăn trùng, hiển thị lỗi
@@ -410,11 +404,11 @@
                 // Kiểm tra nếu tên món ăn trùng
                 if (isNameExist) {
                     e.preventDefault(); // Ngừng submit nếu có lỗi trùng
-                    const errorHtml = `<div id="themLoi" class="alert alert-danger">Tên món ăn đã tồn tại. Vui lòng chọn tên khác.</div>`;
+                    const errorHtml = `<div id="suaLoi" class="alert alert-danger">Tên món ăn đã tồn tại. Vui lòng chọn tên khác.</div>`;
                     $('#TenMonAnErrorContainer').html(errorHtml);
 
                     // Tự động ẩn thông báo sau 3 giây
-                    setTimeout(() => $('#themLoi').fadeOut(), 3000);
+                    setTimeout(() => $('#suaLoi').fadeOut(), 3000);
 
                     return;
                 }
