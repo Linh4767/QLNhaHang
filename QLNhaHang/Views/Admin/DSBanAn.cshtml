@@ -81,17 +81,34 @@
         <h2 class="mb-4 text-center">Quản lý Bàn</h2>
 
         <!-- Chọn tầng -->
-        <div class="d-flex justify-content-between align-items-center mb-3">
-            <select class="form-select w-25" id="floorSelect" onchange="filterByFloor()">
-                <option value="1" selected="@(ViewData["CurrentFloor"]?.ToString() == "1")">Lầu 1</option>
-                <option value="2" selected="@(ViewData["CurrentFloor"]?.ToString() == "2")">Lầu 2</option>
-                <option value="3" selected="@(ViewData["CurrentFloor"]?.ToString() == "3")">Lầu 3</option>
-            </select>
-            <div class="d-flex align-items-center">
-                <!-- DateTimePicker -->
-                <input type="text" id="datePicker" class="form-control me-2" value="@ViewData["SelectedDate"]" onchange="filterByDate()" />
+        <div class="d-flex flex-wrap justify-content-between align-items-center mb-3">
+            <div class="container">
+                <div class="row g-3 align-items-center">
+                    <!-- Select Floor -->
+                    <div class="col-12 col-md-4">
+                        <select class="form-select" id="floorSelect" onchange="filterByFloor()">
+                            <option value="1" selected="@(ViewData["CurrentFloor"]?.ToString() == "1")">Lầu 1</option>
+                            <option value="2" selected="@(ViewData["CurrentFloor"]?.ToString() == "2")">Lầu 2</option>
+                            <option value="3" selected="@(ViewData["CurrentFloor"]?.ToString() == "3")">Lầu 3</option>
+                        </select>
+                    </div>
+
+                    <!-- DateTimePicker -->
+                    <div class="col-12 col-md-4">
+                        <div class="input-group">
+                            <span class="input-group-text">
+                                <i class="icon-calendar"></i>
+                            </span>
+                            <input type="text" id="datePicker" class="form-control" value="@ViewData["SelectedDate"]" onchange="filterByDate()" />
+                        </div>
+                    </div>
+                    <!-- Add Button -->
+                    <div class="col-12 col-md-4 text-center text-md-start">
+                        <button class="btn btn-success w-100" id="btnAdd" onclick="addNewTable()">Thêm mới</button>
+                    </div>
+                </div>
             </div>
-            <button class="btn btn-success" id="btnAdd" onclick="addNewTable()">Thêm mới</button>
+
         </div>
 
         <!-- Danh sách bàn hiển thị dạng lưới -->
@@ -113,7 +130,6 @@
             }
         </div>
     </div>
-
     <script>
         document.addEventListener("DOMContentLoaded", function () {
             flatpickr("#datePicker", {
@@ -160,6 +176,5 @@
             }
         }, 3000);
     </script>
-
 </body>
 </html>
