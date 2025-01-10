@@ -137,6 +137,23 @@
     </div>
     <script>
         document.addEventListener("DOMContentLoaded", function () {
+            const storedDate = localStorage.getItem('selectedDate');
+            const storedFloor = localStorage.getItem('floor');
+            console.log("storeDate" + storedDate);
+            if (storedDate && storedFloor) {
+                
+                // Cập nhật trạng thái nút sau khi đã lấy giá trị từ localStorage
+                const selectedDateTime = parseDate(storedDate);
+                const currentDate = new Date();
+                const buttonList = document.querySelectorAll(".btnDB");
+
+                currentDate.setHours(0, 0, 0, 0);
+                selectedDateTime.setHours(0, 0, 0, 0);
+
+                buttonList.forEach((button) => {
+                    toggleButtonDisplay(selectedDateTime, currentDate, button);
+                });
+            }
             flatpickr("#datePicker", {
                 dateFormat: "m/d/Y", // Định dạng tháng/ngày/năm
                 defaultDate: "@ViewData["SelectedDate"]" // Ngày mặc định
@@ -151,8 +168,18 @@
         function filterByFloor() {
             const floor = document.getElementById("floorSelect").value;
             const selectedDate = document.getElementById("datePicker").value || new Date().toISOString().split("T")[0];
+            const selectedDateTime = parseDate(selectedDate);
+            const currentDate = new Date();
+            var btnDatBan = document.getElementById("btnDatBan");
+            const buttonList = document.querySelectorAll(".btnDB");
+            currentDate.setHours(0, 0, 0, 0);
+            selectedDateTime.setHours(0, 0, 0, 0);
             const url = `@Url.Action("DSBanAn", "Admin")?floor=${encodeURIComponent(floor)}&date=${encodeURIComponent(selectedDate)}`;
             window.location.href = url;
+
+            buttonList.forEach((button) => {
+                toggleButtonDisplay(selectedDateTime, currentDate, button);
+            });
         }
         function parseDate(dateString) {
             const parts = dateString.split('/'); // Tách chuỗi ngày theo dấu "/"
@@ -185,15 +212,25 @@
             if (!selectedDate) {
                 return; // Nếu không có ngày được chọn, không thực hiện gì cả
             }
+            const url = `@Url.Action("DSBanAn", "Admin")?floor=${encodeURIComponent(floor)}&date=${encodeURIComponent(selectedDate)}`;
+            window.location.href = url;
             buttonList.forEach((button) => {
                 toggleButtonDisplay(selectedDateTime, currentDate, button);
             });
-            const url = `@Url.Action("DSBanAn", "Admin")?floor=${encodeURIComponent(floor)}&date=${encodeURIComponent(selectedDate)}`;
-            window.location.href = url;
             console.log("Ngày hiện tại:", currentDate);
             console.log("Ngày được chọn:", selectedDateTime);
         }
+        function saveToLocalStorage() {
+            const selectedDate = document.getElementById("datePicker").value;
+            const floor = document.getElementById("floorSelect").value;
 
+            localStorage.setItem('selectedDate', selectedDate);  // Lưu ngày vào localStorage
+            localStorage.setItem('floor', floor);  // Lưu tầng vào localStorage
+        }
+
+        // Gọi hàm này khi người dùng thay đổi ngày hoặc tầng
+        document.getElementById("datePicker").addEventListener('change', saveToLocalStorage);
+        document.getElementById("floorSelect").addEventListener('change', saveToLocalStorage);
         // Ẩn thông báo sau 3 giây
         setTimeout(function () {
             var them = document.getElementById("them");
@@ -209,6 +246,7 @@
                 db.style.display = "none";
             }
         }, 3000);
+
     </script>
 </body>
 </html>
