@@ -1100,8 +1100,15 @@
                 }
 
                 const isSameDay = currentDate.toDateString() === selectedDate.toDateString();
+                currentDate.setSeconds(0);
+                currentDate.setMilliseconds(0);
+                selectedDate.setSeconds(0);
+                selectedDate.setMilliseconds(0);
                 if (isSameDay) {
+                    // Tính khoảng cách giữa thời gian đặt và hiện tại (theo giờ)
                     const diffInHours = (selectedDate - currentDate) / (1000 * 60 * 60);
+
+                    console.log(`Difference in Hours: ${diffInHours}`);
                     if (diffInHours < 2) {
                         return "Nếu đặt trong cùng ngày, thời gian đặt phải cách hiện tại ít nhất 2 tiếng!";
                     }
