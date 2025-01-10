@@ -1,5 +1,6 @@
-﻿@model IEnumerable<QLNhaHang.Models.MonAn>
-
+﻿@model IPagedList<QLNhaHang.Models.MonAn>
+@using X.PagedList.Mvc.Core;
+@using X.PagedList;
 <table class="table table-striped table-hover">
     <thead>
         <tr>
@@ -38,9 +39,18 @@
                     }
                 </td>
                 <td>
-                    <a class="btn btn-warning btn-sm" asp-controller="Admin" asp-action="SuaLoaiMA" asp-route-maLoaiMA="@item.MaMonAn">Sửa</a>
+                    <a class="btn btn-warning btn-sm" asp-controller="Admin" asp-action="SuaMonAn" asp-route-maMonAn="@item.MaMonAn">Sửa</a>
                 </td>
             </tr>
         }
     </tbody>
 </table>
+@Html.PagedListPager(Model, page => Url.Action("TimKiemTenMonAn",
+                                    new { page, searchQuery = ViewBag.SearchQuery }), new X.PagedList.Mvc.Core.PagedListRenderOptions
+                                {
+                                    ContainerDivClasses = new[] { "navigation" },
+                                    LiElementClasses = new[] { "page-item" },
+                                    PageClasses = new[] { "page-link" },
+                                    ActiveLiElementClass = "active" // Đánh dấu trang hiện tại
+                                }
+                        )

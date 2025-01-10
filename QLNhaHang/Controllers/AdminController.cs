@@ -609,7 +609,7 @@ namespace QLNhaHang.Controllers
         /// CRUD Ca Làm.
         /// </summary>
         /// <returns></returns>
-        
+
         public string TaoMaCaTuDong()
         {
             // Lấy danh sách ca làm hiện có
@@ -725,7 +725,7 @@ namespace QLNhaHang.Controllers
         }
 
 
-        public IActionResult XoaCaLam (string id)
+        public IActionResult XoaCaLam(string id)
         {
             // Kiểm tra nếu id không hợp lệ
             if (string.IsNullOrEmpty(id))
@@ -923,13 +923,12 @@ namespace QLNhaHang.Controllers
          * Quản lý món ăn
          */
         //Danh sách món ăn
-        public IActionResult DanhSachMonAn_Admin()
+        public IActionResult DanhSachMonAn_Admin(int? page)
         {
-            var dsMA = _QLNhaHangContext.MonAns.Include(lma => lma.LoaiMaNavigation);
+            var dsMA = _QLNhaHangContext.MonAns.Include(lma => lma.LoaiMaNavigation).ToPagedList(page ?? 1, 5);
             TempData.Remove("HinhAnh");
             return View(dsMA);
         }
-        //Tạo mã tự động
         //Tạo mã tự động
         public string TaoMaMATuDong()
         {
@@ -987,11 +986,12 @@ namespace QLNhaHang.Controllers
 
             // Tạo stream cho file
             var fileStream = HinhAnh.OpenReadStream();
+            var uniquePublicId = fileNameWithoutExtension + "-" + DateTime.Now.ToString("yyyyMMddHHmmss");
             var uploadParams = new ImageUploadParams()
             {
                 File = new FileDescription(fileName, fileStream),
                 Folder = "QLNhaHang",
-                PublicId = fileNameWithoutExtension
+                PublicId = uniquePublicId
             };
 
             // Thực hiện upload lên Cloudinary
@@ -1011,6 +1011,315 @@ namespace QLNhaHang.Controllers
 
             // Trả về View
             return RedirectToAction("DanhSachMonAn_Admin");
+        }
+
+        //Sửa món ăn
+        public IActionResult SuaMonAn(string maMonAn)
+        {
+            Console.WriteLine(maMonAn);
+            var danhMucMAList = _QLNhaHangContext.LoaiMonAns.ToList();
+            ViewBag.danhMucMAList = new SelectList(danhMucMAList, "MaLoaiMa", "TenLoaiMa");
+            var monAn = _QLNhaHangContext.MonAns.Where(ma => ma.MaMonAn == maMonAn).FirstOrDefault();
+            ViewBag.CurrentImage = monAn?.HinhAnh ?? string.Empty;
+            return View(monAn);
+        }
+        //[HttpPost]
+        //public async Task<IActionResult> SuaMonAn(MonAn monAn, IFormFile HinhAnh)
+        //{
+        //    ModelState.Remove("MaMonAn");
+        //    ModelState.Remove("HinhAnh");
+        //    // Lưu URL ảnh cũ
+        //    var oldImageUrl = _QLNhaHangContext.MonAns
+        //                    .Where(ma => ma.MaMonAn == monAn.MaMonAn)
+        //                    .Select(ma => ma.HinhAnh)
+        //                    .FirstOrDefault();
+        //    var oldMonAn = _QLNhaHangContext.MonAns
+        //                    .Where(ma => ma.MaMonAn == monAn.MaMonAn)
+        //                    .FirstOrDefault();
+
+        //    // Kiểm tra xem có ảnh mới không
+        //    if (HinhAnh != null)
+        //    {
+        //        // Lấy đuôi file ảnh từ tên file được upload
+        //        var fileExtension = Path.GetExtension(HinhAnh.FileName).ToLower();
+
+        //        // Đổi tên ảnh theo tên món ăn (loại bỏ đuôi file gốc nếu có)
+        //        var fileNameWithoutExtension = monAn.TenMonAn.Replace(" ", "-").ToLower(); // Tên món ăn, không có đuôi
+        //        var fileName = fileNameWithoutExtension + fileExtension;  // Thêm đuôi file vào cuối
+
+        //        // Tạo Cloudinary account từ thông tin cấu hình
+        //        var account = new Account(
+        //            _cloudinarySettings.CloudName,
+        //            _cloudinarySettings.ApiKey,
+        //            _cloudinarySettings.ApiSecret
+        //        );
+        //        var cloudinary = new Cloudinary(account);
+
+        //        // Nếu có ảnh cũ, xóa ảnh trên Cloudinary
+        //        if (!string.IsNullOrEmpty(oldImageUrl))
+        //        {
+        //            var oldImagePublicId = oldImageUrl.Split('/').Last().Split('?')[0];
+        //            var deleteParams = new DeletionParams(oldImagePublicId);
+        //            var deletionResult = await cloudinary.DestroyAsync(deleteParams);
+
+        //            if (deletionResult.StatusCode != HttpStatusCode.OK)
+        //            {
+        //                // Xử lý lỗi nếu việc xóa ảnh cũ không thành công
+        //                TempData["DoiTenAnh"] = "Không thể xóa ảnh cũ trên Cloudinary.";
+        //                var danhMucMAList = _QLNhaHangContext.LoaiMonAns.ToList();
+        //                ViewBag.danhMucMAList = new SelectList(danhMucMAList, "MaLoaiMa", "TenLoaiMa");
+        //                return View(monAn);
+        //            }
+        //        }
+
+        //        // Tạo stream cho file mới
+        //        var fileStream = HinhAnh.OpenReadStream();
+        //        var uploadParams = new ImageUploadParams()
+        //        {
+        //            File = new FileDescription(fileName, fileStream),
+        //            Folder = "QLNhaHang",
+        //            PublicId = fileNameWithoutExtension
+        //        };
+
+        //        // Thực hiện upload ảnh mới lên Cloudinary
+        //        var uploadResult = await cloudinary.UploadAsync(uploadParams);
+
+        //        // Kiểm tra kết quả upload
+        //        if (uploadResult.StatusCode == HttpStatusCode.OK)
+        //        {
+        //            // Nếu upload thành công, lưu URL ảnh mới vào đối tượng MonAn
+        //            monAn.HinhAnh = uploadResult.SecureUrl.ToString();
+        //        }
+        //    }
+        //    else
+        //    {
+        //        // Nếu không có ảnh mới, giữ nguyên ảnh cũ
+        //        monAn.HinhAnh = oldImageUrl;
+        //        if (oldMonAn.TenMonAn != monAn.TenMonAn && !string.IsNullOrEmpty(oldImageUrl))
+        //        {
+        //            var account = new Account(
+        //                _cloudinarySettings.CloudName,
+        //                _cloudinarySettings.ApiKey,
+        //                _cloudinarySettings.ApiSecret
+        //            );
+        //            var cloudinary = new Cloudinary(account);
+
+        //            var oldImagePublicId = oldImageUrl
+        //                                    .Split(new[] { "/image/upload/" }, StringSplitOptions.None).Last() // Lấy phần sau "/image/upload/"
+        //                                    .Split('?')[0] // Loại bỏ query string (nếu có)
+        //                                    .Split('.')[0]; // Loại bỏ đuôi file (.jpg, .png, ...)
+        //            var newFileNameWithoutExtension = monAn.TenMonAn.Replace(" ", "-").ToLower();
+        //            var renameParams = new RenameParams(oldImagePublicId, "QLNhaHang/" + newFileNameWithoutExtension);
+
+        //            var renameResult = await cloudinary.RenameAsync(renameParams);
+
+        //            if (renameResult.StatusCode == HttpStatusCode.OK)
+        //            {
+        //                oldMonAn.HinhAnh = renameResult.SecureUrl;
+        //            }
+        //            else
+        //            {
+        //                var danhMucMAList = _QLNhaHangContext.LoaiMonAns.ToList();
+        //                ViewBag.danhMucMAList = new SelectList(danhMucMAList, "MaLoaiMa", "TenLoaiMa");
+        //                TempData["XoaLoi"] = "Không thể xóa ảnh cũ trên Cloudinary.";
+        //                return View(monAn);
+        //            }
+        //        }               
+        //    }
+        //    // Lưu monAn vào cơ sở dữ liệu (nếu cần)
+        //    monAn.TenMonAn = VietHoa(monAn.TenMonAn);
+        //    _QLNhaHangContext.MonAns.Update(monAn);
+        //    await _QLNhaHangContext.SaveChangesAsync();
+
+        //    // Trả về View
+        //    return RedirectToAction("DanhSachMonAn_Admin");
+        //}
+        [HttpPost]
+        public JsonResult KiemTraTenMonAnTrung(string tenMonAn, string maMonAn)
+        {
+            bool isExist = _QLNhaHangContext.MonAns.Any(ma => ma.MaMonAn != maMonAn && ma.TenMonAn.ToLower() == tenMonAn.ToLower());
+
+            // Nếu trùng tên, lưu thông báo vào TempData
+            if (isExist)
+            {
+                TempData["ThongBaoThemLoi"] = "Tên món ăn đã tồn tại.";
+            }
+
+            return Json(new { isExist, errorMessage = TempData["ThongBaoThemLoi"] });
+        }
+        [HttpPost]
+        public async Task<IActionResult> SuaMonAn(MonAn monAn, IFormFile HinhAnh)
+        {
+            ModelState.Remove("MaMonAn");
+            ModelState.Remove("HinhAnh");
+
+            // Truy vấn món ăn cũ từ database
+            var oldMonAn = await _QLNhaHangContext.MonAns
+                .Where(ma => ma.MaMonAn == monAn.MaMonAn)
+                .FirstOrDefaultAsync();
+
+            if (oldMonAn == null)
+            {
+                TempData["Error"] = "Không tìm thấy món ăn!";
+                return RedirectToAction("DanhSachMonAn_Admin");
+            }
+
+            // Lưu URL ảnh cũ
+            var oldImageUrl = oldMonAn.HinhAnh;
+
+            // Kiểm tra nếu có ảnh mới
+            // Kiểm tra nếu có ảnh mới
+            if (HinhAnh != null)
+            {
+                // Tạo tên file mới
+                var fileExtension = Path.GetExtension(HinhAnh.FileName).ToLower();
+                var fileNameWithoutExtension = monAn.TenMonAn.Replace(" ", "-").ToLower(); // Tên món ăn, không có đuôi
+                var uniquePublicId = fileNameWithoutExtension + "-" + DateTime.Now.ToString("yyyyMMddHHmmss"); // Tạo publicId duy nhất
+
+                var fileName = uniquePublicId + fileExtension;  // Thêm đuôi file vào cuối
+
+                // Tạo Cloudinary account từ thông tin cấu hình
+                var account = new Account(
+                    _cloudinarySettings.CloudName,
+                    _cloudinarySettings.ApiKey,
+                    _cloudinarySettings.ApiSecret
+                );
+                var cloudinary = new Cloudinary(account);
+
+                // Xóa ảnh cũ trên Cloudinary nếu tồn tại
+                if (!string.IsNullOrEmpty(oldImageUrl))
+                {
+                    var oldImagePublicId = oldImageUrl
+                                        .Split(new[] { "/image/upload/" }, StringSplitOptions.None).Last()
+                                        .Split(new[] { '/' }, 2).Last().Split('.')[0];
+
+
+                    // Kiểm tra `oldImagePublicId`
+                    Console.WriteLine($"PublicId of old image: {oldImagePublicId}");
+
+                    // Gọi API để xóa ảnh cũ
+                    var deleteParams = new DeletionParams(oldImagePublicId);
+                    var deletionResult = await cloudinary.DestroyAsync(deleteParams);
+
+                    // Log kết quả trả về từ API
+                    Console.WriteLine($"Deletion Result: {deletionResult?.StatusCode}");
+                    Console.WriteLine($"Deletion Error (if any): {deletionResult?.Error?.Message}");
+
+                    // Kiểm tra kết quả khi xóa ảnh
+                    if (deletionResult.StatusCode != HttpStatusCode.OK)
+                    {
+                        TempData["DoiTenAnh"] = $"Không thể xóa ảnh cũ trên Cloudinary. Lỗi: {deletionResult?.Error?.Message}";
+                        var danhMucMAList = _QLNhaHangContext.LoaiMonAns.ToList();
+                        ViewBag.danhMucMAList = new SelectList(danhMucMAList, "MaLoaiMa", "TenLoaiMa");
+                        return View(monAn);
+                    }
+                }
+
+                // Upload ảnh mới lên Cloudinary
+                var fileStream = HinhAnh.OpenReadStream();
+                var uploadParams = new ImageUploadParams()
+                {
+                    File = new FileDescription(fileName, fileStream),
+                    Folder = "QLNhaHang",
+                    PublicId = uniquePublicId  // Sử dụng publicId duy nhất
+                };
+
+                // Thực hiện upload lên Cloudinary
+                var uploadResult = await cloudinary.UploadAsync(uploadParams);
+
+                // Kiểm tra kết quả upload
+                if (uploadResult.StatusCode == HttpStatusCode.OK)
+                {
+                    // Nếu upload thành công, lưu URL vào đối tượng MonAn
+                    monAn.HinhAnh = uploadResult.SecureUrl.ToString();
+                }
+            }
+            else
+            {
+                // Nếu không có ảnh mới, kiểm tra xem tên món ăn có thay đổi không
+                if (oldMonAn.TenMonAn != monAn.TenMonAn && !string.IsNullOrEmpty(oldImageUrl))
+                {
+                    var account = new Account(
+                        _cloudinarySettings.CloudName,
+                        _cloudinarySettings.ApiKey,
+                        _cloudinarySettings.ApiSecret
+                    );
+                    var cloudinary = new Cloudinary(account);
+
+                    // Trích xuất PublicId từ URL ảnh cũ
+                    var oldImagePublicId = oldImageUrl
+                                       .Split(new[] { "/image/upload/" }, StringSplitOptions.None).Last()
+                                       .Split(new[] { '/' }, 2).Last().Split('.')[0];
+
+                    // Đổi tên ảnh cũ với tên mới (sử dụng tên món ăn mới)
+                    var newFileNameWithoutExtension = monAn.TenMonAn.Replace(" ", "-").ToLower();
+                    var newUniquePublicId = newFileNameWithoutExtension + "-" + DateTime.Now.ToString("yyyyMMddHHmmss");
+                    var renameParams = new RenameParams(oldImagePublicId, $"QLNhaHang/{newUniquePublicId}");
+
+                    var renameResult = await cloudinary.RenameAsync(renameParams);
+
+                    // Kiểm tra kết quả đổi tên
+                    if (renameResult.StatusCode != HttpStatusCode.OK)
+                    {
+                        TempData["XoaLoi"] = $"Không thể đổi tên ảnh trên Cloudinary. Lỗi: {renameResult?.Error?.Message}";
+                        var danhMucMAList = _QLNhaHangContext.LoaiMonAns.ToList();
+                        ViewBag.danhMucMAList = new SelectList(danhMucMAList, "MaLoaiMa", "TenLoaiMa");
+                        return View(monAn);
+                    }
+
+                    // Cập nhật URL ảnh mới cho đối tượng `oldMonAn`
+                    oldMonAn.HinhAnh = renameResult.SecureUrl.ToString();
+                    monAn.HinhAnh = oldMonAn.HinhAnh;
+                }
+                else if(oldMonAn.TenMonAn == monAn.TenMonAn && !string.IsNullOrEmpty(oldImageUrl))
+                {
+                    // Nếu không đổi tên ảnh, giữ nguyên URL ảnh cũ
+                    oldMonAn.HinhAnh = oldImageUrl;
+                    monAn.HinhAnh = oldMonAn.HinhAnh;
+                }
+            }
+
+            // Cập nhật các thuộc tính khác của món ăn
+            oldMonAn.TenMonAn = VietHoa(monAn.TenMonAn);
+            oldMonAn.Gia = monAn.Gia;
+            oldMonAn.LoaiMa = monAn.LoaiMa;
+            oldMonAn.MoTa = monAn.MoTa;
+            oldMonAn.TrangThai = monAn.TrangThai;
+            oldMonAn.HinhAnh = monAn.HinhAnh;
+            // Lưu thay đổi vào cơ sở dữ liệu
+            await _QLNhaHangContext.SaveChangesAsync();
+
+            // Trả về View
+            return RedirectToAction("DanhSachMonAn_Admin");
+        }
+
+        //Tìm kiếm món ăn
+        [HttpGet]
+        public IActionResult TimKiemTenMonAn(string searchQuery, int? page)
+        {
+            int pageSize = 5; // Số lượng kết quả mỗi trang
+            int pageNumber = page ?? 1; // Trang hiện tại, mặc định là trang 1
+
+            // Lấy dữ liệu từ database
+            var query = _QLNhaHangContext.MonAns.ToList();
+
+            // Kiểm tra nếu có từ khóa tìm kiếm
+            if (!string.IsNullOrEmpty(searchQuery))
+            {
+                // Chuyển đổi từ khóa và dữ liệu sang không dấu
+                string searchQueryKhongDau = RemoveDiacritics(searchQuery.ToLower());
+                query = query
+                    .Where(ma => RemoveDiacritics(ma.TenMonAn.ToLower()).Contains(searchQueryKhongDau))
+                    .ToList();
+            }
+
+            // Phân trang và sắp xếp
+            var dsTimKiem = query
+                .ToPagedList(pageNumber, pageSize);
+
+            ViewBag.SearchQuery = searchQuery; // Lưu từ khóa tìm kiếm vào ViewBag (nếu có)
+
+            return PartialView("_MonAnTableContainer", dsTimKiem); // Trả về PartialView
         }
     }
 }
