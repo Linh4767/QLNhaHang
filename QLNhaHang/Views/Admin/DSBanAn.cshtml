@@ -123,7 +123,11 @@
                         <a class="btn btn-warning btn-sm" asp-action="CapNhatBan" asp-route-maBan="@item.MaBan">Cập nhật</a>
                         @if (!item.TrangThai.HasValue || !item.TrangThai.Value)
                         {
-                            <a class="btn btn-success btn-sm" asp-action="DatBan" asp-route-maBan="@item.MaBan" title="Đặt bàn này">Đặt bàn</a>
+                            <a class="btn btn-success btn-sm btnDB" id="btnDatBan" asp-action="DatBan" asp-route-maBan="@item.MaBan" title="Đặt bàn này">Đặt bàn</a>
+                        }
+                        @if (item.TrangThai.HasValue && item.TrangThai == true)
+                        {
+                            <a class="btn btn-success btn-sm" asp-action="XemThongTinDatBan" asp-route-maBan="@item.MaBan">Xem thông tin</a>
                         }
                     </div>
                 </div>
@@ -149,15 +153,44 @@
             const url = `@Url.Action("DSBanAn", "Admin")?floor=${encodeURIComponent(floor)}&date=${encodeURIComponent(selectedDate)}`;
             window.location.href = url;
         }
+        function parseDate(dateString) {
+            const parts = dateString.split('/'); // Tách chuỗi ngày theo dấu "/"
+            if (parts.length === 3) {
+                const month = parseInt(parts[0], 10) - 1; // Lấy tháng (0-based)
+                const day = parseInt(parts[1], 10);       // Lấy ngày
+                const year = parseInt(parts[2], 10);      // Lấy năm
 
+                return new Date(year, month, day);       // Trả về đối tượng Date
+            }
+            return null; // Trả về null nếu không hợp lệ
+        }
+        function toggleButtonDisplay(selectedDateTime, currentDate, buttonElement) {
+            if (selectedDateTime < currentDate) {
+                buttonElement.style.display = 'none'; // Ẩn nút
+            } else {
+                buttonElement.style.display = 'block'; // Hiện nút
+            }
+        }
         function filterByDate() {
             const selectedDate = document.getElementById("datePicker").value;
+            console.log(selectedDate);
             const floor = document.getElementById("floorSelect").value || 1;
+            const selectedDateTime = parseDate(selectedDate);
+            const currentDate = new Date();
+            var btnDatBan = document.getElementById("btnDatBan");
+            const buttonList = document.querySelectorAll(".btnDB");
+            currentDate.setHours(0, 0, 0, 0);
+            selectedDateTime.setHours(0, 0, 0, 0);
             if (!selectedDate) {
                 return; // Nếu không có ngày được chọn, không thực hiện gì cả
             }
-            const url = `@Url.Action("DSBanAn", "Admin")?floor=${encodeURIComponent(floor)}&date=${encodeURIComponent(selectedDate)}`;
-            window.location.href = url;
+            buttonList.forEach((button) => {
+                toggleButtonDisplay(selectedDateTime, currentDate, button);
+            });
+            // const url = `@Url.Action("DSBanAn", "Admin")?floor=${encodeURIComponent(floor)}&date=${encodeURIComponent(selectedDate)}`;
+            // window.location.href = url;
+            console.log("Ngày hiện tại:", currentDate);
+            console.log("Ngày được chọn:", selectedDateTime);
         }
 
         // Ẩn thông báo sau 3 giây
