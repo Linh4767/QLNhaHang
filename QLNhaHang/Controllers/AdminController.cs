@@ -923,13 +923,12 @@ namespace QLNhaHang.Controllers
          * Quản lý món ăn
          */
         //Danh sách món ăn
-        public IActionResult DanhSachMonAn_Admin()
+        public IActionResult DanhSachMonAn_Admin(int? page)
         {
-            var dsMA = _QLNhaHangContext.MonAns.Include(lma => lma.LoaiMaNavigation);
+            var dsMA = _QLNhaHangContext.MonAns.Include(lma => lma.LoaiMaNavigation).ToPagedList(page ?? 1, 5);
             TempData.Remove("HinhAnh");
             return View(dsMA);
         }
-        //Tạo mã tự động
         //Tạo mã tự động
         public string TaoMaMATuDong()
         {
@@ -1294,7 +1293,34 @@ namespace QLNhaHang.Controllers
             return RedirectToAction("DanhSachMonAn_Admin");
         }
 
+        //Tìm kiếm món ăn
+        [HttpGet]
+        public IActionResult TimKiemTenMonAn(string searchQuery, int? page)
+        {
+            int pageSize = 5; // Số lượng kết quả mỗi trang
+            int pageNumber = page ?? 1; // Trang hiện tại, mặc định là trang 1
 
+            // Lấy dữ liệu từ database
+            var query = _QLNhaHangContext.MonAns.ToList();
+
+            // Kiểm tra nếu có từ khóa tìm kiếm
+            if (!string.IsNullOrEmpty(searchQuery))
+            {
+                // Chuyển đổi từ khóa và dữ liệu sang không dấu
+                string searchQueryKhongDau = RemoveDiacritics(searchQuery.ToLower());
+                query = query
+                    .Where(ma => RemoveDiacritics(ma.TenMonAn.ToLower()).Contains(searchQueryKhongDau))
+                    .ToList();
+            }
+
+            // Phân trang và sắp xếp
+            var dsTimKiem = query
+                .ToPagedList(pageNumber, pageSize);
+
+            ViewBag.SearchQuery = searchQuery; // Lưu từ khóa tìm kiếm vào ViewBag (nếu có)
+
+            return PartialView("_MonAnTableContainer", dsTimKiem); // Trả về PartialView
+        }
     }
 }
 

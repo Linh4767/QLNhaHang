@@ -1,6 +1,7 @@
 ﻿@model IEnumerable<QLNhaHang.Models.MonAn>
 @using X.PagedList.Mvc.Core;
 @using X.PagedList;
+
 @*
     For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
 *@
@@ -99,6 +100,40 @@
                         console.log(error);
                     }
                 });
+            });
+        });
+    </script>
+    <script>
+        $(document).ready(function () {
+            // Hàm load dữ liệu bằng AJAX
+            function loadTenMonAn(searchQuery, page) {
+                $.ajax({
+                    url: '/Admin/TimKiemTenMonAn', // Controller Action
+                    type: 'GET',
+                    data: { searchQuery: searchQuery, page: page }, // Gửi từ khóa và trang hiện tại
+                    success: function (data) {
+                        // Load dữ liệu vào container
+                        $('#monAnTableContainer').html(data);
+                    },
+                    error: function (error) {
+                        console.error("Lỗi AJAX:", error);
+                    }
+                });
+            }
+
+            // Xử lý khi người dùng nhập vào ô tìm kiếm
+            $('#searchInput').keyup(function () {
+                var searchTerm = $(this).val(); // Lấy từ khóa tìm kiếm
+                loadTenMonAn(searchTerm, 1); // Luôn tải từ trang 1 khi tìm kiếm
+            });
+
+            // Xử lý khi người dùng bấm vào liên kết phân trang
+            $(document).on('click', '.page-link', function (e) {
+                e.preventDefault(); // Ngăn điều hướng mặc định
+                var url = $(this).attr('href'); // Lấy URL từ href
+                var page = new URL(url, window.location.origin).searchParams.get("page"); // Lấy số trang từ URL
+                var searchTerm = $('#searchInput').val(); // Lấy từ khóa tìm kiếm hiện tại
+                loadTenMonAn(searchTerm, page);
             });
         });
     </script>
