@@ -127,7 +127,8 @@
                         }
                         @if (item.TrangThai.HasValue && item.TrangThai == true)
                         {
-                            <a class="btn btn-success btn-sm" asp-action="XemThongTinDatBan" asp-route-maBan="@item.MaBan">Xem thông tin</a>
+                            <a class="btn btn-success btn-sm" asp-action="XemThongTinDatBan" asp-route-maBan="@item.MaBan" title="XemThongTin" asp-route-floor="@ViewData["CurrentFloor"]"
+                               asp-route-date="@ViewData["SelectedDate"]">Xem thông tin</a>
                         }
                     </div>
                 </div>
@@ -187,8 +188,8 @@
             buttonList.forEach((button) => {
                 toggleButtonDisplay(selectedDateTime, currentDate, button);
             });
-            // const url = `@Url.Action("DSBanAn", "Admin")?floor=${encodeURIComponent(floor)}&date=${encodeURIComponent(selectedDate)}`;
-            // window.location.href = url;
+            const url = `@Url.Action("DSBanAn", "Admin")?floor=${encodeURIComponent(floor)}&date=${encodeURIComponent(selectedDate)}`;
+            window.location.href = url;
             console.log("Ngày hiện tại:", currentDate);
             console.log("Ngày được chọn:", selectedDateTime);
         }
