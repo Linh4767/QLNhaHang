@@ -11,6 +11,7 @@ using X.PagedList.Extensions;
 using Microsoft.Extensions.Options;
 using System.Globalization;
 using System.Text;
+using System.Text.RegularExpressions;
 
 
 namespace QLNhaHang.Controllers
@@ -492,7 +493,7 @@ namespace QLNhaHang.Controllers
             // Nếu không có ngày được chọn, sử dụng ngày hiện tại
             var selectedDate = string.IsNullOrEmpty(date) ? DateTime.Today : DateTime.Parse(date);
             ViewData["SelectedDate"] = selectedDate.ToString("MM/dd/yyyy");
-
+            
             // Lọc danh sách bàn theo tầng và trạng thái theo ngày
             var dsBan = _QLNhaHangContext.Bans
                          .Where(b => b.ViTri.Contains($"Lầu {floor}"))
@@ -1025,7 +1026,7 @@ namespace QLNhaHang.Controllers
             var monAn = _QLNhaHangContext.MonAns.Where(ma => ma.MaMonAn == maMonAn).FirstOrDefault();
             ViewBag.CurrentImage = monAn?.HinhAnh ?? string.Empty;
             return View(monAn);
-        }       
+        }
         [HttpPost]
         public JsonResult KiemTraTenMonAnTrung(string tenMonAn, string maMonAn)
         {
@@ -1163,7 +1164,7 @@ namespace QLNhaHang.Controllers
                     oldMonAn.HinhAnh = renameResult.SecureUrl.ToString();
                     monAn.HinhAnh = oldMonAn.HinhAnh;
                 }
-                else if(oldMonAn.TenMonAn == monAn.TenMonAn && !string.IsNullOrEmpty(oldImageUrl))
+                else if (oldMonAn.TenMonAn == monAn.TenMonAn && !string.IsNullOrEmpty(oldImageUrl))
                 {
                     // Nếu không đổi tên ảnh, giữ nguyên URL ảnh cũ
                     oldMonAn.HinhAnh = oldImageUrl;
@@ -1214,9 +1215,14 @@ namespace QLNhaHang.Controllers
             return PartialView("_MonAnTableContainer", dsTimKiem); // Trả về PartialView
         }
 
-        public IActionResult XemThongTinDatBan(string maBan, string date = null,int ? floor = 1)
+        public IActionResult XemThongTinDatBan(string maBan, string date = null, int? floor = 1)
         {
             ViewData["CurrentFloor"] = floor;
+            if(ViewData["Floor"] != null)
+            {
+                ViewData["CurrentFloor"] = ViewData["Floor"];
+            }
+            Console.WriteLine(ViewData["CurrentFloor"]);
             Console.WriteLine(date);
             // Nếu không có ngày được chọn, sử dụng ngày hiện tại
             var selectedDate = string.IsNullOrEmpty(date) ? DateTime.Today : DateTime.Parse(date);
@@ -1226,6 +1232,142 @@ namespace QLNhaHang.Controllers
                          .SingleOrDefault();
             return View(dsDatBan);
         }
+
+        public IActionResult SuaTTDatBan(string maDatBan, string maBan, string date = null, int? floor = 1)
+        {
+            ViewData["CurrentFloor"] = floor;
+            if (ViewData["Floor"] != null)
+            {
+                ViewData["CurrentFloor"] = ViewData["Floor"];
+            }
+            Console.WriteLine(ViewData["CurrentFloor"]);
+            Console.WriteLine(date);
+            // Nếu không có ngày được chọn, sử dụng ngày hiện tại
+            var selectedDate = string.IsNullOrEmpty(date) ? DateTime.Today : DateTime.Parse(date);
+            ViewData["SelectedDate"] = selectedDate.ToString("yyyyy/MM/dd");
+            ViewData["MaBan"] = maBan;
+            var ttDatBan = _QLNhaHangContext.DatBans
+                         .Where(b => b.MaDatBan == maDatBan)
+                         .SingleOrDefault();
+            return View(ttDatBan);
+        }
+        [HttpPost]
+        public IActionResult SuaTTDatBan(DatBan datBan)
+        {
+            ModelState.Remove("MaDatBan");
+            ModelState.Remove("MaBanNavigation");
+            //thay đổi trang thái của bàn
+            var ban = _QLNhaHangContext.Bans.FirstOrDefault(e => e.MaBan == datBan.MaBan);
+            if (ban != null)
+            {
+                ban.TrangThai = true;
+            }
+
+            //ktra số lượng
+            if (!datBan.SoNguoiDi.HasValue || datBan.SoNguoiDi.Value <= 0 || datBan.SoNguoiDi.Value > ban.SoLuongNguoi.Value)
+            {
+                ModelState.AddModelError("SoNguoiDi", "Số lượng người phải lớn hơn 0 và nhỏ hơn hoặc bằng số lượng người bàn có thể chứa.");
+            }
+
+            //kiểm tra tên KH
+            var regex = new System.Text.RegularExpressions.Regex(@"^(?!.*\s{2})[\p{L}\s]+$");
+            if (!string.IsNullOrEmpty(datBan.TenKh) || !string.IsNullOrWhiteSpace(datBan.TenKh))
+            {
+                if (!regex.IsMatch(datBan.TenKh))
+                {
+                    ModelState.AddModelError("TenKh", "Tên khách hàng chỉ được chứa chữ cái, khoảng trắng và không được có 2 khoảng trắng liên tiếp.");
+                }
+                else if (datBan.TenKh.Length > 50)
+                {
+                    ModelState.AddModelError("TenKh", "Tên khách hàng không vượt quá 50 ký tự");
+                }
+            }
+
+            //kiểm tra ngày đặt bàn
+            if (!datBan.NgayDatBan.HasValue)
+            {
+                ModelState.AddModelError("NgayDatBan", "Ngày đặt bàn là bắt buộc.");
+            }
+            else
+            {
+                if (!string.IsNullOrEmpty(datBan.TenKh) || !string.IsNullOrWhiteSpace(datBan.TenKh))
+                {
+                    DateTime ngayHT = DateTime.Now;
+                    DateTime ngayDatBan = datBan.NgayDatBan.Value;
+
+                    if (ngayDatBan.Date < ngayHT.Date)
+                    {
+                        ModelState.AddModelError("NgayDatBan", "Ngày đặt bàn không được nhỏ hơn ngày hiện tại.");
+                    }
+                    else if (ngayDatBan.Date == ngayHT.Date)
+                    {
+                        // Tính chênh lệch giờ dưới dạng số phút
+                        if (ngayDatBan <= ngayHT) // Kiểm tra nếu ngày đặt bàn nhỏ hơn ngày hiện tại
+                        {
+                            ModelState.AddModelError("NgayDatBan", "Thời gian đặt bàn không thể nhỏ hơn thời gian hiện tại!");
+                        }
+                        else
+                        {
+                            // Lấy giờ và phút từ ngayDatBan và ngayHT, bỏ phần giây và mili giây
+                            var ngayDatBanWithoutSeconds = ngayDatBan.AddSeconds(-ngayDatBan.Second).AddMilliseconds(-ngayDatBan.Millisecond);
+                            var ngayHTWithoutSeconds = ngayHT.AddSeconds(-ngayHT.Second).AddMilliseconds(-ngayHT.Millisecond);
+
+                            // Tính khoảng cách thời gian giữa hai đối tượng DateTime
+                            // Tính khoảng cách thời gian giữa hai đối tượng DateTime
+                            var diffInMinutes = Math.Round((ngayDatBanWithoutSeconds - ngayHTWithoutSeconds).TotalMinutes); // Làm tròn xuống để bỏ phần nhỏ
+                            Console.WriteLine($"Khoảng cách thời gian (phút): {diffInMinutes}");
+                            if (diffInMinutes < 120) // Nếu khoảng cách nhỏ hơn 120 phút
+                            {
+                                ModelState.AddModelError("NgayDatBan", "Nếu đặt trong cùng ngày, thời gian đặt phải cách hiện tại ít nhất 2 tiếng!");
+                            }
+                        }
+                    }
+                }
+                else if (string.IsNullOrEmpty(datBan.TenKh) && string.IsNullOrWhiteSpace(datBan.TenKh))
+                {
+                    DateTime ngayHT = DateTime.Now;
+                    DateTime ngayDatBan = datBan.NgayDatBan.Value;
+
+                    if (ngayDatBan.Date < ngayHT.Date)
+                    {
+                        ModelState.AddModelError("NgayDatBan", "Ngày đặt bàn không được nhỏ hơn ngày hiện tại.");
+                    }
+                    else if (ngayDatBan.Date == ngayHT.Date && ngayDatBan.TimeOfDay > DateTime.Now.TimeOfDay)
+                    {
+                        ModelState.AddModelError("NgayDatBan", "Nếu ngày đặt bàn là hôm nay vui lòng ko chỉnh giờ lớn hơn giờ hiện tại");
+                    }
+                }
+            }
+
+            //kiểm tra trạng thái của ModelState
+            if (!ModelState.IsValid)
+            {
+                var errors = ModelState.Values.SelectMany(v => v.Errors).ToList();
+                foreach (var error in errors)
+                {
+                    // Log hoặc kiểm tra chi tiết lỗi
+                    Console.WriteLine(error.ErrorMessage);
+
+                }
+                ViewData["MaBan"] = datBan.MaBan;
+                return View(datBan);
+            }
+
+            //thêm đặt bàn mới vào database
+            _QLNhaHangContext.DatBans.Update(datBan);
+            _QLNhaHangContext.SaveChanges();
+
+            //thông báo khi thêm thành công
+            TempData["DatBan"] = "Sửa thông tin thành công!";
+            ViewData["Floor"] = datBan.MaBanNavigation?.ViTri != null
+    ? Regex.Match(datBan.MaBanNavigation.ViTri, @"\d+").Value
+    : "1";
+            Console.WriteLine(ViewData["Floor"]);
+            return RedirectToAction("XemThongTinDatBan", new { maBan = datBan.MaBan, date = datBan.NgayDatBan.Value.ToString("yyyy-MM-dd"), floor = ViewData["Floor"] });
+        }
+
+
+
     }
 }
 
