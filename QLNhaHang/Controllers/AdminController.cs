@@ -782,8 +782,18 @@ namespace QLNhaHang.Controllers
             return View(calam);
         }
         [HttpGet]
-        public IActionResult DatBan(string maBan)
+        public IActionResult DatBan(string maBan, string date = null, int? floor = 1)
         {
+            ViewData["CurrentFloor"] = floor;
+            if (ViewData["Floor"] != null)
+            {
+                ViewData["CurrentFloor"] = ViewData["Floor"];
+            }
+            Console.WriteLine(ViewData["CurrentFloor"]);
+            Console.WriteLine(date);
+            // Nếu không có ngày được chọn, sử dụng ngày hiện tại
+            var selectedDate = string.IsNullOrEmpty(date) ? DateTime.Today : DateTime.Parse(date);
+            ViewData["SelectedDate"] = selectedDate.ToString("yyyyy/MM/dd");
             ViewData["MaBan"] = maBan;
             return View();
         }
@@ -921,7 +931,12 @@ namespace QLNhaHang.Controllers
 
             //thông báo khi thêm thành công
             TempData["DatBan"] = "Đặt bàn thành công!";
-            return RedirectToAction("DSBanAn");
+            ViewData["Floor"] = datBan.MaBanNavigation?.ViTri != null
+   ? Regex.Match(datBan.MaBanNavigation.ViTri, @"\d+").Value
+   : "1";
+            Console.WriteLine(ViewData["Floor"]);
+            return RedirectToAction("DSBanAn", new { maBan = datBan.MaBan, date = datBan.NgayDatBan.Value.ToString("yyyy-MM-dd"), floor = ViewData["Floor"] });
+            //return RedirectToAction("DSBanAn");
         }
         /*
          * Quản lý món ăn
