@@ -73,6 +73,26 @@
             <a class="btn btn-secondary" href="DSBanAn?floor=@ViewData["CurrentFloor"]&date=@ViewData["SelectedDate"]">Quay lại danh sách</a>
         </div>
     </div>
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            // Lấy giá trị ngày đặt bàn từ HTML (phải có định dạng hợp lệ để so sánh)
+            const ngayDatBanText = "@Model?.NgayDatBan?.ToString("yyyy-MM-dd")";
+
+            if (ngayDatBanText) {
+                const ngayDatBan = new Date(ngayDatBanText);
+                const ngayHienTai = new Date();
+
+                // Kiểm tra nếu ngày đặt bàn nhỏ hơn ngày hiện tại
+                if (ngayDatBan < ngayHienTai) {
+                    // Tìm nút "Sửa Thông Tin" và ẩn nó
+                    const suaButton = document.querySelector('a.btn.btn-primary');
+                    if (suaButton) {
+                        suaButton.style.display = "none";
+                    }
+                }
+            }
+        });
+    </script>
 
 </body>
 </html>

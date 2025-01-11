@@ -936,7 +936,6 @@ namespace QLNhaHang.Controllers
    : "1";
             Console.WriteLine(ViewData["Floor"]);
             return RedirectToAction("DSBanAn", new { maBan = datBan.MaBan, date = datBan.NgayDatBan.Value.ToString("yyyy-MM-dd"), floor = ViewData["Floor"] });
-            //return RedirectToAction("DSBanAn");
         }
         /*
          * Quản lý món ăn
@@ -1378,6 +1377,7 @@ namespace QLNhaHang.Controllers
     ? Regex.Match(datBan.MaBanNavigation.ViTri, @"\d+").Value
     : "1";
             Console.WriteLine(ViewData["Floor"]);
+            Console.WriteLine("DB" + datBan.NgayDatBan.Value);
             return RedirectToAction("XemThongTinDatBan", new { maBan = datBan.MaBan, date = datBan.NgayDatBan.Value.ToString("yyyy-MM-dd"), floor = ViewData["Floor"] });
         }
 
