@@ -1,0 +1,128 @@
+﻿@model IEnumerable<QLNhaHang.Models.MaXacNhan>
+@{
+    Layout = "~/Views/Admin/Header.cshtml";
+}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Danh sách chờ</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 0;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 50px auto;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        h1 {
+            text-align: center;
+            color: rgb(31, 59, 179);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+            table th, table td {
+                border: 1px solid #ddd;
+                padding: 10px;
+                text-align: left;
+            }
+
+            table th {
+                background-color: rgb(31, 59, 179);
+                color: white;
+            }
+
+            table tr:nth-child(even) {
+                background-color: #f9f9f9;
+            }
+
+            table tr:hover {
+                background-color: #f1f1f1;
+            }
+
+        .no-data {
+            text-align: center;
+            color: #888;
+            font-size: 18px;
+            margin-top: 20px;
+        }
+
+        .back-btn {
+            display: inline-block;
+            margin-top: 20px;
+            text-decoration: none;
+            background-color: rgb(31, 59, 179);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 5px;
+            text-align: center;
+            font-weight: bold;
+            transition: background-color 0.3s ease;
+        }
+
+            .back-btn:hover {
+                background-color: #45a049;
+            }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Danh sách chờ</h1>
+        @if (Model == null)
+        {
+            <p class="no-data">Hiện tại không có khách hàng nào trong danh sách chờ.</p>
+        }
+        else
+        {
+            <table>
+                <thead>
+                    <tr>
+                        <th>Tên khách hàng</th>
+                        <th>Số điện thoại</th>
+                        <th>Ngày</th>
+                        <th>Email</th>
+                        <th>Số người đi</th>
+                        <th>Trạng thái</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in Model)
+                    {
+
+                        <tr>
+                            <td>@Html.DisplayFor(modelItem => item.TenKh)</td>
+                            <td>@Html.DisplayFor(modelItem => item.Sdt)</td>
+                            <td>@Html.DisplayFor(modelItem => item.NgayDatBan)</td>
+                            <td>@Html.DisplayFor(modelItem => item.Email)</td>
+                            <td>@Html.DisplayFor(modelItem => item.SoNguoiDi)</td>
+                            <td>@Html.DisplayFor(modelItem => item.TrangThai)</td>
+                            <td>
+                                @if (item.TrangThai == "Đã xác nhận")
+                                {
+                                    <a class="btn btn-success btn-sm" asp-action="DSBanAn" asp-controller="Admin" asp-route-tenKH="@item.TenKh" asp-route-sdt="@item.Sdt" asp-route-ngayDB="@item.NgayDatBan">Đặt bàn</a>
+                                }
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        }
+    </div>
+</body>
+</html>

@@ -9,6 +9,10 @@ using System.Diagnostics;
 using Newtonsoft.Json;
 using System.Text.RegularExpressions;
 using Microsoft.EntityFrameworkCore;
+using System.Net.Mail;
+using System.Net;
+using SmtpClient = MailKit.Net.Smtp.SmtpClient;
+using System.Globalization;
 
 
 namespace QLNhaHang.Controllers
@@ -18,10 +22,10 @@ namespace QLNhaHang.Controllers
         private readonly ILogger<HomeController> _logger;
         private readonly QLNhaHangContext _QLNhaHangContext;
 
-        public HomeController(ILogger<HomeController> logger, QLNhaHangContext qLNhaHangContext)
+        public HomeController(ILogger<HomeController> logger, QLNhaHangContext QLNhaHangContext)
         {
             _logger = logger;
-            _QLNhaHangContext = qLNhaHangContext;
+            _QLNhaHangContext = QLNhaHangContext;
         }
 
         public IActionResult TrangChu()
@@ -143,7 +147,6 @@ namespace QLNhaHang.Controllers
         }
 
         // Action to check if reservation matches
-        // Action to check if reservation matches
         [HttpPost]
         public IActionResult CheckReservationMatch(string emailBody)
         {
@@ -153,33 +156,54 @@ namespace QLNhaHang.Controllers
                 var emailDetails = ExtractEmailDetails(emailBody);
 
                 if (emailDetails != null)
-                {                    
-                    bool isMatch = CheckDatBanMatch(emailDetails); // Kiểm tra khớp với dữ liệu đặt bàn
-                    if (isMatch)
+                {
+                    MarkEmailAsRead(emailBody);
+                    // Kiểm tra xem khách hàng đã có trong danh sách chờ chưa
+                    string confirmationCode = GenerateConfirmationCode();
+                    string ngayDatBanString = emailDetails.Date.ToString("dd/MM/yyyy") + " " + emailDetails.Time;
+                    DateTime ngayDatBan = DateTime.ParseExact(ngayDatBanString, "dd/MM/yyyy HH:mm", CultureInfo.InvariantCulture);
+                    var waitingListEntry = _QLNhaHangContext.MaXacNhans
+                        .FirstOrDefault(x => x.Email == emailDetails.Email && x.Sdt == emailDetails.Phone && x.NgayDatBan == ngayDatBan && x.TrangThai == "Chưa xác nhận");
+
+                    if (waitingListEntry == null)
                     {
-                        bool isEmailRead = IsEmailMarkedAsRead(emailBody);  // Hàm kiểm tra trạng thái email đã đọc
+                        // Tạo mã xác nhận
 
-                        if (isEmailRead)
+                        // Thêm khách hàng vào danh sách chờ trong cơ sở dữ liệu
+                        var confirmationRecord = new MaXacNhan
                         {
-                            return Json(new { success = false, message = "Email đã được đánh dấu là đã đọc trước đó." });
-                        }
+                            Email = emailDetails.Email,
+                            MaXacNhan1 = confirmationCode,
+                            NgayDatBan = ngayDatBan,
+                            SoNguoiDi = emailDetails.People,
+                            TenKh = emailDetails.Name,
+                            Sdt = emailDetails.Phone,
+                            TrangThai = "Chưa xác nhận"
+                        };
 
-                        // Nếu khớp, đánh dấu email là "đã đọc"
-                        MarkEmailAsRead(emailBody);
-                        SendConfirmationEmail(emailDetails.Email, emailDetails.Name);
-                        return Json(new { success = true, message = "Xác nhận thành công và email đã được đánh dấu là đã đọc." });
+                        _QLNhaHangContext.MaXacNhans.Add(confirmationRecord);
+                        _QLNhaHangContext.SaveChanges();  // Lưu vào cơ sở dữ liệu
+
+                        // Gửi email xác nhận
+                        SendWaitingListEmail(emailDetails, confirmationCode);
+
+                        return Json(new { success = true, message = "Khách hàng đã được thêm vào danh sách chờ và email xác nhận đã được gửi." });
                     }
-                    return Json(new { success = false, message = "Không tìm thấy thông tin đặt bàn khớp." });
+                    else
+                    {
+                        return Json(new { success = false, message = "Khách hàng đã có trong danh sách chờ." });
+                    }
                 }
 
-                return Json(new { success = false }); // Trả về false nếu không có dữ liệu phù hợp
+                return Json(new { success = false, message = "Không thể trích xuất thông tin từ email." });
             }
             catch (Exception ex)
             {
                 Console.WriteLine($"Error during reservation check: {ex.Message}");
-                return Json(new { success = false, message = "Error processing the reservation." });
+                return Json(new { success = false, message = "Lỗi khi xử lý thông tin đặt bàn." });
             }
         }
+
 
         // Method to extract details from email body (name, phone, etc.)
         private GuiEmailDatBan? ExtractEmailDetails(string emailBody)
@@ -228,63 +252,67 @@ namespace QLNhaHang.Controllers
                 return null;
             }
         }
-
-        // Method to check if reservation matches
-        private bool CheckDatBanMatch(GuiEmailDatBan emailDetails)
+        private string GenerateConfirmationCode()
         {
+            var random = new Random();
+            // Tạo mã ngẫu nhiên có độ dài 6 ký tự (bạn có thể thay đổi độ dài nếu muốn)
+            var code = Path.GetRandomFileName().Replace(".", "").Substring(0, 6);
+            return code;
+        }
+
+        private void SendWaitingListEmail(GuiEmailDatBan emailDetails, string confirmationCode)
+        {
+            var confirmationLink = Url.Action("Confirm", "Home", new { code = confirmationCode }, protocol: Request.Scheme);
             try
             {
-                var emailTimeSpan = TimeSpan.Parse(emailDetails.Time); // Chuyển thành TimeSpan
-                var datBan = _QLNhaHangContext.DatBans
-     .Where(d => d.TenKh == emailDetails.Name && d.Sdt == emailDetails.Phone &&
-                 d.NgayDatBan.Value.Date == emailDetails.Date.Date && // Kiểm tra ngày đặt bàn
-                 d.NgayDatBan.Value.Hour == emailTimeSpan.Hours &&  // So sánh giờ
-                 d.NgayDatBan.Value.Minute == emailTimeSpan.Minutes) // So sánh phút
-     .FirstOrDefault();
+                // Nội dung email
+                string subject = "Xác nhận vào danh sách chờ";
+                string body = $@"
+            <html>
+                <body>
+                    <p>Kính gửi {emailDetails.Name},</p>
+                    <p>Cảm ơn quý khách đã đặt bàn tại nhà hàng của chúng tôi. 
+                    Hiện tại, đơn đặt bàn của quý khách đã được thêm vào danh sách chờ. 
+                    Vui lòng nhấn vào nút dưới đây để xác nhận đặt bàn.</p>
 
+                    <p><strong>Thông tin đặt bàn:</strong></p>
+                    <p>
+                        Tên khách hàng: {emailDetails.Name}<br>
+                        Số điện thoại: {emailDetails.Phone}<br>
+                        Thời gian: {emailDetails.Time} ngày {emailDetails.Date.ToString("dd/MM/yyyy tt")}<br>
+                        Số người: {emailDetails.People} người<br>
+                    </p>
 
-                if (datBan == null)
+                    <p>Vui lòng nhấn vào liên kết dưới đây để xác nhận đặt bàn của bạn:</p>
+                    
+                   <a href='{confirmationLink}' style='background-color: #4CAF50; color: white; padding: 15px 32px; text-align: center; text-decoration: none; display: inline-block; font-size: 16px; border-radius: 4px;'>Xác nhận đặt bàn</a>
+                   <p>Trân trọng,<br>Nhà hàng ABC</p>
+                </body>
+            </html>";
+
+                // Gửi email
+                var mail = new MimeMessage();
+                mail.From.Add(new MailboxAddress(string.Empty, "ministorelaravel@gmail.com"));
+                mail.To.Add(new MailboxAddress(string.Empty, emailDetails.Email)); // Thêm email khách hàng
+                mail.Subject = subject;
+                mail.Body = new TextPart("html") { Text = body };
+
+                using (var smtp = new SmtpClient())
                 {
-                    Console.WriteLine("No matching datBan found. Please check the input details.");
-                    return false; // Hoặc thực hiện logic khác nếu cần
+                    smtp.Connect("smtp.gmail.com", 587, SecureSocketOptions.StartTls); // Sử dụng TLS
+                    smtp.Authenticate("ministorelaravel@gmail.com", "z e n g t h d v w b g u f c t u"); // Xác thực người gửi
+                    smtp.Send(mail); // Gửi email
+                    smtp.Disconnect(true); // Ngắt kết nối
+
+                    Console.WriteLine("Email đã được gửi thành công.");
                 }
-                // Chỉ so sánh phần ngày (không so sánh phần thời gian)
-                else if (datBan.NgayDatBan.HasValue && TimeSpan.TryParse(emailDetails.Time, out TimeSpan emailTime))
-                {
-                    Console.WriteLine($"Email Time: {emailDetails.Date.Hour} - {emailDetails.Date.Minute}");
-                    Console.WriteLine($"ĐB Time: {datBan.NgayDatBan.Value.Hour} - {datBan.NgayDatBan.Value.Minute}");
-                    // Chỉ so sánh phần ngày của các đối tượng DateTime
-                    string databaseDateString = datBan.NgayDatBan.Value.ToString("yyyy-MM-dd");
-                    string emailDateString = emailDetails.Date.ToString("yyyy-MM-dd");
-                    Console.WriteLine("hh: " + databaseDateString);
-                    Console.WriteLine("hh1: " + emailDateString);
-                    bool isDateMatch = databaseDateString == emailDateString;
-
-
-                    // Tạo DateTime từ email's time và so sánh toàn bộ thời gian (giờ, phút)
-                    // Kiểm tra lại toàn bộ thời gian (kể cả giờ và phút)
-                    DateTime emailDateTime = emailDetails.Date.Date.Add(emailTime);
-                    DateTime databaseDateTime = datBan.NgayDatBan.Value;
-
-                    Console.WriteLine($"DB Time: {databaseDateTime.TimeOfDay}, Email Time: {emailDateTime.TimeOfDay}");
-
-                    bool isTimeMatch = emailDateTime.Hour == databaseDateTime.Hour &&
-                                       emailDateTime.Minute == databaseDateTime.Minute;
-
-                    Console.WriteLine($"Time Match: {isTimeMatch}, DB Time: {databaseDateTime.TimeOfDay}, Email Time: {emailDateTime.TimeOfDay}");
-
-
-                    return isDateMatch && isTimeMatch && datBan.TenKh == emailDetails.Name && datBan.Sdt == emailDetails.Phone;
-                }
-
-                return false;
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error checking DatBan match: {ex.Message}");
-                return false;
+                Console.WriteLine($"Lỗi khi gửi email: {ex.Message}");
             }
         }
+
         private void MarkEmailAsRead(string emailBody)
         {
             using (var client = new MailKit.Net.Imap.ImapClient())
@@ -395,6 +423,48 @@ namespace QLNhaHang.Controllers
             catch (Exception ex)
             {
                 Console.WriteLine($"Error sending confirmation email: {ex.Message}");
+            }
+        }
+        [HttpGet("home/confirm")]
+        public IActionResult Confirm(string code)
+        {
+            if (string.IsNullOrEmpty(code))
+            {
+                ViewBag.Message = "Mã xác nhận không hợp lệ. Vui lòng kiểm tra lại.";
+                return View();
+            }
+
+            var record = _QLNhaHangContext.MaXacNhans.FirstOrDefault(x => x.MaXacNhan1 == code);
+
+            if (record == null)
+            {
+                ViewBag.Message = "Mã xác nhận không tồn tại. Vui lòng kiểm tra lại.";
+            }
+            else
+            {
+                record.TrangThai = "Đã xác nhận";
+                _QLNhaHangContext.SaveChanges();
+                ViewBag.Message = "Xác nhận thành công! Cảm ơn bạn đã sử dụng dịch vụ.";
+            }
+
+            return View();
+        }
+        public IActionResult WaitingList()
+        {
+            var dsCho = _QLNhaHangContext.MaXacNhans.ToList();
+            return View("~/Views/Admin/WaitingList.cshtml", dsCho);
+        }
+        [HttpPost]
+        public IActionResult XacNhanDatBan(string tenKH, string sdt, int soNguoiDi, DateTime ngayDatBan)
+        {
+            var dsDatBan = _QLNhaHangContext.DatBans.Where(db => db.TenKh == tenKH && db.Sdt == sdt && db.SoNguoiDi == soNguoiDi && db.NgayDatBan == ngayDatBan).FirstOrDefault();
+            if (dsDatBan != null)
+            {
+                return Json(new { success = true, message = "Thông tin này đã được đặt bàn!" });
+            }
+            else
+            {
+                return Json(new { success = false, message = "Thông tin này chưa được đặt bàn." });
             }
         }
 
