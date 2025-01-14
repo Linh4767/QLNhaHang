@@ -1,0 +1,113 @@
+﻿@model QLNhaHang.Models.LichSuChuyenBan
+
+@{
+    Layout = "Header";
+    ViewData["Title"] = "ChuyenBan";
+}
+
+<div class="col-12 grid-margin">
+    @if (TempData["BaoLoi"] != null)
+    {
+        <div id="loi" class="alert alert-danger">
+            @TempData["BaoLoi"]
+        </div>
+    }
+    <div class="card">
+        <div class="card-body">
+            <h3 class="card-title">Chuyển Bàn</h3>
+            <form class="form-sample" asp-action="ChuyenBan" method="post">
+                <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-group row">
+                            <label class="col-sm-3 col-form-label" asp-for="MaBanCu">Bàn cũ</label>
+                            <div class="col-sm-9">
+                                <input type="text" class="form-control" asp-for="MaBanCu" value="@ViewData["MaBanCu"]" readonly />
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group row">
+                            <label class="col-sm-3 col-form-label" asp-for="MaBanMoi">Bàn mới</label>
+                            <div class="col-sm-9">
+                                <input type="text" class="form-control" asp-for="MaBanMoi" value="@ViewData["MaBanMoi"]" readonly />
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-group row">
+                            <label class="col-sm-3 col-form-label" asp-for="ThoiGianChuyen">Thời gian chuyển bàn</label>
+                            <div class="col-sm-9">
+                                <input class="form-control" asp-for="ThoiGianChuyen" type="datetime-local" id="thoiGianChuyen" readonly />
+                                <span asp-validation-for="ThoiGianChuyen" class="text-danger"></span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group row">
+                            <label class="col-sm-3 col-form-label" asp-for="MaNv">Nhân viên</label>
+                            <div class="col-sm-9">
+                                <input type="text" class="form-control" asp-for="MaNv" />
+                                <span asp-validation-for="MaNv" class="text-danger"></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-group row">
+                            <label class="col-sm-3 col-form-label" asp-for="LyDoChuyen">Lý do chuyển bàn</label>
+                            <div class="col-sm-9">
+                                <input type="text" class="form-control" asp-for="LyDoChuyen" />
+                                <span asp-validation-for="LyDoChuyen" class="text-danger"></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn btn-primary me-2">Chuyển Bàn</button>
+                <a class="btn btn-light" asp-action="DSChuyenBan">Quay Lại Danh Sách</a>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+    window.onload = function () {
+        const thoiGianChuyenInput = document.getElementById("thoiGianChuyen");
+        if (thoiGianChuyenInput) {
+            const now = new Date();
+
+            // Lấy từng phần của ngày giờ
+            const year = now.getFullYear();
+            const month = String(now.getMonth() + 1).padStart(2, '0');
+            const day = String(now.getDate()).padStart(2, '0');
+            const hours = String(now.getHours()).padStart(2, '0'); // Giờ địa phương
+            const minutes = String(now.getMinutes()).padStart(2, '0');
+
+            // Định dạng theo YYYY-MM-DDTHH:mm
+            const formattedDate = `${year}-${month}-${day}T${hours}:${minutes}`;
+
+            // Gán giá trị vào input
+            thoiGianChuyenInput.value = formattedDate;
+        }
+    };
+
+    setTimeout(function () {
+        var loi = document.getElementById("loi");
+        if (loi) {
+            loi.style.display = "none";
+        }
+    }, 3000);
+
+</script>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}
