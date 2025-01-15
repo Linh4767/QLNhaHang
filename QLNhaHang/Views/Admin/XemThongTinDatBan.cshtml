@@ -77,11 +77,12 @@
         document.addEventListener("DOMContentLoaded", function () {
             // Lấy giá trị ngày đặt bàn từ HTML (phải có định dạng hợp lệ để so sánh)
             const ngayDatBanText = "@Model?.NgayDatBan?.ToString("yyyy-MM-dd")";
-
+            console.log(ngayDatBanText);
             if (ngayDatBanText) {
                 const ngayDatBan = new Date(ngayDatBanText);
                 const ngayHienTai = new Date();
-
+                ngayHienTai.setHours(0, 0, 0, 0);
+                console.log(ngayHienTai);
                 // Kiểm tra nếu ngày đặt bàn nhỏ hơn ngày hiện tại
                 if (ngayDatBan < ngayHienTai) {
                     // Tìm nút "Sửa Thông Tin" và ẩn nó
