@@ -39,7 +39,7 @@
                     <i class="bi bi-phone d-flex align-items-center d-none d-lg-block"><span>+1 5589 55488 55</span></i>
                     <i class="bi bi-clock ms-4 d-none d-lg-flex align-items-center"><span>Mon-Sat: 11:00 AM - 23:00 PM</span></i>
                 </div>
-                <a href="#book-a-table" class="cta-btn">Booka a table</a>
+                <a href="#book-a-table" class="cta-btn">Book a table</a>
             </div>
         </div><!-- End Top Bar -->
 
@@ -1078,7 +1078,7 @@
 
             // Kiểm tra sđt
             function validateSDT(value) {
-                if (value.length > 10) return "Số điện thoại không được vượt quá 10 ký tự.";
+                if (value.length !== 10) return "Số điện thoại phải có 10 chữ số.";
                 if (/\s{2,}/.test(value)) return "Số điện thoại không được chứa 2 khoảng trắng liên tiếp.";
                 if (!/^[0-9]+$/u.test(value)) return "Số điện thoại chỉ được chứa số";
                 return ""; // Không có lỗi
@@ -1109,8 +1109,8 @@
                     const diffInHours = (selectedDate - currentDate) / (1000 * 60 * 60);
 
                     console.log(`Difference in Hours: ${diffInHours}`);
-                    if (diffInHours < 2) {
-                        return "Nếu đặt trong cùng ngày, thời gian đặt phải cách hiện tại ít nhất 2 tiếng!";
+                    if (diffInHours < 3) {
+                        return "Nếu đặt trong cùng ngày, thời gian đặt phải cách hiện tại ít nhất 3 tiếng!";
                     }
                 }
 

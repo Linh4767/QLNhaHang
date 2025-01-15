@@ -1,0 +1,98 @@
+﻿@model QLNhaHang.Models.DatBan
+@{
+    Layout = "Header";
+}
+<html lang="en">
+<head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>Star Admin2</title>
+    <!-- Bootstrap CSS -->
+    @* <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet" /> *@
+    <style>
+        .card {
+            border-radius: 8px;
+            background-color: #f8f9fa;
+        }
+
+        .card-body {
+            padding: 20px;
+        }
+
+        .font-weight-bold {
+            color: #333;
+        }
+
+        .text-muted {
+            font-style: italic;
+            color: #6c757d;
+        }
+
+        .btn-secondary {
+            background-color: #6c757d !important;
+            color: #fff !important;
+            border-color: #6c757d !important;
+        }
+    </style>
+</head>
+<body class="with-welcome-text">
+    <div class="container py-4">
+        <h2 class="text-center mb-4">Thông Tin Đặt Bàn</h2>
+        <div class="card shadow">
+            <div class="card-body">
+                <div class="row mb-3">
+                    <div class="col-sm-4 font-weight-bold">Họ tên khách hàng:</div>
+                    <div class="col-sm-8">@(string.IsNullOrEmpty(Model?.TenKh) ? @Html.Raw("<span class='text-muted'>Không có</span>") : Model.TenKh)</div>
+                </div>
+                <div class="row mb-3">
+                    <div class="col-sm-4 font-weight-bold">Số điện thoại:</div>
+                    <div class="col-sm-8">
+                        @(string.IsNullOrEmpty(Model?.Sdt) ? @Html.Raw("<span class='text-muted'>Không có</span>") : Model.Sdt)
+                    </div>
+                </div>
+                <div class="row mb-3">
+                    <div class="col-sm-4 font-weight-bold">Thời gian đặt bàn:</div>
+                    <div class="col-sm-8">
+                        @Model?.NgayDatBan?.ToString("dd/MM/yyyy HH:mm tt")
+                    </div>
+                </div>
+                <div class="row mb-3">
+                    <div class="col-sm-4 font-weight-bold">Mã bàn:</div>
+                    <div class="col-sm-8">@Model?.MaBan</div>
+                </div>
+                <div class="row mb-3">
+                    <div class="col-sm-4 font-weight-bold">Số người đi:</div>
+                    <div class="col-sm-8">@Model?.SoNguoiDi</div>
+                </div>
+            </div>
+        </div>
+        <!-- Button Sửa Thông Tin -->
+        <div class="mt-3">
+            <a class="btn btn-primary" asp-action="SuaTTDatBan" asp-controller="Admin" asp-route-maBan="@Model?.MaBan" asp-route-maDatBan="@Model?.MaDatBan" asp-route-floor="@ViewData["CurrentFloor"]" asp-route-date="@ViewData["SelectedDate"]">Sửa Thông Tin</a>
+            <a class="btn btn-secondary" href="DSBanAn?floor=@ViewData["CurrentFloor"]&date=@ViewData["SelectedDate"]">Quay lại danh sách</a>
+        </div>
+    </div>
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            // Lấy giá trị ngày đặt bàn từ HTML (phải có định dạng hợp lệ để so sánh)
+            const ngayDatBanText = "@Model?.NgayDatBan?.ToString("yyyy-MM-dd")";
+
+            if (ngayDatBanText) {
+                const ngayDatBan = new Date(ngayDatBanText);
+                const ngayHienTai = new Date();
+
+                // Kiểm tra nếu ngày đặt bàn nhỏ hơn ngày hiện tại
+                if (ngayDatBan < ngayHienTai) {
+                    // Tìm nút "Sửa Thông Tin" và ẩn nó
+                    const suaButton = document.querySelector('a.btn.btn-primary');
+                    if (suaButton) {
+                        suaButton.style.display = "none";
+                    }
+                }
+            }
+        });
+    </script>
+
+</body>
+</html>
