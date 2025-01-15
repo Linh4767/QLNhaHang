@@ -1484,8 +1484,12 @@ namespace QLNhaHang.Controllers
             var selectedDate = string.IsNullOrEmpty(date) ? DateTime.Today : DateTime.Parse(date);
             ViewData["SelectedDate"] = selectedDate.ToString("MM/dd/yyyy");
 
-            var dsCB = _QLNhaHangContext.LichSuChuyenBans.Where(l => l.ThoiGianChuyen.Value.Date == selectedDate.Date);
+            var dsCB = _QLNhaHangContext.LichSuChuyenBans.Include(nv => nv.MaNvNavigation).Where(l => l.ThoiGianChuyen.Value.Date == selectedDate.Date);
             return View(dsCB);
+        }
+        public IActionResult DangNhap()
+        {
+            return View();
         }
     }
 }

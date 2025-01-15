@@ -3,6 +3,7 @@
 @{
     Layout = "Header";
     ViewData["Title"] = "ChuyenBan";
+    var maNV = HttpContextAccessor.HttpContext.Session.GetString("MaNV");
 }
 
 <div class="col-12 grid-margin">
@@ -51,7 +52,7 @@
                         <div class="form-group row">
                             <label class="col-sm-3 col-form-label" asp-for="MaNv">Nhân viên</label>
                             <div class="col-sm-9">
-                                <input type="text" class="form-control" asp-for="MaNv" />
+                                <input type="text" class="form-control" asp-for="MaNv" value="@maNV" readonly />
                                 <span asp-validation-for="MaNv" class="text-danger"></span>
                             </div>
                         </div>

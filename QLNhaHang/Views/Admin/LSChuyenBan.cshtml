@@ -52,18 +52,18 @@
                                 <center>@Html.DisplayFor(modelItem => item.LyDoChuyen)</center>
                             </td>
                             <td>
-                                <center>@Html.DisplayFor(modelItem => item.MaBanCuNavigation.MaBan)</center>
+                                <center>@Html.DisplayFor(modelItem => item.MaBanCu)</center>
                             </td>
                             <td>
-                                <center>@Html.DisplayFor(modelItem => item.MaBanMoiNavigation.MaBan)</center>
+                                <center>@Html.DisplayFor(modelItem => item.MaBanMoi)</center>
                             </td>
                             <td>
-                                <center>@Html.DisplayFor(modelItem => item.MaNvNavigation.MaNv)</center>
+                                <center>@Html.DisplayFor(modelItem => item.MaNvNavigation.TenNv)</center>
                             </td>
                             <td>
                                 <center>
                                     @* <a class="btn btn-warning btn-sm" asp-controller="Admin" asp-action="SuaCalam" asp-route-id="@item.MaChuyenBan">Sửa</a> *@
-                                    <a class="btn btn-danger btn-sm" asp-controller="Admin" asp-action="XoaCaLam" asp-route-id="@item.MaChuyenBan">Xóa</a>
+                                    @* <a class="btn btn-danger btn-sm" asp-controller="Admin" asp-action="XoaCaLam" asp-route-id="@item.MaChuyenBan">Xóa</a> *@
                                 </center>
                             </td>
                         </tr>
