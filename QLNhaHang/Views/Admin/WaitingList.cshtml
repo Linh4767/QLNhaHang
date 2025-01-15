@@ -8,27 +8,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Danh sách chờ</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            background-color: #f4f4f4;
-            margin: 0;
-            padding: 0;
-        }
-
-        .container {
-            max-width: 800px;
-            margin: 50px auto;
-            background: white;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-        }
-
-        h1 {
-            text-align: center;
-            color: rgb(31, 59, 179);
-        }
 
         table {
             width: 100%;
@@ -78,51 +60,206 @@
             .back-btn:hover {
                 background-color: #45a049;
             }
+        /* Lớp cho phần tử có trạng thái hợp lệ */
+        .valid {
+            background-color: #28a745; /* Màu xanh lá cây */
+            color: white;
+            font-weight: bold;
+        }
+
+        /* Lớp cho phần tử đã quá hạn */
+        .overdue {
+            background-color: #dc3545; /* Màu đỏ */
+            color: white;
+            font-weight: bold;
+        }
+
+        /* Nút "Đặt bàn" hợp lệ */
+        .btn-success {
+            background-color: #28a745;
+            color: white;
+        }
+
+        /* Nút "Quá hạn" */
+        .btn-danger {
+            background-color: #dc3545;
+            color: white;
+        }
+
+        /* Disable button khi không thể click */
+        .btn[disabled] {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
     </style>
 </head>
-<body>
-    <div class="container">
-        <h1>Danh sách chờ</h1>
+<body class="with-welcome-text">
+    <div class="container mt-4">
+        <h2 class="mb-4 text-center">Danh sách chờ</h2>
         @if (Model == null)
         {
             <p class="no-data">Hiện tại không có khách hàng nào trong danh sách chờ.</p>
         }
         else
         {
-            <table>
-                <thead>
-                    <tr>
-                        <th>Tên khách hàng</th>
-                        <th>Số điện thoại</th>
-                        <th>Ngày</th>
-                        <th>Email</th>
-                        <th>Số người đi</th>
-                        <th>Trạng thái</th>
-                        <th></th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @foreach (var item in Model)
-                    {
-
+            <div class="table-responsive">
+                <table>
+                    <thead>
                         <tr>
-                            <td>@Html.DisplayFor(modelItem => item.TenKh)</td>
-                            <td>@Html.DisplayFor(modelItem => item.Sdt)</td>
-                            <td>@Html.DisplayFor(modelItem => item.NgayDatBan)</td>
-                            <td>@Html.DisplayFor(modelItem => item.Email)</td>
-                            <td>@Html.DisplayFor(modelItem => item.SoNguoiDi)</td>
-                            <td>@Html.DisplayFor(modelItem => item.TrangThai)</td>
-                            <td>
-                                @if (item.TrangThai == "Đã xác nhận")
-                                {
-                                    <a class="btn btn-success btn-sm" asp-action="DSBanAn" asp-controller="Admin" asp-route-tenKH="@item.TenKh" asp-route-sdt="@item.Sdt" asp-route-ngayDB="@item.NgayDatBan">Đặt bàn</a>
-                                }
-                            </td>
+                            <th>Tên khách hàng</th>
+                            <th>Số điện thoại</th>
+                            <th>Ngày</th>
+                            <th>Email</th>
+                            <th>Số người đi</th>
+                            <th>Trạng thái</th>
+                            <th></th>
                         </tr>
-                    }
-                </tbody>
-            </table>
+                    </thead>
+                    <tbody>
+                        @foreach (var item in Model)
+                        {
+
+                            <tr>
+                                <td data-ten-kh="@item.TenKh">@Html.DisplayFor(modelItem => item.TenKh)</td>
+                                <td data-sdt="@item.Sdt">@Html.DisplayFor(modelItem => item.Sdt)</td>
+                                <td data-ngay-db="@item.NgayDatBan?.ToString("yyyy-MM-ddTHH:mm")">
+                                    @Html.DisplayFor(modelItem => item.NgayDatBan)
+                                </td>
+                                <td>@Html.DisplayFor(modelItem => item.Email)</td>
+                                <td data-so-nguoi-di="@item.SoNguoiDi">@Html.DisplayFor(modelItem => item.SoNguoiDi)</td>
+                                <td>@Html.DisplayFor(modelItem => item.TrangThai)</td>
+                                <td class="booking-status" data-ngay-dat-ban="@item.NgayDatBan">
+                                    @if (item.TrangThai == "Đã xác nhận")
+                                    {
+                                        <a class="btn btn-success btn-sm" asp-action="DSBanAn" asp-controller="Admin" asp-route-tenKH="@item.TenKh" asp-route-sdt="@item.Sdt" asp-route-ngayDB="@item.NgayDatBan" asp-route-soNguoiDi="@item.SoNguoiDi">Đặt bàn</a>
+                                    }
+                                </td>
+
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
         }
     </div>
+    <!-- Thêm thư viện moment.js từ CDN -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/moment.min.js"></script>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const currentDateTime = new Date(); // Lấy thời gian hiện tại
+
+            // Tìm tất cả các phần tử td có class 'booking-status'
+            const bookingStatuses = document.querySelectorAll('.booking-status');
+
+            bookingStatuses.forEach(function (td) {
+                const ngayDatBanStr = td.getAttribute('data-ngay-dat-ban'); // Lấy ngày đặt bàn từ data attribute
+
+                // Kiểm tra chuỗi ngày tháng
+                console.log("Chuỗi ngày tháng từ data-ngay-dat-ban: ", ngayDatBanStr);
+
+                // Chuyển đổi chuỗi thành moment object với định dạng phù hợp
+                const ngayDatBan = moment(ngayDatBanStr, "MM/DD/YYYY hh:mm:ss A"); // Chuyển chuỗi thành moment object
+
+                // Kiểm tra nếu moment object là hợp lệ
+                if (!ngayDatBan.isValid()) {
+                    console.log("Invalid date:", ngayDatBanStr);
+                    return; // Nếu không hợp lệ thì dừng lại
+                }
+
+                // Kiểm tra nếu ngày đặt bàn đã quá hạn
+                if (ngayDatBan.isBefore(moment())) {
+                    // Tìm dòng (tr) chứa phần tử td này và xóa nó
+                    const row = td.closest('tr'); // Tìm dòng chứa td này
+                    if (row) {
+                        row.remove(); // Xóa dòng
+                    }
+                } else {
+                    console.log("Ngày còn lại: ", ngayDatBan.format("YYYY-MM-DDTHH:mm:ss"));
+                }
+            });
+        });
+
+    </script>
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const rows = document.querySelectorAll("tbody tr");
+
+            rows.forEach(row => {
+                const tenKH = row.querySelector("td[data-ten-kh]").getAttribute("data-ten-kh");
+                const sdt = row.querySelector("td[data-sdt]").getAttribute("data-sdt");
+                const soNguoiDi = row.querySelector("td[data-so-nguoi-di]").getAttribute("data-so-nguoi-di");
+                const ngayDatBan = row.querySelector("td[data-ngay-db]").getAttribute("data-ngay-db");
+
+                // Kiểm tra ngayDatBan
+                console.log("Ngày đặt bàn ban đầu:", ngayDatBan);
+                if (!ngayDatBan) {
+                    console.error("Ngày đặt bàn không có giá trị!");
+                    return;
+                }
+
+                const [datePart, timePart] = ngayDatBan.split('T'); // Tách ngày và giờ
+                if (!timePart) return console.error("Giá trị thời gian không hợp lệ:", ngayDatBan);
+
+                let [hour, minute] = timePart.split(':').map(Number); // Lấy giờ và phút
+                let formattedHour = hour;
+
+                // Kiểm tra AM/PM và chuyển thành 24h
+                if (timePart.includes("AM") || timePart.includes("PM")) {
+                    if (timePart.includes("AM")) {
+                        if (hour === 12) formattedHour = 6; // 12 AM = 6h sáng
+                    } else if (timePart.includes("PM")) {
+                        if (hour !== 12) formattedHour = hour + 12; // 12 PM = 12h, còn lại cộng thêm 12 để chuyển sang 24h
+                    }
+                } else {
+                    // Nếu không có AM/PM, nghĩa là đang sử dụng giờ 24h, chỉ cần xử lý trực tiếp
+                    formattedHour = hour;
+                }
+
+                const formattedTime = `${formattedHour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`;
+                const ngayDatBanISO = `${datePart}T${formattedTime}`;
+
+                console.log("Ngày đặt bàn sau khi chuyển đổi sang 24 giờ:", ngayDatBanISO);
+                console.log("Dữ liệu gửi đi: ", JSON.stringify({
+                    tenKH: tenKH,
+                    sdt: sdt,
+                    soNguoiDi: parseInt(soNguoiDi),
+                    ngayDatBan: ngayDatBanISO
+                }));
+                row.style.display = 'none';
+                // Gửi yêu cầu kiểm tra đặt bàn trùng
+                fetch('/Admin/KiemTraDatBanChua', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        tenKH: tenKH,
+                        sdt: sdt,
+                        soNguoiDi: parseInt(soNguoiDi),
+                        ngayDatBan: ngayDatBanISO, // Đảm bảo gửi đúng định dạng
+                    })
+                })
+                    .then(response => {
+                        return response.json(); // Xử lý JSON
+                    })
+                    .then(data => {
+                        console.log(data);
+                        // Nếu tìm thấy đặt bàn trùng (data.success = true)
+                        if (data.success) {
+                            console.log("Phát hiện đặt bàn trùng:", data.message);
+                            row.remove(); // Loại bỏ dòng nếu trùng
+                        }
+                        // Nếu không có đặt bàn trùng thì giữ lại dòng
+                        else {
+                            console.log("Không trùng, giữ lại dòng");
+                            row.style.display = '';
+                        }
+                    })
+                    .catch(error => console.error('Lỗi khi gửi yêu cầu:', error));
+            });
+        });
+    </script>
 </body>
 </html>

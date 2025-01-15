@@ -163,7 +163,7 @@ namespace QLNhaHang.Controllers
                     string ngayDatBanString = emailDetails.Date.ToString("dd/MM/yyyy") + " " + emailDetails.Time;
                     DateTime ngayDatBan = DateTime.ParseExact(ngayDatBanString, "dd/MM/yyyy HH:mm", CultureInfo.InvariantCulture);
                     var waitingListEntry = _QLNhaHangContext.MaXacNhans
-                        .FirstOrDefault(x => x.Email == emailDetails.Email && x.Sdt == emailDetails.Phone && x.NgayDatBan == ngayDatBan && x.TrangThai == "Chưa xác nhận");
+                        .FirstOrDefault(x => x.Email == emailDetails.Email && x.TenKh == emailDetails.Name && x.SoNguoiDi == emailDetails.People && x.Sdt == emailDetails.Phone && x.NgayDatBan == ngayDatBan && x.TrangThai == "Chưa xác nhận");
 
                     if (waitingListEntry == null)
                     {
@@ -393,6 +393,72 @@ namespace QLNhaHang.Controllers
                 return false;
             }
         }
+
+        [HttpGet("home/confirm")]
+        public IActionResult Confirm(string code)
+        {
+            if (string.IsNullOrEmpty(code))
+            {
+                ViewBag.Message = "Mã xác nhận không hợp lệ. Vui lòng kiểm tra lại.";
+                return View();
+            }
+
+            var record = _QLNhaHangContext.MaXacNhans.FirstOrDefault(x => x.MaXacNhan1 == code);
+
+            if (record == null)
+            {
+                ViewBag.Message = "Mã xác nhận không tồn tại. Vui lòng kiểm tra lại.";
+            }
+            else
+            {
+                record.TrangThai = "Đã xác nhận";
+                _QLNhaHangContext.SaveChanges();
+                ViewBag.Message = "Xác nhận thành công! Cảm ơn bạn đã sử dụng dịch vụ.";
+            }
+
+            return View();
+        }
+        public IActionResult WaitingList()
+        {
+            var dsCho = _QLNhaHangContext.MaXacNhans.ToList();
+            return View("~/Views/Admin/WaitingList.cshtml", dsCho);
+        }
+        [HttpPost]
+        public IActionResult XacNhanDatBan(string storedEmailBody)
+        {
+            // Trích xuất thông tin từ emailBody
+            var emailDetails = ExtractEmailDetails(storedEmailBody);
+
+            if (emailDetails != null)
+            {
+                string timeString = emailDetails.Time;  // Ví dụ "14:30"
+
+                // Kết hợp ngày và giờ lại thành một chuỗi "yyyy-MM-dd HH:mm"
+                string fullDateTimeString = emailDetails.Date.ToString("yyyy-MM-dd") + " " + timeString;
+
+                // Chuyển chuỗi thành DateTime
+                DateTime fullDateTime = DateTime.Parse(fullDateTimeString);
+                // Kiểm tra thông tin đặt bàn trong cơ sở dữ liệu
+                var dsDatBan = _QLNhaHangContext.DatBans
+                    .Where(db => db.TenKh == emailDetails.Name && db.Sdt == emailDetails.Phone && db.SoNguoiDi == emailDetails.People && db.NgayDatBan == fullDateTime)
+                    .FirstOrDefault();
+
+                if (dsDatBan != null)
+                {
+                    // Nếu đã đặt bàn, trả về kết quả thành công
+                    SendConfirmationEmail(emailDetails.Email, emailDetails.Name);  // Gửi email xác nhận
+                    return Json(new { success = true, message = "Thông tin này đã được đặt bàn và email xác nhận đã được gửi." });
+                }
+                else
+                {
+                    return Json(new { success = false, message = "Thông tin này chưa được đặt bàn." });
+                }
+            }
+
+            return Json(new { success = false, message = "Không thể trích xuất thông tin từ email." });
+        }
+
+
         private void SendConfirmationEmail(string customerEmail, string customerName)
         {
             try
@@ -425,48 +491,5 @@ namespace QLNhaHang.Controllers
                 Console.WriteLine($"Error sending confirmation email: {ex.Message}");
             }
         }
-        [HttpGet("home/confirm")]
-        public IActionResult Confirm(string code)
-        {
-            if (string.IsNullOrEmpty(code))
-            {
-                ViewBag.Message = "Mã xác nhận không hợp lệ. Vui lòng kiểm tra lại.";
-                return View();
-            }
-
-            var record = _QLNhaHangContext.MaXacNhans.FirstOrDefault(x => x.MaXacNhan1 == code);
-
-            if (record == null)
-            {
-                ViewBag.Message = "Mã xác nhận không tồn tại. Vui lòng kiểm tra lại.";
-            }
-            else
-            {
-                record.TrangThai = "Đã xác nhận";
-                _QLNhaHangContext.SaveChanges();
-                ViewBag.Message = "Xác nhận thành công! Cảm ơn bạn đã sử dụng dịch vụ.";
-            }
-
-            return View();
-        }
-        public IActionResult WaitingList()
-        {
-            var dsCho = _QLNhaHangContext.MaXacNhans.ToList();
-            return View("~/Views/Admin/WaitingList.cshtml", dsCho);
-        }
-        [HttpPost]
-        public IActionResult XacNhanDatBan(string tenKH, string sdt, int soNguoiDi, DateTime ngayDatBan)
-        {
-            var dsDatBan = _QLNhaHangContext.DatBans.Where(db => db.TenKh == tenKH && db.Sdt == sdt && db.SoNguoiDi == soNguoiDi && db.NgayDatBan == ngayDatBan).FirstOrDefault();
-            if (dsDatBan != null)
-            {
-                return Json(new { success = true, message = "Thông tin này đã được đặt bàn!" });
-            }
-            else
-            {
-                return Json(new { success = false, message = "Thông tin này chưa được đặt bàn." });
-            }
-        }
-
     }
 }

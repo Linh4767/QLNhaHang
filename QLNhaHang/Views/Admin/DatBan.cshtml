@@ -24,8 +24,8 @@
                         <div class="form-group row">
                             <label class="col-sm-3 col-form-label" asp-for="SoNguoiDi">Số lượng người</label>
                             <div class="col-sm-9">
-                                <input type="number" class="form-control" asp-for="SoNguoiDi" />
-                                <span asp-validation-for="SoNguoiDi" class="text-danger"></span>
+                                <input type="number" class="form-control" asp-for="SoNguoiDi" value="@(ViewBag.SoNguoiDi ?? "")" id="soNguoiDi" />
+                                <span asp-validation-for="SoNguoiDi" class="text-danger" id="soNguoiDiError"></span>
                             </div>
                         </div>
                     </div>
@@ -36,7 +36,7 @@
                         <div class="form-group row">
                             <label class="col-sm-3 col-form-label" asp-for="TenKh">Tên khách hàng</label>
                             <div class="col-sm-9">
-                                <input type="text" class="form-control" asp-for="TenKh" />
+                                <input type="text" class="form-control" asp-for="TenKh" value="@(ViewBag.TenKH ?? "")" id="TenKh" readonly />
                                 <span asp-validation-for="TenKh" class="text-danger"></span>
                             </div>
                         </div>
@@ -45,7 +45,7 @@
                         <div class="form-group row">
                             <label class="col-sm-3 col-form-label" asp-for="Sdt">SĐT</label>
                             <div class="col-sm-9">
-                                <input type="tel" class="form-control" asp-for="Sdt" pattern="[0-9]{10}" />
+                                <input type="tel" class="form-control" asp-for="Sdt" pattern="[0-9]{10}" value="@(ViewBag.Sdt ?? "")" id="Sdt" readonly />
                                 <span asp-validation-for="Sdt" class="text-danger"></span>
                             </div>
                         </div>
@@ -56,19 +56,119 @@
                         <div class="form-group row">
                             <label class="col-sm-3 col-form-label" asp-for="NgayDatBan">Ngày đặt bàn</label>
                             <div class="col-sm-9">
-                                <input type="datetime-local" class="form-control" asp-for="NgayDatBan" />
-                                <span asp-validation-for="NgayDatBan" class="text-danger"></span>
+                                <input type="datetime-local" class="form-control" asp-for="NgayDatBan"
+                                       value="@(ViewBag.NgayDatBan != null && ViewBag.NgayDatBan != DateTime.MinValue
+                                         ? ViewBag.NgayDatBan.ToString("yyyy-MM-ddTHH:mm")
+                                         : DateTime.Now.ToString("yyyy-MM-ddTHH:mm"))" id="Date" />
+                                <span asp-validation-for="NgayDatBan" class="text-danger" id="DateError"></span>
                             </div>
                         </div>
                     </div>
                 </div>
-
-                <button type="submit" class="btn btn-primary me-2">Thêm</button>
+                <button type="submit" class="btn btn-primary me-2" id="submitBtn">Thêm</button>
                 <a class="btn btn-light" asp-action="DSBanAn">Quay Lại Danh Sách</a>
             </form>
         </div>
     </div>
 </div>
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+    const dateInput = document.getElementById("Date");
+    const submitBtn = document.getElementById("submitBtn");
+    const tenKh = document.getElementById("TenKh").value;
+    const sdt = document.getElementById("Sdt").value;
+    const soNguoiDiInput = document.getElementById("soNguoiDi");
+    const soNguoiDiError = document.getElementById("soNguoiDiError");
+    const maBan = new URLSearchParams(window.location.search).get("maBan");
+
+    function checkMaBan() {
+        if (!maBan) {
+            soNguoiDiError.textContent = "Không tìm thấy mã bàn!";
+            submitBtn.disabled = true;
+            return false;
+        }
+        return true;
+    }
+
+    async function validateSoNguoiDi() {
+        const soNguoiDi = soNguoiDiInput.value.trim();
+
+        if (!soNguoiDi) {
+            soNguoiDiError.textContent = "Nhập số người đi!";
+            submitBtn.disabled = true;
+            return;
+        }
+
+        try {
+            const response = await fetch(`/Admin/ValidateSoNguoiDi?maBan=${maBan}&soNguoiDi=${soNguoiDi}`, {
+                method: "GET",
+            });
+
+            const result = await response.json();
+
+            if (result.isValid) {
+                soNguoiDiError.textContent = "";
+                submitBtn.disabled = false;
+            } else {
+                soNguoiDiError.textContent = result.errorMessage;
+                submitBtn.disabled = true;
+            }
+        } catch (error) {
+            console.error("Error validating data:", error);
+            soNguoiDiError.textContent = "Có lỗi xảy ra. Vui lòng thử lại.";
+            submitBtn.disabled = true;
+        }
+    }
+
+    function validateDateTime() {
+        const currentDate = new Date();
+        const selectedDate = new Date(dateInput.value);
+
+        if (isNaN(selectedDate)) {
+            return "Nhập đầy đủ ngày giờ.";
+        }
+
+        currentDate.setSeconds(0);
+        currentDate.setMilliseconds(0);
+        selectedDate.setSeconds(0);
+        selectedDate.setMilliseconds(0);
+
+        if (selectedDate < currentDate) {
+            return "Thời gian đặt phải lớn hơn hoặc bằng thời gian hiện tại!";
+        }
+
+        const isSameDay = currentDate.toDateString() === selectedDate.toDateString();
+        if (tenKh && sdt) {
+            if (isSameDay) {
+                const diffInHours = (selectedDate - currentDate) / (1000 * 60 * 60);
+                if (diffInHours < 2) {
+                    return "Nếu đặt trong cùng ngày, thời gian đặt phải cách hiện tại ít nhất 2 tiếng!";
+                }
+            }
+        }
+
+        return "";
+    }
+
+    async function validateForm() {
+        if (!checkMaBan()) return;
+
+        const dateError = validateDateTime();
+        document.getElementById("DateError").textContent = dateError || "";
+
+        await validateSoNguoiDi();
+
+        if (dateError || soNguoiDiError.textContent) {
+            submitBtn.disabled = true;
+        } else {
+            submitBtn.disabled = false;
+        }
+    }
+
+    window.addEventListener("load", validateForm);
+    dateInput.addEventListener("change", validateForm);
+    soNguoiDiInput.addEventListener("input", validateForm);
+</script>
 
 @section Scripts {
     @{
