@@ -56,7 +56,7 @@
                             <td>
                                 <center>
                                     <a class="btn btn-warning btn-sm" asp-controller="Admin" asp-action="SuaCalam" asp-route-id="@item.MaCa">Sửa</a>
-                                    <a class="btn btn-danger btn-sm" asp-controller="Admin" asp-action="XoaCaLam" asp-route-id="@item.MaCa">Xóa</a>
+                                    <a class="btn btn-danger btn-sm" asp-controller="Admin" asp-action="XoaCaLam" asp-route-id="@item.MaCa" onclick="return confirm ('Bạn muốn thực hiện xóa ca không ?')">Xóa</a>
                                 </center>
                             </td>
                         </tr>

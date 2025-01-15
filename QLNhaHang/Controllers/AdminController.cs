@@ -671,10 +671,11 @@ namespace QLNhaHang.Controllers
         [HttpPost]
         public IActionResult ThemCaLam(Ca calam)
         {
-            calam.MaCa = TaoMaCaTuDong(); // Hoặc giữ nguyên giá trị của calam.MaCa
+            calam.MaCa = TaoMaCaTuDong(); // Tạo mã ca tự động hoặc giữ nguyên giá trị
 
             ModelState.Remove("MaCa");
-            // Lấy giá trị TimeSpan từ nullable
+
+            // Kiểm tra thời gian bắt đầu và kết thúc không được để trống
             if (!calam.ThoiGianBatDau.HasValue || !calam.ThoiGianKetThuc.HasValue)
             {
                 ModelState.AddModelError("", "Thời gian bắt đầu và kết thúc không được để trống.");
@@ -683,58 +684,54 @@ namespace QLNhaHang.Controllers
 
             TimeSpan gioBatDau = calam.ThoiGianBatDau.Value;
             TimeSpan gioKetThuc = calam.ThoiGianKetThuc.Value;
-            TimeSpan thoiGianLamViec = gioKetThuc - gioBatDau;
 
-            // Debug: In ra thời gian làm việc để kiểm tra
-            Console.WriteLine("Thời gian làm việc: " + thoiGianLamViec.TotalHours + " hours");
+            // Kiểm tra thời gian kết thúc phải lớn hơn thời gian ca làm
+            if (gioBatDau >= gioKetThuc)
+            {
+                ModelState.AddModelError("", "Thời gian kết thúc phải lớn hơn thời gian bắt đầu.");
+            }
 
-            // Kiểm tra thời gian bắt đầu (phải sau 7:00 sáng)
+            // Kiểm tra thời gian hợp lệ
             if (gioBatDau < new TimeSpan(7, 0, 0))
             {
                 ModelState.AddModelError("ThoiGianBatDau", "Thời gian bắt đầu phải sau 7:00 sáng.");
             }
-
-            // Kiểm tra thời gian kết thúc (phải trước hoặc bằng 22:30 tối)
             if (gioKetThuc > new TimeSpan(22, 30, 0))
             {
                 ModelState.AddModelError("ThoiGianKetThuc", "Thời gian kết thúc không được quá 22:30 tối.");
             }
 
-            // Kiểm tra thời gian làm việc (phải từ 4 đến 8 tiếng)
+            TimeSpan thoiGianLamViec = gioKetThuc - gioBatDau;
             double thoiGianLamViecInHours = thoiGianLamViec.TotalHours;
-            Console.WriteLine("Thời gian làm việc (hours): " + thoiGianLamViecInHours);
 
-            // Kiểm tra nếu là Full-time, thời gian làm việc phải đúng 8 tiếng
-            if (calam.LoaiCa == "fulltime" && thoiGianLamViecInHours != 8)
+            // Kiểm tra loại ca và thời gian làm việc
+            if (calam.LoaiCa == "Part-time" && (thoiGianLamViecInHours < 4 || thoiGianLamViecInHours >= 8))
             {
-                ModelState.AddModelError("", "Ca làm full-time phải có thời gian làm việc đúng 8 tiếng.");
+                ModelState.AddModelError("", "Ca làm part-time phải có thời gian làm việc từ 4 đến dưới 8 tiếng.");
+            }
+            if (calam.LoaiCa == "Full-time" && (thoiGianLamViecInHours < 8 || thoiGianLamViecInHours > 12))
+            {
+                ModelState.AddModelError("", "Ca làm full-time phải có thời gian làm việc từ 8 đến dưới hoặc bằng 12 tiếng.");
             }
 
-            // Kiểm tra nếu là Part-time, mặc định thời gian làm việc là 4 tiếng
-            if (calam.LoaiCa == "parttime" && thoiGianLamViecInHours != 4)
-            {
-                ModelState.AddModelError("", "Ca làm part-time phải có thời gian làm việc đúng 4 tiếng.");
-            }
 
+            // Kiểm tra trùng lặp ca làm
+            bool isDuplicate = _QLNhaHangContext.Cas.Any(c =>
+                c.ThoiGianBatDau == gioBatDau && c.ThoiGianKetThuc == gioKetThuc
+            );
+
+            if (isDuplicate)
+            {
+                ModelState.AddModelError("", "Ca làm đã tồn tại trong khoảng thời gian này.");
+            }
 
             // Nếu có lỗi, trả về lại view với thông báo lỗi
             if (!ModelState.IsValid)
             {
-                var errors = ModelState.Values.SelectMany(v => v.Errors).ToList();
-                foreach (var error in errors)
-                {
-                    // Log hoặc kiểm tra chi tiết lỗi
-                    Console.WriteLine(error.ErrorMessage);
-
-                }
-                // Đảm bảo giữ lại mã ca nếu có lỗi
                 return View(calam);
-
-
             }
 
-
-            // Nếu hợp lệ, tạo mã ca tự động và thêm vào database
+            // Nếu hợp lệ, thêm ca làm vào database
             _QLNhaHangContext.Cas.Add(calam);
             _QLNhaHangContext.SaveChanges();
 
@@ -783,17 +780,91 @@ namespace QLNhaHang.Controllers
 
         public IActionResult SuaCalam(string id)
         {
-            // Giả sử bạn lấy ca làm từ cơ sở dữ liệu
+            if (string.IsNullOrEmpty(id))
+            {
+                return NotFound("Không tìm thấy mã ca.");
+            }
+
+            // Lấy thông tin ca làm từ cơ sở dữ liệu
             var calam = _QLNhaHangContext.Cas.FirstOrDefault(c => c.MaCa == id);
 
             if (calam == null)
             {
-                return NotFound();
+                return NotFound("Không tìm thấy ca làm với mã được cung cấp.");
             }
 
-            // Trả về view với model đã có dữ liệu
+            // Trả về view cùng với dữ liệu
             return View(calam);
         }
+
+        [HttpPost]
+        public IActionResult SuaCalam(Ca calam)
+        {
+            if (!calam.ThoiGianBatDau.HasValue || !calam.ThoiGianKetThuc.HasValue)
+            {
+                ModelState.AddModelError("", "Thời gian bắt đầu và kết thúc không được để trống.");
+                return View(calam);
+            }
+
+            TimeSpan gioBatDau = calam.ThoiGianBatDau.Value;
+            TimeSpan gioKetThuc = calam.ThoiGianKetThuc.Value;
+
+            if (gioBatDau >= gioKetThuc)
+            {
+                ModelState.AddModelError("", "Thời gian kết thúc phải lớn hơn thời gian bắt đầu.");
+            }
+
+            if (gioBatDau < new TimeSpan(7, 0, 0))
+            {
+                ModelState.AddModelError("ThoiGianBatDau", "Thời gian bắt đầu phải sau 7:00 sáng.");
+            }
+            if (gioKetThuc > new TimeSpan(22, 30, 0))
+            {
+                ModelState.AddModelError("ThoiGianKetThuc", "Thời gian kết thúc không được quá 22:30 tối.");
+            }
+
+            TimeSpan thoiGianLamViec = gioKetThuc - gioBatDau;
+            double thoiGianLamViecInHours = thoiGianLamViec.TotalHours;
+
+            if (calam.LoaiCa == "Part-time" && (thoiGianLamViecInHours < 4 || thoiGianLamViecInHours >= 8))
+            {
+                ModelState.AddModelError("", "Ca làm part-time phải có thời gian làm việc từ 4 đến dưới 8 tiếng.");
+            }
+            if (calam.LoaiCa == "Full-time" && (thoiGianLamViecInHours < 8 || thoiGianLamViecInHours > 12))
+            {
+                ModelState.AddModelError("", "Ca làm full-time phải có thời gian làm việc từ 8 đến dưới hoặc bằng 12 tiếng.");
+            }
+
+            bool isDuplicate = _QLNhaHangContext.Cas.Any(c =>
+                c.MaCa != calam.MaCa && // Loại trừ ca hiện tại
+                c.ThoiGianBatDau == gioBatDau &&
+                c.ThoiGianKetThuc == gioKetThuc
+            );
+
+            if (isDuplicate)
+            {
+                ModelState.AddModelError("", "Ca làm đã tồn tại trong khoảng thời gian này.");
+            }
+
+            if (!ModelState.IsValid)
+            {
+                return View(calam);
+            }
+
+            var existingCa = _QLNhaHangContext.Cas.FirstOrDefault(c => c.MaCa == calam.MaCa);
+
+            if (existingCa != null)
+            {
+                existingCa.ThoiGianBatDau = calam.ThoiGianBatDau;
+                existingCa.ThoiGianKetThuc = calam.ThoiGianKetThuc;
+                existingCa.LoaiCa = calam.LoaiCa;
+
+                _QLNhaHangContext.SaveChanges();
+            }
+
+            return RedirectToAction("XemDSThongTinCa");
+        }
+
         [HttpGet]
         public IActionResult DatBan(string tenKH, string sdt, DateTime ngayDB, int soNguoiDi, string maBan, string date = null, int? floor = 1)
         {
