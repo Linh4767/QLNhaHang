@@ -1245,6 +1245,16 @@ namespace QLNhaHang.Controllers
                          .SingleOrDefault();
             return View(ttDatBan);
         }
+
+        [HttpGet]
+        public IActionResult ChuyenBan(string maBanCu, string maBanMoi)
+        {
+            ViewData["MaBanCu"] = maBanCu;
+            ViewData["MaBanMoi"] = maBanMoi;
+
+            return View();
+        }
+
         [HttpPost]
         public IActionResult SuaTTDatBan(DatBan datBan)
         {
