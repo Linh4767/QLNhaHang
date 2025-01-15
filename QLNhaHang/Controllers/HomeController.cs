@@ -9,6 +9,8 @@ namespace QLNhaHang.Controllers
         private readonly ILogger<HomeController> _logger;
         private readonly QLNhaHangContext _QLNhaHangContext;
 
+
+
         public HomeController(ILogger<HomeController> logger, QLNhaHangContext qLNhaHangContext)
         {
             _logger = logger;
