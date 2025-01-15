@@ -237,7 +237,8 @@
                         </a>
                         <div class="collapse" id="tables">
                             <ul class="nav flex-column sub-menu">
-                                <li class="nav-item"> <a class="nav-link" asp-action="DSBanAn">Danh sách bàn</a></li>
+                                <li class="nav-item"> <a class="nav-link" asp-action="DSBanAn" asp-controller="Admin">Danh sách bàn</a></li>
+                                <li class="nav-item"> <a class="nav-link" asp-action="WaitingList" asp-controller="Home">Danh sách chờ</a></li>
                                 <li class="nav-item"> <a class="nav-link" href="#">Đặt bàn</a></li>
                                 <li class="nav-item"> <a class="nav-link" href="#">Lịch sử chuyển bàn</a></li>
                             </ul>
@@ -314,78 +315,6 @@
         <!-- Custom js for this page-->
         <script src="~/js/jquery.cookie.js" type="text/javascript"></script>
         <script src="~/js/dashboard.js"></script>
-        @* <script>
-            $(document).ready(function () {
-                // Lấy danh sách email chưa đọc và hiển thị trong dropdown
-                $.ajax({
-                    url: '@Url.Action("GetUnreadEmails", "Home")',  // URL để lấy email chưa đọc
-                    method: 'GET',
-                    dataType: 'json',
-                    beforeSend: function () {
-                        $('#emailDropdown').html('<p>Loading...</p>');  // Hiển thị loading trong dropdown
-                    },
-                    success: function (response) {
-                        // Kiểm tra xem có email chưa đọc hay không
-                        if (Array.isArray(response.data) && response.data.length > 0) {
-                            var unreadCount = response.data.length;
-                            $('#unreadCount').text(unreadCount);  // Cập nhật số lượng email chưa đọc
-
-                            var dropdownContent = '';
-                            // Duyệt qua các email và hiển thị chúng
-                            response.data.forEach(function (email) {
-                                var emailBody = email.body;  // Lấy nội dung email
-
-                                // Tạo HTML cho mỗi email
-                                dropdownContent += `
-                                                <a class="dropdown-item preview-item">
-                                                    <div class="preview-item-content flex-grow py-2">
-                                                        <p class="fw-light small-text mb-0">${emailBody}</p>
-                                                        <button class="btn btn-primary confirm-btn mt-3" data-email-body="${encodeURIComponent(emailBody)}">Confirm</button>
-                                                    </div>
-                                                </a>
-                                                <div class="dropdown-divider"></div>
-                                            `;
-                            });
-
-                            // Thêm các email vào dropdown
-                            $('#emailDropdown').html(dropdownContent);
-                        } else {
-                            $('#emailDropdown').html('<p>No unread emails found.</p>');  // Không có email chưa đọc
-                        }
-                    },
-                    error: function () {
-                        $('#emailDropdown').html('<p>Error fetching emails.</p>');  // Xử lý khi gặp lỗi
-                    }
-                });
-
-                // Hàm xác nhận đặt bàn
-                function confirmReservation(emailBody) {
-                    $.ajax({
-                        url: '@Url.Action("CheckReservationMatch", "Home")',  // URL để kiểm tra khớp đặt bàn
-                        method: 'POST',
-                        data: { emailBody: emailBody },  // Gửi nội dung email lên server
-                        success: function (response) {
-                            console.log(emailBody);
-                            if (response.success) {
-                                alert('Xác nhận thành công!');  // Thông báo khi đặt bàn thành công
-                            } else {
-                                alert('Chưa đặt bàn không thể xác nhận.');  // Thông báo khi không khớp
-                            }
-                        },
-                        error: function () {
-                            alert('Error checking reservation.');  // Thông báo lỗi nếu có
-                        }
-                    });
-                }
-
-                // Sự kiện khi nhấn nút "Confirm"
-                $(document).on('click', '.confirm-btn', function () {
-                    var emailBody = decodeURIComponent($(this).data('email-body'));  // Lấy nội dung email từ data attribute
-                    confirmReservation(emailBody);  // Gọi hàm xác nhận đặt bàn
-                });
-            });
-
-        </script> *@
         <script>
             $(document).ready(function () {
                 // Hàm để tải lại danh sách email chưa đọc
@@ -410,14 +339,14 @@
 
                                     // Tạo HTML cho mỗi email
                                     dropdownContent += `
-                                        <a class="dropdown-item preview-item">
-                                            <div class="preview-item-content flex-grow py-2">
-                                                <p class="fw-light small-text mb-0">${emailBody}</p>
-                                                <button class="btn btn-primary confirm-btn mt-3" data-email-body="${encodeURIComponent(emailBody)}">Confirm</button>
-                                            </div>
-                                        </a>
-                                        <div class="dropdown-divider"></div>
-                                    `;
+                                                    <a class="dropdown-item preview-item">
+                                                        <div class="preview-item-content flex-grow py-2">
+                                                            <p class="fw-light small-text mb-0">${emailBody}</p>
+                                                            <button class="btn btn-primary confirm-btn mt-3" data-email-body="${encodeURIComponent(emailBody)}">Confirm</button>
+                                                        </div>
+                                                    </a>
+                                                    <div class="dropdown-divider"></div>
+                                                `;
                                 });
 
                                 // Thêm các email vào dropdown
@@ -439,6 +368,9 @@
                 $(document).on('click', '.confirm-btn', function () {
                     var emailBody = decodeURIComponent($(this).data('email-body'));  // Lấy nội dung email từ data attribute
                     confirmReservation(emailBody);  // Gọi hàm xác nhận đặt bàn
+                    // if (emailBody) {
+                    //     localStorage.setItem('emailBody', emailBody);  // Lưu emailBody vào localStorage
+                    // }
                 });
 
                 // Hàm xác nhận đặt bàn
@@ -453,8 +385,11 @@
                                 alert('Xác nhận thành công!');  // Thông báo khi đặt bàn thành công
                                 // Gọi lại AJAX để tải lại danh sách email chưa đọc
                                 loadUnreadEmails();  // Gọi lại hàm tải email chưa đọc
-                            } else {
-                                alert('Chưa đặt bàn không thể xác nhận.');  // Thông báo khi không khớp
+                                let storedEmails = JSON.parse(localStorage.getItem('emailBodies')) || [];
+                                if (!storedEmails.includes(emailBody)) {
+                                    storedEmails.push(emailBody);  // Thêm emailBody mới vào mảng
+                                    localStorage.setItem('emailBodies', JSON.stringify(storedEmails));  // Lưu lại mảng vào localStorage
+                                }
                             }
                         },
                         error: function () {
@@ -462,8 +397,41 @@
                         }
                     });
                 }
-            });
 
+                // var storedEmailBody = localStorage.getItem('emailBody');
+                // console.log("NgayHHH" + storedEmailBody);
+                // if (storedEmailBody) {
+                //     // Nếu có, gọi hàm xử lý ngay khi trang load
+                //     xacNhan(storedEmailBody);
+                // }
+                let storedEmailBody = JSON.parse(localStorage.getItem('emailBodies')) || [];
+
+                storedEmailBody.forEach(function (emailBody) {
+                    console.log("Processing email: " + emailBody);  // Kiểm tra giá trị email
+                    xacNhan(emailBody);  // Gọi hàm xacNhan cho mỗi emailBody
+                });
+                function xacNhan(storedEmailBody) {
+                    $.ajax({
+                        url: '@Url.Action("XacNhanDatBan", "Home")',  // URL để kiểm tra khớp đặt bàn
+                        method: 'POST',
+                        data: { storedEmailBody: storedEmailBody },  // Gửi nội dung email lên server
+                        success: function (response) {
+                            if (response.success) {
+                                clearEmailBody(storedEmailBody);  // Thông báo khi đặt bàn thành công
+                            }
+                            else {
+                            }
+                        },
+                        error: function () {
+                            alert('Error checking reservation.');  // Thông báo lỗi nếu có
+                        }
+                    });
+                }
+                function clearEmailBody() {
+                    localStorage.removeItem('emailBody');  // Xóa emailBody khỏi localStorage
+                }
+
+            });
         </script>
     </div>
 </body>

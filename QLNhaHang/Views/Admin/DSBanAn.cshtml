@@ -3,6 +3,7 @@
 @{
     Layout = "Header";
     ViewData["Title"] = "QLy Bàn";
+
 }
 <html lang="en">
 <head>
@@ -84,6 +85,10 @@
         <div class="d-flex flex-wrap justify-content-between align-items-center mb-3">
             <div class="container">
                 <div class="row g-3 align-items-center">
+                    <input type="hidden" id="tenKH" value="@ViewBag.TenKH" />
+                    <input type="hidden" id="sdt" value="@ViewBag.Sdt" />
+                    <input type="hidden" id="soNguoiDi" value="@ViewBag.SoNguoiDi" />
+                    <input type="hidden" id="ngayDB" value="@ViewBag.NgayDatBan.ToString("yyyy-MM-dd HH:mm")" />
                     <!-- Select Floor -->
                     <div class="col-12 col-md-4">
                         <select class="form-select" id="floorSelect" onchange="filterByFloor()">
@@ -99,7 +104,8 @@
                             <span class="input-group-text">
                                 <i class="icon-calendar"></i>
                             </span>
-                            <input type="text" id="datePicker" class="form-control" value="@ViewData["SelectedDate"]" onchange="filterByDate()" />
+                            <input type="text" id="datePicker" class="form-control" value="@ViewData["SelectedDate"]"
+                                   onchange="filterByDate()" />
                         </div>
                     </div>
                     <!-- Add Button -->
@@ -112,55 +118,260 @@
         </div>
 
         <!-- Danh sách bàn hiển thị dạng lưới -->
-        <div class="grid-container">
-            @foreach (var item in Model)
-            {
-                <div class="grid-item @(item.TrangThai.HasValue && item.TrangThai.Value ? "occupied" : "available")">
-                    <p><strong>Bàn @item.MaBan</strong></p>
-                    <p>@item.SoLuongNguoi người</p>
-                    <p>Vị trí: @item.ViTri</p>
-                    <div class="actions">
-                        <a class="btn btn-warning btn-sm" asp-action="CapNhatBan" asp-route-maBan="@item.MaBan">Cập nhật</a>
-                        @if (!item.TrangThai.HasValue || !item.TrangThai.Value)
-                        {
-                            <a class="btn btn-success btn-sm" asp-action="DatBan" asp-route-maBan="@item.MaBan" title="Đặt bàn này">Đặt bàn</a>
-                        }
-                    </div>
-                </div>
-            }
+        <div class="grid-container" id="tableContainer">
+            @await Html.PartialAsync("_DSBanAnPartial", Model)
         </div>
     </div>
+    @* <script>
+    document.addEventListener("DOMContentLoaded", function () {
+    const storedDate = localStorage.getItem('selectedDate');
+    const storedFloor = localStorage.getItem('floor');
+    console.log("storeDate" + storedDate);
+    if (storedDate && storedFloor) {
+
+    // Cập nhật trạng thái nút sau khi đã lấy giá trị từ localStorage
+    const selectedDateTime = parseDate(storedDate);
+    const currentDate = new Date();
+    const buttonList = document.querySelectorAll(".btnDB");
+
+    currentDate.setHours(0, 0, 0, 0);
+    selectedDateTime.setHours(0, 0, 0, 0);
+
+    buttonList.forEach((button) => {
+    toggleButtonDisplay(selectedDateTime, currentDate, button);
+    });
+    }
+    flatpickr("#datePicker", {
+    dateFormat: "m/d/Y", // Định dạng tháng/ngày/năm
+    defaultDate: "@ViewData["SelectedDate"]" // Ngày mặc định
+    });
+    });
+    function addNewTable() {
+    const floor = document.getElementById("floorSelect").value;
+    const url = `@Url.Action("ThemBan", "Admin")?floor=${encodeURIComponent(floor)}`;
+    window.location.href = url;
+    }
+
+    function filterByFloor() {
+    const floor = document.getElementById("floorSelect").value;
+    const selectedDate = document.getElementById("datePicker").value || new Date().toISOString().split("T")[0];
+    const selectedDateTime = parseDate(selectedDate);
+    const currentDate = new Date();
+    var btnDatBan = document.getElementById("btnDatBan");
+    const buttonList = document.querySelectorAll(".btnDB");
+    currentDate.setHours(0, 0, 0, 0);
+    selectedDateTime.setHours(0, 0, 0, 0);
+    const url = `@Url.Action("DSBanAn", "Admin")?floor=${encodeURIComponent(floor)}&date=${encodeURIComponent(selectedDate)}`;
+    window.location.href = url;
+
+    buttonList.forEach((button) => {
+    toggleButtonDisplay(selectedDateTime, currentDate, button);
+    });
+    }
+    function parseDate(dateString) {
+    const parts = dateString.split('/'); // Tách chuỗi ngày theo dấu "/"
+    if (parts.length === 3) {
+    const month = parseInt(parts[0], 10) - 1; // Lấy tháng (0-based)
+    const day = parseInt(parts[1], 10);       // Lấy ngày
+    const year = parseInt(parts[2], 10);      // Lấy năm
+
+    return new Date(year, month, day);       // Trả về đối tượng Date
+    }
+    return null; // Trả về null nếu không hợp lệ
+    }
+    function toggleButtonDisplay(selectedDateTime, currentDate, buttonElement) {
+    if (selectedDateTime < currentDate) {
+    buttonElement.style.display = 'none'; // Ẩn nút
+    } else {
+    buttonElement.style.display = 'block'; // Hiện nút
+    }
+    }
+    function filterByDate() {
+    const selectedDate = document.getElementById("datePicker").value;
+    console.log(selectedDate);
+    const floor = document.getElementById("floorSelect").value || 1;
+    const selectedDateTime = parseDate(selectedDate);
+    const currentDate = new Date();
+    var btnDatBan = document.getElementById("btnDatBan");
+    const buttonList = document.querySelectorAll(".btnDB");
+    currentDate.setHours(0, 0, 0, 0);
+    selectedDateTime.setHours(0, 0, 0, 0);
+    if (!selectedDate) {
+    return; // Nếu không có ngày được chọn, không thực hiện gì cả
+    }
+    const url = `@Url.Action("DSBanAn", "Admin")?floor=${encodeURIComponent(floor)}&date=${encodeURIComponent(selectedDate)}`;
+    window.location.href = url;
+    buttonList.forEach((button) => {
+    toggleButtonDisplay(selectedDateTime, currentDate, button);
+    });
+    console.log("Ngày hiện tại:", currentDate);
+    console.log("Ngày được chọn:", selectedDateTime);
+    }
+    function saveToLocalStorage() {
+    const selectedDate = document.getElementById("datePicker").value;
+    const floor = document.getElementById("floorSelect").value;
+
+    localStorage.setItem('selectedDate', selectedDate);  // Lưu ngày vào localStorage
+    localStorage.setItem('floor', floor);  // Lưu tầng vào localStorage
+    }
+
+    // Gọi hàm này khi người dùng thay đổi ngày hoặc tầng
+    document.getElementById("datePicker").addEventListener('change', saveToLocalStorage);
+    document.getElementById("floorSelect").addEventListener('change', saveToLocalStorage);
+    // Ẩn thông báo sau 3 giây
+    setTimeout(function () {
+    var them = document.getElementById("them");
+    var sua = document.getElementById("sua");
+    var db = document.getElementById("db");
+    if (them) {
+    them.style.display = "none";
+    }
+    if (sua) {
+    sua.style.display = "none";
+    }
+    if (db) {
+    db.style.display = "none";
+    }
+    }, 3000);
+
+    </script> *@
     <script>
         document.addEventListener("DOMContentLoaded", function () {
+            // Truyền giá trị từ Razor vào JavaScript
+            let defaultDate = '@((ViewBag.NgayDatBan is DateTime && ViewBag.NgayDatBan != DateTime.MinValue) ? ((DateTime)ViewBag.NgayDatBan).ToString("MM-dd-yyyy") : (ViewData["SelectedDate"]?.ToString() ?? DateTime.Now.ToString("MM-dd-yyyy")))';
+            console.log("Ngày đặt bàn trước JavaScript:", defaultDate);
+
+            // Kiểm tra nếu defaultDate là không hợp lệ (null, "01/01/0001" hoặc rỗng), thay bằng ngày hiện tại
+            if (!defaultDate || defaultDate === "01/01/0001") {
+                // Nếu defaultDate là "01/01/0001", lấy ngày hiện tại
+                defaultDate = new Date().toISOString().split('T')[0]; // Ngày hiện tại
+            }
+
+            console.log("Ngày đặt bàn sau khi kiểm tra:", defaultDate);
+
+            // Khởi tạo flatpickr với ngày mặc định
+            // Khởi tạo flatpickr với ngày mặc định
             flatpickr("#datePicker", {
                 dateFormat: "m/d/Y", // Định dạng tháng/ngày/năm
-                defaultDate: "@ViewData["SelectedDate"]" // Ngày mặc định
+                defaultDate: defaultDate, // Ngày mặc định từ ViewData
             });
         });
+
+
+        // Hàm xử lý thay đổi tầng
+        function filterByFloor() {
+            const floor = document.getElementById("floorSelect").value;
+            const selectedDate = document.getElementById("datePicker").value || new Date().toISOString().split("T")[0];
+            const selectedDateTime = parseDate(selectedDate);
+            const currentDate = new Date();
+            currentDate.setHours(0, 0, 0, 0);
+            selectedDateTime.setHours(0, 0, 0, 0);
+            const soNguoiDi = document.getElementById("soNguoiDi").value;
+            const tenKH = document.getElementById("tenKH").value;  // Lấy giá trị của tên khách hàng
+            const sdt = document.getElementById("sdt").value;  // Lấy giá trị của số điện thoại
+            const ngayDB = document.getElementById("ngayDB").value;  // Lấy giá trị của ngày đặt bàn
+            // const selectedDateTime = ngayDB.toISOString();
+            // const selectedDateTime = selectedDate.toISOString().slice(0, 16);
+            // Gửi yêu cầu AJAX
+            $.ajax({
+                url: '@Url.Action("DSBanAn", "Admin")',
+                type: 'GET',
+                data: {
+                    tenKH: tenKH,
+                    sdt: sdt,
+                    ngayDB: ngayDB,
+                    soNguoiDi: soNguoiDi,
+                    floor: floor,
+                    date: selectedDate
+                },
+                success: function (response) {
+                    // Sau khi cập nhật nội dung, gọi lại toggleButtonDisplay cho các nút mới
+
+                    document.getElementById("tableContainer").innerHTML = response;
+                    const buttonList = document.querySelectorAll(".btnDB");
+                    buttonList.forEach((button) => {
+                        toggleButtonDisplay(selectedDateTime, currentDate, button);
+                    });
+
+                },
+                error: function (xhr, status, error) {
+                    console.error("Lỗi khi lấy dữ liệu từ server: " + error);
+                }
+            });
+        }
+
+        // Hàm xử lý thay đổi ngày
+        function filterByDate() {
+            const selectedDate = document.getElementById("datePicker").value;
+            const floor = document.getElementById("floorSelect").value || 1;
+            const selectedDateTime = parseDate(selectedDate);
+            const currentDate = new Date();
+            currentDate.setHours(0, 0, 0, 0);
+            selectedDateTime.setHours(0, 0, 0, 0);
+
+            const tenKH = document.getElementById("tenKH").value;  // Lấy giá trị của tên khách hàng
+            const sdt = document.getElementById("sdt").value;  // Lấy giá trị của số điện thoại
+            const ngayDB = document.getElementById("ngayDB").value;
+
+            // Gửi yêu cầu AJAX
+            $.ajax({
+                url: '@Url.Action("DSBanAn", "Admin")',
+                type: 'GET',
+                data: {
+                    floor: floor,
+                    date: selectedDate
+                },
+                success: function (response) {
+                    // Sau khi cập nhật nội dung, gọi lại toggleButtonDisplay cho các nút mới
+
+                    document.getElementById("tableContainer").innerHTML = response;
+                    const buttonList = document.querySelectorAll(".btnDB");
+                    buttonList.forEach((button) => {
+                        toggleButtonDisplay(selectedDateTime, currentDate, button);
+                    });
+
+                },
+                error: function (xhr, status, error) {
+                    console.error("Lỗi khi lấy dữ liệu từ server: " + error);
+                }
+            });
+        }
+
+        // Hàm xử lý hiển thị các nút "Đặt bàn"
+        function toggleButtonDisplay(selectedDateTime, currentDate, buttonElement) {
+            if (selectedDateTime < currentDate) {
+                buttonElement.style.display = 'none'; // Ẩn nút nếu ngày chọn đã qua
+            } else {
+                buttonElement.style.display = 'block'; // Hiện nút nếu ngày chọn hợp lệ
+            }
+        }
+
+        // Lưu giá trị vào localStorage
+        function saveToLocalStorage() {
+            const selectedDate = document.getElementById("datePicker").value;
+            const floor = document.getElementById("floorSelect").value;
+
+            localStorage.setItem('selectedDate', selectedDate);  // Lưu ngày vào localStorage
+            localStorage.setItem('floor', floor);  // Lưu tầng vào localStorage
+        }
+
+        // Hàm chuyển đổi ngày từ chuỗi
+        function parseDate(dateString) {
+            const parts = dateString.split('/'); // Tách chuỗi ngày theo dấu "/"
+            if (parts.length === 3) {
+                const month = parseInt(parts[0], 10) - 1; // Lấy tháng (0-based)
+                const day = parseInt(parts[1], 10);       // Lấy ngày
+                const year = parseInt(parts[2], 10);      // Lấy năm
+
+                return new Date(year, month, day);       // Trả về đối tượng Date
+            }
+            return null; // Trả về null nếu không hợp lệ
+        }
         function addNewTable() {
             const floor = document.getElementById("floorSelect").value;
             const url = `@Url.Action("ThemBan", "Admin")?floor=${encodeURIComponent(floor)}`;
             window.location.href = url;
         }
-
-        function filterByFloor() {
-            const floor = document.getElementById("floorSelect").value;
-            const selectedDate = document.getElementById("datePicker").value || new Date().toISOString().split("T")[0];
-            const url = `@Url.Action("DSBanAn", "Admin")?floor=${encodeURIComponent(floor)}&date=${encodeURIComponent(selectedDate)}`;
-            window.location.href = url;
-        }
-
-        function filterByDate() {
-            const selectedDate = document.getElementById("datePicker").value;
-            const floor = document.getElementById("floorSelect").value || 1;
-            if (!selectedDate) {
-                return; // Nếu không có ngày được chọn, không thực hiện gì cả
-            }
-            const url = `@Url.Action("DSBanAn", "Admin")?floor=${encodeURIComponent(floor)}&date=${encodeURIComponent(selectedDate)}`;
-            window.location.href = url;
-        }
-
-        // Ẩn thông báo sau 3 giây
         setTimeout(function () {
             var them = document.getElementById("them");
             var sua = document.getElementById("sua");

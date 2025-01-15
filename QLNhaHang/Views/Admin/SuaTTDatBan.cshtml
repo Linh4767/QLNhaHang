@@ -1,0 +1,76 @@
+﻿@model QLNhaHang.Models.DatBan
+@{
+    Layout = "Header";
+    ViewData["Title"] = "DatBan";
+}
+
+<div class="col-12 grid-margin">
+    <div class="card">
+        <div class="card-body">
+            <h3 class="card-title"> Sửa Đặt Bàn</h3>
+            <form class="form-sample" asp-action="SuaTTDatBan" asp-controller="Admin" asp-route-floor="@ViewData["CurrentFloor"]" method="post">
+                <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+                <input type="hidden" class="form-control" asp-for="MaDatBan"/>
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-group row">
+                            <label class="col-sm-3 col-form-label" asp-for="MaBan">Bàn</label>
+                            <div class="col-sm-9">
+                                <input type="text" class="form-control" asp-for="MaBan" name="MaBan" id="maBan" value="@ViewData["MaBan"]" readonly />
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group row">
+                            <label class="col-sm-3 col-form-label" asp-for="SoNguoiDi">Số lượng người</label>
+                            <div class="col-sm-9">
+                                <input type="number" class="form-control" asp-for="SoNguoiDi" />
+                                <span asp-validation-for="SoNguoiDi" class="text-danger"></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-group row">
+                            <label class="col-sm-3 col-form-label" asp-for="TenKh">Tên khách hàng</label>
+                            <div class="col-sm-9">
+                                <input type="text" class="form-control" asp-for="TenKh" />
+                                <span asp-validation-for="TenKh" class="text-danger"></span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group row">
+                            <label class="col-sm-3 col-form-label" asp-for="Sdt">SĐT</label>
+                            <div class="col-sm-9">
+                                <input type="tel" class="form-control" asp-for="Sdt" pattern="[0-9]{10}" />
+                                <span asp-validation-for="Sdt" class="text-danger"></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-group row">
+                            <label class="col-sm-3 col-form-label" asp-for="NgayDatBan">Ngày đặt bàn</label>
+                            <div class="col-sm-9">
+                                <input type="datetime-local" class="form-control" asp-for="NgayDatBan" />
+                                <span asp-validation-for="NgayDatBan" class="text-danger"></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn btn-primary me-2" >Sửa</button>
+                <a class="btn btn-light" asp-action="XemThongTinDatBan" asp-controller="Admin">Quay Lại Danh Sách</a>
+            </form>
+        </div>
+    </div>
+</div>
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}
