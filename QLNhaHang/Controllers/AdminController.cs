@@ -894,7 +894,7 @@ namespace QLNhaHang.Controllers
             {
                 ModelState.AddModelError("SoNguoiDi", "Số lượng người phải lớn hơn 0 và nhỏ hơn hoặc bằng số lượng người bàn có thể chứa.");
             }
-           
+
             //thêm đặt bàn mới vào database
             _QLNhaHangContext.DatBans.Add(datBan);
             _QLNhaHangContext.SaveChanges();
@@ -1159,7 +1159,7 @@ namespace QLNhaHang.Controllers
             // Cập nhật các thuộc tính khác của món ăn
             oldMonAn.TenMonAn = VietHoa(monAn.TenMonAn);
             oldMonAn.Gia = monAn.Gia;
-            
+
             oldMonAn.LoaiMa = monAn.LoaiMa;
 
             await _QLNhaHangContext.Entry(oldMonAn)
@@ -1171,11 +1171,11 @@ namespace QLNhaHang.Controllers
             oldMonAn.MoTa = monAn.MoTa;
             oldMonAn.TrangThai = monAn.TrangThai;
             oldMonAn.HinhAnh = monAn.HinhAnh;
-           
+
 
             // Lưu thay đổi vào cơ sở dữ liệu
             await _QLNhaHangContext.SaveChangesAsync();
-            
+
             // Trả về View
             return RedirectToAction("DanhSachMonAn_Admin");
         }
@@ -1212,7 +1212,7 @@ namespace QLNhaHang.Controllers
         public IActionResult XemThongTinDatBan(string maBan, string date = null, int? floor = 1)
         {
             ViewData["CurrentFloor"] = floor;
-            if(ViewData["Floor"] != null)
+            if (ViewData["Floor"] != null)
             {
                 ViewData["CurrentFloor"] = ViewData["Floor"];
             }
@@ -1246,14 +1246,7 @@ namespace QLNhaHang.Controllers
             return View(ttDatBan);
         }
 
-        [HttpGet]
-        public IActionResult ChuyenBan(string maBanCu, string maBanMoi)
-        {
-            ViewData["MaBanCu"] = maBanCu;
-            ViewData["MaBanMoi"] = maBanMoi;
-
-            return View();
-        }
+       
 
         [HttpPost]
         public IActionResult SuaTTDatBan(DatBan datBan)
@@ -1422,6 +1415,174 @@ namespace QLNhaHang.Controllers
             }
         }
 
+        //Chuyển bàn
+        public IActionResult DSChuyenBan(int floor = 1, string? selectedTable = null, bool isSelectingNewTable = false)
+        {
+            // Lưu tầng hiện tại
+            ViewData["CurrentFloor"] = floor;
+            ViewData["SelectedTable"] = selectedTable;
+            ViewData["IsSelectingNewTable"] = isSelectingNewTable;
+
+            var today = DateTime.Today;
+
+            // Lấy danh sách tất cả bàn ở tầng hiện tại
+            var dsBan = _QLNhaHangContext.Bans
+                          .Where(b => b.ViTri.Contains($"Lầu {floor}"))
+                          .ToList();
+
+            // Chia danh sách bàn
+            //ds bàn có người
+            var dsBanOccupied = dsBan
+                .Where(ban => _QLNhaHangContext.DatBans.Any(db => db.MaBan == ban.MaBan && db.NgayDatBan.Value.Date == today.Date))
+                .ToList();
+
+            //danh sách bàn trống
+            var dsBanAvailable = dsBan
+            .Where(ban => !_QLNhaHangContext.DatBans.Any(db => db.MaBan == ban.MaBan && db.NgayDatBan.Value.Date == today.Date))
+            .ToList();
+            if (selectedTable != null)
+            {
+                var banCu = _QLNhaHangContext.Bans.FirstOrDefault(b => b.MaBan == selectedTable);
+                dsBanAvailable = dsBan
+                    .Where(ban => !_QLNhaHangContext.DatBans.Any(db => db.MaBan == ban.MaBan && db.NgayDatBan.Value.Date == today.Date) && ban.SoLuongNguoi >= banCu.SoLuongNguoi)
+                    .ToList();
+            }
+
+
+            // Kiểm tra nếu danh sách bàn trống rỗng
+            ViewData["IsAvailableEmpty"] = !dsBanAvailable.Any();
+
+            ViewData["OccupiedTables"] = dsBanOccupied;
+            ViewData["AvailableTables"] = dsBanAvailable;
+
+            return View();
+        }
+
+        [HttpGet]
+        public IActionResult ChuyenBan(string maBanCu, string maBanMoi)
+        {
+            ViewData["MaBanCu"] = maBanCu;
+            ViewData["MaBanMoi"] = maBanMoi;
+
+            return View();
+        }
+
+        [HttpPost]
+        public IActionResult ChuyenBan(LichSuChuyenBan lsCB)
+        {
+            ModelState.Remove("MaChuyenBan");
+            ModelState.Remove("MaBanCuNavigation");
+            ModelState.Remove("MaBanMoiNavigation");
+            ModelState.Remove("MaDatBanNavigation");
+            ModelState.Remove("MaNvNavigation");
+
+            //lấy ngày hiện tại
+            string ngayHienTai = DateTime.Now.ToString("yyyyMMdd");
+
+            //lọc các mã đặt bàn trong ngày hiện tại
+            var maCuoi = _QLNhaHangContext.LichSuChuyenBans
+                .Where(b => b.MaChuyenBan.StartsWith("CB" + ngayHienTai))
+                .OrderByDescending(b => b.MaChuyenBan)
+                .FirstOrDefault();
+
+            //tạo mã mới
+            string maMoi;
+            if (maCuoi != null)
+            {
+                //lấy phần số cuối từ mã cuối cùng và tăng lên
+                int soCuoi = int.Parse(maCuoi.MaChuyenBan.Substring(10));
+                maMoi = "CB" + ngayHienTai + (soCuoi + 1).ToString("D3");
+            }
+            else
+            {
+                //nếu chưa có mã nào trong ngày, bắt đầu từ 001
+                maMoi = "CB" + ngayHienTai + "001";
+            }
+
+            //gán mã mới cho đối tượng chuyển bàn
+            lsCB.MaChuyenBan = maMoi;
+
+            var maDB = _QLNhaHangContext.DatBans.FirstOrDefault(b => b.MaBan == lsCB.MaBanCu && b.NgayDatBan.Value.Date == DateTime.Today.Date);
+
+            //thay đổi trạng thái bàn
+            var banCu = _QLNhaHangContext.Bans.FirstOrDefault(b => b.MaBan == lsCB.MaBanCu);
+            var banMoi = _QLNhaHangContext.Bans.FirstOrDefault(b => b.MaBan == lsCB.MaBanMoi);
+
+            if (banCu == null || banMoi == null)
+            {
+                TempData["BaoLoi"] = "Không tìm thấy bàn cũ hoặc bàn mới";
+                return View("ChuyenBan");
+            }
+
+
+            if (maDB != null)
+            {
+                lsCB.MaDatBan = maDB.MaDatBan;
+                maDB.MaBan = banMoi.MaBan;
+            }
+            else
+            {
+                TempData["BaoLoi"] = "Không tìm thấy mã đặt bàn";
+                return View("ChuyenBan");
+            }
+
+            //kiểm tra trường lý do
+            var regex = new System.Text.RegularExpressions.Regex(@"^(?!.*\s{2})[\p{L}\s]+$");
+            if (!string.IsNullOrEmpty(lsCB.LyDoChuyen) || !string.IsNullOrWhiteSpace(lsCB.LyDoChuyen))
+            {
+                if (!regex.IsMatch(lsCB.LyDoChuyen))
+                {
+                    ModelState.AddModelError("LyDoChuyen", "Lý do chuyển bàn chỉ được chứa chữ cái, khoảng trắng và không được có 2 khoảng trắng liên tiếp.");
+                }
+            }
+            else
+            {
+                ModelState.AddModelError("LyDoChuyen", "Vui lòng nhập lý do chuyển bàn!");
+            }
+
+            banCu.TrangThai = false;
+            banMoi.TrangThai = true;
+
+            //kiểm tra trạng thái của ModelState
+            if (!ModelState.IsValid)
+            {
+                var errors = ModelState.Values.SelectMany(v => v.Errors).ToList();
+                foreach (var error in errors)
+                {
+                    // Log hoặc kiểm tra chi tiết lỗi
+                    Console.WriteLine(error.ErrorMessage);
+
+                }
+
+                ViewData["MaBanCu"] = lsCB.MaBanCu;
+                ViewData["MaBanMoi"] = lsCB.MaBanMoi;
+                return View(lsCB);
+            }
+
+            //thêm chuyển bàn mới vào database
+            _QLNhaHangContext.LichSuChuyenBans.Add(lsCB);
+            _QLNhaHangContext.SaveChanges();
+
+            //thông báo khi thêm thành công
+            TempData["ChuyenBan"] = "Chuyển bàn thành công!";
+            return RedirectToAction("DSChuyenBan");
+        }
+
+        public IActionResult LSChuyenBan(string? date = null)
+        {
+            // Nếu không có ngày được chọn, sử dụng ngày hiện tại
+            var selectedDate = string.IsNullOrEmpty(date) ? DateTime.Today : DateTime.Parse(date);
+            ViewData["SelectedDate"] = selectedDate.ToString("MM/dd/yyyy");
+
+            var dsCB = _QLNhaHangContext.LichSuChuyenBans.Include(nv => nv.MaNvNavigation).Where(l => l.ThoiGianChuyen.Value.Date == selectedDate.Date);
+            return View(dsCB);
+        }
+        public IActionResult DangNhap()
+        {
+            return View();
+        }
     }
+
 }
+
 
