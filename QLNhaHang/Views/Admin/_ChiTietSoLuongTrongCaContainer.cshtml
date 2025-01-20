@@ -1,0 +1,64 @@
+﻿@model IPagedList<QLNhaHang.Models.SoLuongChiTietTrongCa>
+@using X.PagedList.Mvc.Core;
+@using X.PagedList;
+@{
+    ViewData["Title"] = "View";
+}
+<table class="table table-striped table-hover mt-3 mb-3">
+    <thead>
+        <tr>
+            <th>Mã QL Chi Tiết</th>
+            <th>Vị Trí Công Việc</th>
+            <th>Số Lượng Nhân Viên</th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var item in Model)
+        {
+            <tr>
+                <td>
+                    @Html.DisplayFor(modelItem => item.MaQuanLyChiTiet)
+                </td>
+
+                <td>
+                    @Html.DisplayFor(modelItem => item.MaViTriCvNavigation.TenViTriCv)
+                </td>
+
+                <td>
+                    @Html.DisplayFor(modelItem => item.SoLuong)
+                </td>
+
+                @if (ViewBag.IsDateConditionMet)
+                {
+                    <td>
+                        <a class="btn btn-warning btn-sm" asp-action="CapNhatSoLuongChiTietTrongCa" asp-route-maQuanLyChiTiet="@item.MaQuanLyChiTiet">Cập Nhật</a>
+                        <a class="btn btn-danger btn-sm"
+                           asp-action="XoaSoLuongChiTietTrongCa"
+                           asp-route-maQuanLyChiTiet="@item.MaQuanLyChiTiet"
+                           onclick="return confirm('Bạn có chắc chắn muốn xóa không?')">Xóa</a>
+                    </td>
+                }
+            </tr>
+        }
+    </tbody>
+</table>
+
+<div class="d-flex justify-content-between align-items-center mb-3 mt-3">
+    <!-- Phân trang bên trái -->
+    <div class="pagination-container">
+        @Html.PagedListPager(
+                 Model, // Dùng danh sách chi tiết để phân trang
+                 page => Url.Action("ChiTietSoLuongTrongCaList", new { page, maQuanLy = ViewBag.MaQuanLy }),
+                 new X.PagedList.Mvc.Core.PagedListRenderOptions
+        {
+            LiElementClasses = new[] { "page-item" },
+            PageClasses = new[] { "page-link" },
+            ActiveLiElementClass = "active"
+        }
+                 )
+    </div>
+
+    <!-- Nút quay về danh sách bên phải -->
+    <a class="btn btn-primary" asp-controller="Admin" asp-action="SoLuongTrongCaList">Quay Lại Danh Sách</a>
+</div>

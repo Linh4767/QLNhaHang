@@ -1,0 +1,58 @@
+﻿@model IEnumerable<QLNhaHang.Models.SoLuongChiTietTrongCa>
+
+@{
+    Layout = "Header";
+    ViewData["Title"] = "ChiTietSoLuongTrongCaList";
+}
+@if (TempData["ThongBaoThem"] != null)
+{
+    <div id="them" class="alert @((TempData["ThongBaoThem"].ToString().Contains("thành công")) ? "alert-success" : "alert-danger")">
+        @TempData["ThongBaoThem"]
+    </div>
+}
+
+@if (TempData["ThongBaoXoa"] != null)
+{
+    <div id="xoa" class="alert @((TempData["ThongBaoXoa"].ToString().Contains("thành công")) ? "alert-success" : "alert-danger")">
+        @TempData["ThongBaoXoa"]
+    </div>
+}
+
+@if (TempData["ThongBaoSua"] != null)
+{
+    <div id="sua" class="alert @((TempData["ThongBaoSua"].ToString().Contains("thành công")) ? "alert-success" : "alert-danger")">
+        @TempData["ThongBaoSua"]
+    </div>
+}
+<script>
+    // Ẩn thông báo sau 3 giây
+    setTimeout(function () {
+        var them = document.getElementById("them");
+        var xoa = document.getElementById("xoa");
+        var sua = document.getElementById("sua");
+
+        if (them) {
+            them.style.display = "none";
+        }
+        if (xoa) {
+            xoa.style.display = "none";
+        }
+        if (sua) {
+            sua.style.display = "none";
+        }
+    }, 3000);
+</script>
+<h2>Quản Lý Chi Tiết Số Lượng Trong Ca</h2>
+
+<div class="d-flex justify-content-end align-items-center mb-3 mt-3 ">
+    @if (ViewBag.IsDateConditionMet)
+    {
+        <a class="btn btn-success" id="btnAdd" asp-controller="Admin" asp-action="ThemChiTietSoLuongTrongCa" asp-route-maQuanLy="@ViewBag.MaQuanLy">Thêm mới</a>
+    }
+</div>
+
+<div id="soLuongTrongCaContainer">
+    @await Html.PartialAsync("_ChiTietSoLuongTrongCaContainer", Model)
+</div>
+
+

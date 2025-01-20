@@ -1,0 +1,135 @@
+﻿@model QLNhaHang.Models.SoLuongTrongCa
+
+@{
+    Layout = "Header";
+    ViewData["Title"] = "CapNhatSoLuongTrongCa";
+}
+
+<h4>Số Lượng Trong Ca</h4>
+<hr />
+<div class="col-12 grid-margin">
+    <div class="card">
+        <div class="card-body">
+            <h3 class="card-title">Cập Nhật Số Lượng Trong Ca</h3>
+            <form class="form-sample" asp-action="CapNhatSoLuongTrongCa" method="post">
+                <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+                <div class="row">
+                    <div class="col-md-7">
+                        <div class="form-group row">
+                            <label class="col-sm-2 col-form-label" asp-for="MaQuanLy">Mã Quản Lý</label>
+                            <div class="col-sm-10">
+                                <input type="text" class="form-control" asp-for="MaQuanLy" readonly />
+                                <span asp-validation-for="MaQuanLy" class="text-danger"></span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-5">
+                        <div class="form-group row">
+                            <label class="col-sm-3 col-form-label">Loại Ca</label>
+                            <div class="col-sm-9">
+                                <input type="text" class="form-control" id="LoaiCa" name="LoaiCa" value="@ViewBag.LoaiCa" readonly />
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-7">
+                        <div class="form-group row">
+                            <label class="col-sm-2 col-form-label" asp-for="MaCa">Ca Làm</label>
+                            <div class="col-sm-10">
+                                <input type="text" class="form-control" id="MaCa" asp-for="MaCa" value="@ViewBag.ThoiGianLich" readonly />
+                            </div>
+                        </div>
+                    </div>
+
+
+                    <div class="col-md-5">
+                        <div class="form-group row">
+                            <label class="col-sm-3 col-form-label" asp-for="Ngay">Ngày</label>
+                            <div class="col-sm-9">
+                                <input id="Ngay" asp-for="Ngay" class="form-control" type="date" readonly />
+                                <span asp-validation-for="Ngay" class="text-danger"></span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-12">
+                        <div class="form-group row">
+                            <label class="col-sm-3 col-form-label" asp-for="SoLuongToiDa">Số Lượng Nhân Viên Tối Đa</label>
+                            <div class="col-sm-9">
+                                <input id="SoLuongToiDa" asp-for="SoLuongToiDa" class="form-control" type="number" />
+                                <span asp-validation-for="SoLuongToiDa" class="text-danger"></span>
+                                <div class="invalid-feedback">
+                                    Số lượng nhân viên phải lớn hơn 0.
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+                <button type="submit" class="btn btn-primary me-2">Cập Nhật</button>
+                <a class="btn btn-light" asp-action="SoLuongTrongCaList">Quay Lại Danh Sách</a>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+    $(document).ready(function () {
+        // Khi người dùng chọn một mã ca
+        $("#MaCa").change(function () {
+            var maCa = $(this).val(); // Lấy mã ca được chọn
+
+            if (maCa) {
+                // Gửi yêu cầu AJAX để lấy loại ca tương ứng với mã ca
+                $.ajax({
+                    url: '/Admin/LayLoaiCaTheoMaCa',  // Địa chỉ action để lấy loại ca
+                    method: 'GET',
+                    data: { maCa: maCa }, // Gửi mã ca tới server
+                    success: function (data) {
+                        // Cập nhật loại ca vào dropdown
+                        if (data.loaiCa) {
+                            // Gán lại giá trị loại ca trong dropdown
+                            $("#LoaiCa").empty(); // Xóa dữ liệu cũ
+                            $("#LoaiCa").append('<option value="' + data.loaiCa + '" selected>' + data.loaiCa + '</option>');
+                        }
+                    },
+                    error: function () {
+                        alert("Không thể lấy loại ca.");
+                    }
+                });
+            }
+        });
+    });
+</script>
+<script>
+    $(document).ready(function () {
+        // Kiểm tra khi form submit
+        $("form").submit(function (event) {
+            var soLuongToiDa = $("#SoLuongToiDa").val();  // Lấy giá trị từ input SoLuongToiDa
+
+            // Kiểm tra nếu giá trị <= 0
+            if (soLuongToiDa <= 0) {
+                // Ngừng submit form
+                event.preventDefault();
+
+                // Hiển thị thông báo lỗi
+                alert("Số lượng nhân viên phải lớn hơn 0");
+                // Bạn có thể thêm thêm một phần tử để hiển thị lỗi này trên form nếu muốn
+                $("#SoLuongToiDa").addClass("is-invalid");  // Thêm class để hiển thị lỗi
+            } else {
+                // Nếu hợp lệ, bỏ class lỗi
+                $("#SoLuongToiDa").removeClass("is-invalid");
+            }
+        });
+    });
+</script>
+
+
+
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}

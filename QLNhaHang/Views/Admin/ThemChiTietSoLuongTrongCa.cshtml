@@ -1,0 +1,56 @@
+﻿@model QLNhaHang.Models.SoLuongChiTietTrongCa
+
+@{
+    Layout = "Header";
+    ViewData["Title"] = "ThemChiTietSoLuongTrongCa";
+}
+
+<h4>Số Lượng Chi Tiết Trong Ca</h4>
+<hr />
+<div class="col-12 grid-margin">
+    <div class="card">
+        <div class="card-body">
+            <h3 class="card-title">Thêm Chi Tiết Số Lượng Trong Ca</h3>
+            <form class="form-sample" asp-action="ThemChiTietSoLuongTrongCa" method="post">
+                <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+                <input type="hidden" name="MaQuanLy" asp-for="MaQuanLy" value="@ViewBag.MaQuanLy" />
+                <div class="row">
+                    <div class="col-md-7">
+                        <div class="form-group row">
+                            <label class="col-sm-3 col-form-label" asp-for="MaQuanLyChiTiet">Mã QL Chi Tiết</label>
+                            <div class="col-sm-9">
+                                <input type="text" class="form-control" asp-for="MaQuanLyChiTiet" readonly />
+                                <span asp-validation-for="MaQuanLyChiTiet" class="text-danger"></span>
+                            </div>
+                        </div>
+                    </div>                              
+                    <div class="col-md-5">
+                        <div class="form-group row">
+                            <label class="col-sm-3 col-form-label" asp-for="SoLuong">Số Lượng NV</label>
+                            <div class="col-sm-9">
+                                <input id="SoLuong" asp-for="SoLuong" class="form-control" type="number" />
+                                <span asp-validation-for="SoLuong" class="text-danger"></span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-12">
+                        <div class="form-group row">
+                            <label class="col-sm-2 col-form-label" asp-for="MaViTriCv">Vị Trí Công Việc</label>
+                            <div class="col-sm-10">
+                                <select id="ViTriCongViec" name="MaViTriCv" class="form-control" style="color:black" asp-items="@ViewBag.ViTriCongViecSelectedList">
+                                </select>
+                                <span asp-validation-for="MaViTriCv" class="text-danger"></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <button type="submit" class="btn btn-primary me-2">Thêm</button>
+                <a class="btn btn-light" asp-action="ChiTietSoLuongTrongCaList" asp-route-maQuanLy="@ViewBag.MaQuanLy">Quay Lại Danh Sách</a>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}
