@@ -1652,6 +1652,16 @@ namespace QLNhaHang.Controllers
         {
             return View();
         }
+
+        [HttpPost("logout")]
+        public IActionResult Logout()
+        {
+            // Xóa thông tin đăng nhập khỏi Session
+            HttpContext.Session.Clear();
+
+            // Chuyển hướng về trang đăng nhập
+            return RedirectToAction("DangNhap");
+        }
     }
 
 }
