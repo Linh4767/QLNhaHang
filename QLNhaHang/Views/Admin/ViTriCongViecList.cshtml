@@ -67,36 +67,26 @@
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script>
     $(document).ready(function () {
-        // Hàm load dữ liệu bằng AJAX
-        function loadViTriCongViec(searchQuery, page) {
+        // Gửi yêu cầu AJAX khi ngày hoặc mã ca thay đổi
+        $("#Ngay, #MaCa").on("change", function () {
+            const ngay = $("#Ngay").val(); // Lấy giá trị ngày
+            const maCa = $("#MaCa").val(); // Lấy giá trị mã ca
+
+            // Gửi yêu cầu AJAX đến action LayMaQuanLyMoi
             $.ajax({
-                url: '/Admin/TimKiemViTriCongViec', // Controller Action
-                type: 'GET',
-                data: { searchQuery: searchQuery, page: page }, // Gửi từ khóa và trang hiện tại
+                url: '/Admin/LayMaQuanLyMoi', // Route đến action API mới
+                method: 'GET',
+                data: { ngay: ngay, maCa: maCa }, // Truyền ngày và mã ca lên server
                 success: function (data) {
-                    // Load dữ liệu vào container
-                    $('#viTriCongViecContainer').html(data);
+                    // Cập nhật mã quản lý trên form
+                    $("#MaQuanLy").val(data.maQuanLy);
                 },
-                error: function (error) {
-                    console.error("Lỗi AJAX:", error);
+                error: function () {
+                    alert("Không thể cập nhật mã quản lý.");
                 }
             });
-        }
-
-        // Xử lý khi người dùng nhập vào ô tìm kiếm
-        $('#searchInput').keyup(function () {
-            var searchTerm = $(this).val(); // Lấy từ khóa tìm kiếm
-            loadViTriCongViec(searchTerm, 1); // Luôn tải từ trang 1 khi tìm kiếm
-        });
-
-        // Xử lý khi người dùng bấm vào liên kết phân trang
-        $(document).on('click', '.page-link', function (e) {
-            e.preventDefault(); // Ngăn điều hướng mặc định
-            var url = $(this).attr('href'); // Lấy URL từ href
-            var page = new URL(url, window.location.origin).searchParams.get("page"); // Lấy số trang từ URL
-            var searchTerm = $('#searchInput').val(); // Lấy từ khóa tìm kiếm hiện tại
-            loadViTriCongViec(searchTerm, page);
         });
     });
 </script>
+
 
