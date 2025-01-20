@@ -200,10 +200,10 @@
                         </a>
                         <div class="collapse" id="ui-basic">
                             <ul class="nav flex-column sub-menu">
-                                <li class="nav-item"> <a class="nav-link" asp-action="DanhSachNhanVien_Admin">Danh sách nhân viên</a></li>
+                                <li class="nav-item"> <a class="nav-link" asp-controller="Admin"  asp-action="DanhSachNhanVien_Admin">Danh sách nhân viên</a></li>
                                 @*  <li class="nav-item"> <a class="nav-link" href="#">Danh sách đăng ký</a></li> *@
                                 <li class="nav-item"> <a class="nav-link" href="#">Danh sách tài khoản</a></li>
-                                <li class="nav-item"> <a class="nav-link" asp-action="ViTriCongViecList">Vị trí công việc</a></li>
+                                <li class="nav-item"> <a class="nav-link" asp-controller="Admin" asp-action="ViTriCongViecList">Vị trí công việc</a></li>
                             </ul>
                         </div>
                     </li>
@@ -229,8 +229,8 @@
                         <div class="collapse" id="charts">
                             <ul class="nav flex-column sub-menu">
                                 <li class="nav-item"> <a class="nav-link" href="">Đăng ký ca</a></li>
-                                <li class="nav-item"> <a class="nav-link" asp-action="SoLuongTrongCaList">Số lượng trong ca</a></li>
-                                <li class="nav-item"> <a class="nav-link" asp-action="XemDSThongTinCa">Thông tin các ca</a></li>
+                                <li class="nav-item"> <a class="nav-link" asp-controller="Admin" asp-action="SoLuongTrongCaList">Số lượng trong ca</a></li>
+                                <li class="nav-item"> <a class="nav-link" asp-controller="Admin" asp-action="XemDSThongTinCa">Thông tin các ca</a></li>
                                 <li class="nav-item"> <a class="nav-link" href="">Danh sách đăng ký</a></li>
                             </ul>
                         </div>
@@ -246,8 +246,8 @@
                                 <li class="nav-item"> <a class="nav-link" asp-action="DSBanAn" asp-controller="Admin">Danh sách bàn</a></li>
                                 <li class="nav-item"> <a class="nav-link" asp-action="WaitingList" asp-controller="Home">Danh sách chờ</a></li>
                                 <li class="nav-item"> <a class="nav-link" href="#">Đặt bàn</a></li>
-                                <li class="nav-item"> <a class="nav-link" asp-action="DSChuyenBan">Chuyển bàn</a></li>
-                                <li class="nav-item"> <a class="nav-link" asp-action="LSChuyenBan">Lịch sử chuyển bàn</a></li>
+                                <li class="nav-item"> <a class="nav-link" asp-action="DSChuyenBan" asp-controller="Admin">Chuyển bàn</a></li>
+                                <li class="nav-item"> <a class="nav-link" asp-action="LSChuyenBan" asp-controller="Admin">Lịch sử chuyển bàn</a></li>
                             </ul>
                         </div>
                     </li>
