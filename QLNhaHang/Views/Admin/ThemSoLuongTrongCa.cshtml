@@ -1,0 +1,164 @@
+﻿@model QLNhaHang.Models.SoLuongTrongCa
+
+@{
+    Layout = "Header";
+    ViewData["Title"] = "ThemSoLuongTrongCa";
+}
+
+<h4>Số Lượng Trong Ca</h4>
+<hr />
+<div class="col-12 grid-margin">
+    <div class="card">
+        <div class="card-body">
+            <h3 class="card-title">Thêm Số Lượng Trong Ca</h3>
+            <form class="form-sample" asp-action="ThemSoLuongTrongCa" method="post">
+                <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+                <div class="row">
+                    <div class="col-md-7">
+                        <div class="form-group row">
+                            <label class="col-sm-2 col-form-label" asp-for="MaQuanLy">Mã Quản Lý</label>
+                            <div class="col-sm-10">
+                                <input type="text" class="form-control" asp-for="MaQuanLy" readonly />
+                                <span asp-validation-for="MaQuanLy" class="text-danger"></span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-5">
+                        <div class="form-group row">
+                            <label class="col-sm-3 col-form-label">Loại Ca</label>
+                            <div class="col-sm-9">
+                                <select id="LoaiCa" class="form-control" style="color:black">
+                                    @if (ViewBag.LoaiCa != null && (ViewBag.LoaiCa as IEnumerable<dynamic>).Any())
+                                    {
+                                        foreach (var loaiCa in ViewBag.LoaiCa as IEnumerable<dynamic>)
+                                        {
+                                            <option value="@loaiCa.LoaiCa">@loaiCa.LoaiCa</option>
+                                        }
+                                    }
+                                </select>
+
+
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-7">
+                        <div class="form-group row">
+                            <label class="col-sm-2 col-form-label" asp-for="MaCa">Ca Làm</label>
+                            <div class="col-sm-10">
+                                <select id="MaCa" asp-for="MaCa" class="form-control" style="color:black" asp-items=" @ViewBag.MaCa"></select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-5">
+                        <div class="form-group row">
+                            <label class="col-sm-3 col-form-label" asp-for="Ngay">Ngày</label>
+                            <div class="col-sm-9">
+                                <input id="Ngay" asp-for="Ngay" class="form-control" type="date" />
+                                <span asp-validation-for="Ngay" class="text-danger"></span>
+                            </div>
+                        </div>
+                    </div>
+                      <div class="col-md-12">
+                        <div class="form-group row">
+                            <label class="col-sm-3 col-form-label" asp-for="SoLuongToiDa">Số Lượng Nhân Viên Tối Đa</label>
+                            <div class="col-sm-9">
+                                <input id="SoLuongToiDa" asp-for="SoLuongToiDa" class="form-control" type="number" />
+                                <span asp-validation-for="SoLuongToiDa" class="text-danger"></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <button type="submit" class="btn btn-primary me-2">Thêm</button>
+                <a class="btn btn-light" asp-action="SoLuongTrongCaList">Quay Lại Danh Sách</a>
+            </form>
+        </div>
+    </div>
+</div>
+
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+    $(document).ready(function () {
+        // Khi combobox Loại Ca thay đổi
+        $("#LoaiCa").change(function () {
+            var loaiCa = $(this).val(); // Lấy giá trị LoaiCa được chọn
+            console.log("Loại ca được chọn:", loaiCa); // Kiểm tra giá trị
+
+            if (loaiCa) {
+                $.ajax({
+                    url: '/Admin/LayDanhSachMaCa',
+                    method: 'GET',
+                    data: { loaiCa: loaiCa },
+                    success: function (data) {
+                        console.log("Dữ liệu trả về từ server:", data);
+
+                        // Xóa dữ liệu cũ
+                        $("#MaCa").empty();
+
+                        if (Array.isArray(data) && data.length > 0) {
+                            data.forEach(function (item) {
+                                console.log("Dòng dữ liệu:", item); // Log từng dòng dữ liệu
+                                if (item.maCa && item.thoiGianHienThi) {
+                                    $("#MaCa").append(
+                                        `<option value="${item.maCa}">${item.thoiGianHienThi}</option>`
+                                    );
+                                }
+                            });
+                        } else {
+                            console.warn("Không có dữ liệu mã ca phù hợp.");
+                            $("#MaCa").append('<option value="">Không có mã ca phù hợp</option>');
+                        }
+
+                        // Kích hoạt sự kiện change để kiểm tra
+                        $("#MaCa").trigger("change");
+                    },
+                    error: function (xhr, status, error) {
+                        console.error("Lỗi khi lấy danh sách mã ca:", error);
+                        alert("Không thể tải danh sách mã ca. Vui lòng thử lại.");
+                        $("#MaCa").empty().append('<option value="">Không có mã ca</option>');
+                    }
+                });
+            } else {
+                console.log("Không có loại ca nào được chọn.");
+                $("#MaCa").empty().append('<option value="">Chọn mã ca</option>');
+            }
+        });
+
+
+
+
+
+        // Khi combobox Ngày hoặc Mã Ca thay đổi
+        $("#Ngay, #MaCa").on("change", function () {
+            const ngay = $("#Ngay").val(); // Lấy giá trị ngày
+            const maCa = $("#MaCa").val(); // Lấy giá trị mã ca
+
+            // Kiểm tra nếu ngay hoặc maCa trống
+            if (!ngay || !maCa) {
+                console.log("Ngày hoặc mã ca trống:", ngay, maCa);
+                return;
+            }
+
+            // Gửi yêu cầu AJAX để lấy mã quản lý mới
+            $.ajax({
+                url: '/Admin/LayMaQuanLyMoi',
+                method: 'GET',
+                data: { ngay: ngay, maCa: maCa },
+                success: function (data) {
+                    console.log("Dữ liệu mã quản lý nhận được:", data); // Log dữ liệu để kiểm tra
+                    $("#MaQuanLy").val(data.maQuanLy); // Cập nhật mã quản lý
+                },
+                error: function () {
+                    alert("Không thể cập nhật mã quản lý.");
+                }
+            });
+        });
+    });
+
+</script>
+
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}
