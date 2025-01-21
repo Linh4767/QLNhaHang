@@ -244,105 +244,14 @@
                         </ul>
                     </div>
                 </div><!-- Menu Filters -->
+                <div id="menuMonAn">
+                    @{
 
-                <div class="row isotope-container" data-aos="fade-up" data-aos-delay="200">
-
-                    <div class="col-lg-6 menu-item isotope-item filter-starters">
-                        <img src="~/images/menu/lobster-bisque.jpg" class="menu-img" alt="">
-                        <div class="menu-content">
-                            <a href="#">Lobster Bisque</a><span>$5.95</span>
-                        </div>
-                        <div class="menu-ingredients">
-                            Lorem, deren, trataro, filede, nerada
-                        </div>
-                    </div><!-- Menu Item -->
-
-                    <div class="col-lg-6 menu-item isotope-item filter-specialty">
-                        <img src="~/images/menu/bread-barrel.jpg" class="menu-img" alt="">
-                        <div class="menu-content">
-                            <a href="#">Bread Barrel</a><span>$6.95</span>
-                        </div>
-                        <div class="menu-ingredients">
-                            Lorem, deren, trataro, filede, nerada
-                        </div>
-                    </div><!-- Menu Item -->
-
-                    <div class="col-lg-6 menu-item isotope-item filter-starters">
-                        <img src="~/images/menu/cake.jpg" class="menu-img" alt="">
-                        <div class="menu-content">
-                            <a href="#">Crab Cake</a><span>$7.95</span>
-                        </div>
-                        <div class="menu-ingredients">
-                            A delicate crab cake served on a toasted roll with lettuce and tartar sauce
-                        </div>
-                    </div><!-- Menu Item -->
-
-                    <div class="col-lg-6 menu-item isotope-item filter-salads">
-                        <img src="~/images/menu/caesar.jpg" class="menu-img" alt="">
-                        <div class="menu-content">
-                            <a href="#">Caesar Selections</a><span>$8.95</span>
-                        </div>
-                        <div class="menu-ingredients">
-                            Lorem, deren, trataro, filede, nerada
-                        </div>
-                    </div><!-- Menu Item -->
-
-                    <div class="col-lg-6 menu-item isotope-item filter-specialty">
-                        <img src="~/images/menu/tuscan-grilled.jpg" class="menu-img" alt="">
-                        <div class="menu-content">
-                            <a href="#">Tuscan Grilled</a><span>$9.95</span>
-                        </div>
-                        <div class="menu-ingredients">
-                            Grilled chicken with provolone, artichoke hearts, and roasted red pesto
-                        </div>
-                    </div><!-- Menu Item -->
-
-                    <div class="col-lg-6 menu-item isotope-item filter-starters">
-                        <img src="~/images/menu/mozzarella.jpg" class="menu-img" alt="">
-                        <div class="menu-content">
-                            <a href="#">Mozzarella Stick</a><span>$4.95</span>
-                        </div>
-                        <div class="menu-ingredients">
-                            Lorem, deren, trataro, filede, nerada
-                        </div>
-                    </div><!-- Menu Item -->
-
-                    <div class="col-lg-6 menu-item isotope-item filter-salads">
-                        <img src="~/images/menu/greek-salad.jpg" class="menu-img" alt="">
-                        <div class="menu-content">
-                            <a href="#">Greek Salad</a><span>$9.95</span>
-                        </div>
-                        <div class="menu-ingredients">
-                            Fresh spinach, crisp romaine, tomatoes, and Greek olives
-                        </div>
-                    </div><!-- Menu Item -->
-
-                    <div class="col-lg-6 menu-item isotope-item filter-salads">
-                        <img src="~/images/menu/spinach-salad.jpg" class="menu-img" alt="">
-                        <div class="menu-content">
-                            <a href="#">Spinach Salad</a><span>$9.95</span>
-                        </div>
-                        <div class="menu-ingredients">
-                            Fresh spinach with mushrooms, hard boiled egg, and warm bacon vinaigrette
-                        </div>
-                    </div><!-- Menu Item -->
-
-                    <div class="col-lg-6 menu-item isotope-item filter-specialty">
-                        <img src="~/images/menu/lobster-roll.jpg" class="menu-img" alt="">
-                        <div class="menu-content">
-                            <a href="#">Lobster Roll</a><span>$12.95</span>
-                        </div>
-                        <div class="menu-ingredients">
-                            Plump lobster meat, mayo and crisp lettuce on a toasted bulky roll
-                        </div>
-                    </div><!-- Menu Item -->
-
-                </div><!-- Menu Container -->
-                <div class="d-flex justify-content-end" style="text-decoration:none;">
-                    <a href="#" id="openFilterDialog" class="btn">Hiển thị thêm &gt;&gt;</a>
+                        Html.RenderPartial("_MenuMonAn");
+                    }
                 </div>
-            </div>
-
+              
+             </div>
             <div id="filterDialog" class="modal" tabindex="-1" aria-hidden="true">
                 <div class="modal-dialog row">
                     <div class="modal-content col-sm-12">
@@ -1028,6 +937,11 @@
                 // Sau khi load partial view xong, khởi tạo hàm kiểm tra form
                 console.log("Partial view đã được load xong!");
                 initFormValidation();
+            });
+
+            $("#menuMonAn").load('/Home/MenuMonAn', function () {
+                // Sau khi load partial view xong, khởi tạo hàm kiểm tra form
+                console.log("Món ăn đã được load xong!");
             });
         });
 

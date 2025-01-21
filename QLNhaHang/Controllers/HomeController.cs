@@ -38,8 +38,12 @@ namespace QLNhaHang.Controllers
             return View();
         }
 
-
-
+        public IActionResult MenuMonAn()
+        {
+            // Lấy danh sách món ăn từ database
+            var danhSachMonAn = _QLNhaHangContext.MonAns.Include(c =>c.LoaiMaNavigation).ToList();
+            return PartialView("_MenuMonAn", danhSachMonAn);
+        }
 
         [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
         public IActionResult Error()
