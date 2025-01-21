@@ -15,6 +15,8 @@
             {
                 <a class="btn btn-success btn-sm" asp-action="XemThongTinDatBan" asp-route-maBan="@item.MaBan" title="XemThongTin" asp-route-floor="@ViewData["CurrentFloor"]"
                    asp-route-date="@ViewData["SelectedDate"]">Xem thông tin</a>
+                <a class="btn btn-primary btn-sm btnGM" asp-action="GoiMon" asp-route-maBan="@item.MaBan" title="XemThongTin" asp-route-floor="@ViewData["CurrentFloor"]"
+                   asp-route-date="@ViewData["SelectedDate"]">Gọi Món</a>
             }
         </div>
     </div>

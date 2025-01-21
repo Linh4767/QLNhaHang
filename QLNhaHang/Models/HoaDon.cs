@@ -14,6 +14,7 @@ namespace QLNhaHang.Models
         public string MaDatBan { get; set; } = null!;
         public DateTime? NgayXuatHd { get; set; }
         public double? TongTien { get; set; }
+        public string? TrangThai { get; set; }
 
         public virtual DatBan MaDatBanNavigation { get; set; } = null!;
         public virtual ICollection<HoaDonChiTiet> HoaDonChiTiets { get; set; }

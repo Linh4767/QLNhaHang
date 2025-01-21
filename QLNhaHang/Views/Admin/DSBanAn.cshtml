@@ -250,7 +250,6 @@
             console.log("Ngày đặt bàn sau khi kiểm tra:", defaultDate);
 
             // Khởi tạo flatpickr với ngày mặc định
-            // Khởi tạo flatpickr với ngày mặc định
             flatpickr("#datePicker", {
                 dateFormat: "m/d/Y", // Định dạng tháng/ngày/năm
                 defaultDate: defaultDate, // Ngày mặc định từ ViewData
@@ -292,6 +291,10 @@
                     buttonList.forEach((button) => {
                         toggleButtonDisplay(selectedDateTime, currentDate, button);
                     });
+                    const buttonListGoiMon = document.querySelectorAll(".btnGM");
+                    buttonListGoiMon.forEach((button) => {
+                        toggleButtonGoiMonDisplay(selectedDateTime, currentDate, button);
+                    });
 
                 },
                 error: function (xhr, status, error) {
@@ -329,6 +332,11 @@
                     buttonList.forEach((button) => {
                         toggleButtonDisplay(selectedDateTime, currentDate, button);
                     });
+                    const buttonListGoiMon = document.querySelectorAll(".btnGM");
+                    buttonListGoiMon.forEach((button) => {
+                        toggleButtonGoiMonDisplay(selectedDateTime, currentDate, button);
+                    });
+
 
                 },
                 error: function (xhr, status, error) {
@@ -343,6 +351,17 @@
                 buttonElement.style.display = 'none'; // Ẩn nút nếu ngày chọn đã qua
             } else {
                 buttonElement.style.display = 'block'; // Hiện nút nếu ngày chọn hợp lệ
+            }
+        }
+        // Hàm xử lý hiển thị các nút "Gọi món"
+        function toggleButtonGoiMonDisplay(selectedDateTime, currentDate, buttonElement) {
+            const selectedDate = new Date(selectedDateTime).toISOString().split('T')[0]; // Chuyển đổi thành chuỗi và lấy phần ngày
+            const currentDateOnly = new Date(currentDate).toISOString().split('T')[0]; // Chuyển đổi thành chuỗi và lấy phần ngày
+
+            if (selectedDate === currentDateOnly) {
+                buttonElement.style.display = 'block'; // Ẩn nút nếu ngày chọn đã qua
+            } else {
+                buttonElement.style.display = 'none'; // Hiện nút nếu ngày chọn hợp lệ
             }
         }
 
