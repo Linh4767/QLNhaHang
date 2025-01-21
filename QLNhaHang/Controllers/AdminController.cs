@@ -486,7 +486,35 @@ namespace QLNhaHang.Controllers
             // Nếu có lỗi hoặc không hợp lệ, hiển thị lại form với các lỗi
             return View(vtcv);
         }
+        private bool IsBanOccupied(string maBan, DateTime selectedDate)
+        {
+            // Lấy danh sách tất cả các lần đặt bàn trong ngày
+            var datBanList = _QLNhaHangContext.DatBans
+                              .Where(db => db.MaBan == maBan && db.NgayDatBan.Value.Date == selectedDate.Date)
+                              .ToList();
 
+            // Kiểm tra trạng thái của từng lần đặt bàn
+            foreach (var datBan in datBanList)
+            {
+                var hoaDon = _QLNhaHangContext.HoaDons
+                                .FirstOrDefault(hd => hd.MaDatBan == datBan.MaDatBan);
+
+                // Nếu chưa có hóa đơn, bàn coi như bị chiếm dụng
+                if (hoaDon == null)
+                {
+                    return true; // occupied
+                }
+
+                // Nếu hóa đơn có trạng thái "Chưa thanh toán", bàn cũng coi như bị chiếm dụng
+                if (hoaDon.TrangThai == "Chưa thanh toán")
+                {
+                    return true; // occupied
+                }
+            }
+
+            // Nếu tất cả các lần đặt bàn đều có hóa đơn "Đã thanh toán", bàn là available
+            return false; // available
+        }
         public IActionResult DSBanAn(string tenKH, string sdt, DateTime ngayDB, int soNguoiDi, int? floor = 1, string date = null)
         {
             ViewBag.TenKH = tenKH ?? string.Empty;
@@ -509,9 +537,7 @@ namespace QLNhaHang.Controllers
                 MaBan = ban.MaBan,
                 SoLuongNguoi = ban.SoLuongNguoi,
                 ViTri = ban.ViTri,
-                TrangThai = _QLNhaHangContext.DatBans.Any(db => db.MaBan == ban.MaBan && db.NgayDatBan.Value.Date == selectedDate.Date)
-                ? true // occupied
-                : false // available
+                TrangThai = IsBanOccupied(ban.MaBan, selectedDate)
             }).ToList();
 
             // Kiểm tra xem yêu cầu là một AJAX request hay không
@@ -1294,8 +1320,17 @@ namespace QLNhaHang.Controllers
             ViewData["SelectedDate"] = selectedDate.ToString("yyyyy/MM/dd");
             var dsDatBan = _QLNhaHangContext.DatBans
                          .Where(b => b.MaBan == maBan && b.NgayDatBan.Value.Date == selectedDate)
-                         .SingleOrDefault();
-            return View(dsDatBan);
+                         .ToList();
+            var dsDatBanChuaThanhToan = dsDatBan.Where(db =>
+            {
+                var hoaDon = _QLNhaHangContext.HoaDons
+                                .FirstOrDefault(hd => hd.MaDatBan == db.MaDatBan);
+
+                // Giữ lại các lần đặt chưa có hóa đơn hoặc hóa đơn chưa thanh toán
+                return hoaDon == null || hoaDon.TrangThai != "Đã thanh toán";
+            }).ToList();
+            var datBan = dsDatBanChuaThanhToan.FirstOrDefault();
+            return View(datBan);
         }
 
         public IActionResult SuaTTDatBan(string maDatBan, string maBan, string date = null, int? floor = 1)
@@ -1651,6 +1686,974 @@ namespace QLNhaHang.Controllers
         public IActionResult DangNhap()
         {
             return View();
+        }
+
+        [HttpPost("logout")]
+        public IActionResult Logout()
+        {
+            // Xóa thông tin đăng nhập khỏi Session
+            HttpContext.Session.Clear();
+
+            // Chuyển hướng về trang đăng nhập
+            return RedirectToAction("DangNhap");
+        }
+
+        //Hiển thị danh sách số lượng trong ca 
+        public IActionResult SoLuongTrongCaList(string searchQuery, int? page)
+        {
+            var sltc = _QLNhaHangContext.SoLuongTrongCas.Include(c => c.MaCaNavigation).ToPagedList(page ?? 1, 5);
+            return View(sltc);
+        }
+
+        [HttpGet]
+        public IActionResult TimKiemSoLuongTrongCa(DateTime? searchDate, int? page)
+        {
+            int pageSize = 5;
+            int pageNumber = page ?? 1;
+
+            var query = _QLNhaHangContext.SoLuongTrongCas.Include(c => c.MaCaNavigation).AsQueryable();
+
+            if (searchDate.HasValue)
+            {
+                query = query.Where(vtcv => vtcv.Ngay.Date == searchDate.Value.Date);
+            }
+
+            var dsTimKiem = query
+                .OrderBy(vtcv => vtcv.MaQuanLy)
+                .ToPagedList(pageNumber, pageSize);
+
+            return PartialView("_SoLuongTrongCaContainer", dsTimKiem);
+        }
+
+        //Thêm số lượng trong ca 
+        public IActionResult ThemSoLuongTrongCa(string ngay = null, string maCa = null)
+        {
+            string ngayHienTai = DateTime.Now.ToString("yyyyMMdd");
+
+            // Lấy danh sách loại ca
+            var loaiCaList = _QLNhaHangContext.Cas.Select(ca => new
+            {
+                LoaiCa = ca.LoaiCa
+            }).Distinct().ToList();
+
+            // Lấy danh sách mã ca
+            var maCaList = _QLNhaHangContext.Cas.Where(ca => ca.LoaiCa == "Full-time").Select(ca => new
+            {
+                MaCa = ca.MaCa,
+                ThoiGianHienThi = $"{DateTime.Today.Add((TimeSpan)ca.ThoiGianBatDau):hh:mm tt} - {DateTime.Today.Add((TimeSpan)ca.ThoiGianKetThuc):hh:mm tt}"
+            }).ToList();
+
+            if (string.IsNullOrEmpty(maCa))
+            {
+                maCa = maCaList.FirstOrDefault()?.MaCa ?? "001";
+            }
+
+            var soCuoi = maCa.Substring(1);
+            var maQLMoi = $"QL{ngayHienTai}{soCuoi}";
+
+            var sltc = new SoLuongTrongCa
+            {
+                MaQuanLy = maQLMoi,
+                Ngay = DateTime.Parse(ngay ?? DateTime.Now.ToString("yyyy-MM-dd")),
+                MaCa = maCa
+            };
+
+            ViewBag.LoaiCa = loaiCaList;
+            ViewBag.MaCa = new SelectList(maCaList, "MaCa", "ThoiGianHienThi");
+            return View(sltc);
+        }
+
+        [HttpGet]
+        public IActionResult LayDanhSachMaCa(string loaiCa)
+        {
+            if (string.IsNullOrEmpty(loaiCa))
+            {
+                return BadRequest("Loại ca không hợp lệ.");
+            }
+
+            // Lấy danh sách mã ca theo loại ca
+            var list = _QLNhaHangContext.Cas
+                .Where(ca => ca.LoaiCa == loaiCa)
+                .Select(ca => new
+                {
+                    MaCa = ca.MaCa,
+                    ThoiGianHienThi = $"{DateTime.Today.Add((TimeSpan)ca.ThoiGianBatDau):hh:mm tt} - {DateTime.Today.Add((TimeSpan)ca.ThoiGianKetThuc):hh:mm tt}"
+                })
+                .ToList();
+
+            if (!list.Any())
+            {
+                return Json(new { error = "Không có dữ liệu mã ca." });
+            }
+
+            return Json(list);
+        }
+
+        [HttpGet]
+        public IActionResult LayMaQuanLyMoi(string ngay, string maCa)
+        {
+            if (string.IsNullOrEmpty(ngay) || string.IsNullOrEmpty(maCa))
+            {
+                return BadRequest("Ngày hoặc mã ca không hợp lệ.");
+            }
+
+            // Chuyển ngày thành định dạng yyyyMMdd
+            string ngayFormat = DateTime.Parse(ngay).ToString("yyyyMMdd");
+
+            // Lấy 3 số cuối của mã ca
+            var soCuoi = maCa.Substring(1);
+
+            // Tạo mã quản lý mới
+            string maQuanLy = $"QL{ngayFormat}{soCuoi}";
+
+            // Trả về JSON
+            return Json(new { maQuanLy });
+        }
+
+
+        [HttpPost]
+        public IActionResult ThemSoLuongTrongCa(SoLuongTrongCa sltc)
+        {
+            ModelState.Remove("MaCaNavigation");
+            // Kiểm tra nếu model không hợp lệ
+            if (!sltc.SoLuongToiDa.HasValue || sltc.SoLuongToiDa.Value <= 0)
+            {
+                ModelState.AddModelError("SoLuongToiDa", "Số lượng nhân viên phải lớn hơn 0");
+            }
+            if (sltc.Ngay.Date < DateTime.Today.AddDays(7).Date || sltc.Ngay.Date <= DateTime.Today.Date)
+            {
+                ModelState.AddModelError("Ngay", "Ngày thêm phải là từ 7 ngày sau trở nên tính từ ngày hiện tại.");
+            }
+
+            var existingMaQuanLy = _QLNhaHangContext.SoLuongTrongCas.FirstOrDefault(s => s.MaQuanLy == sltc.MaQuanLy);
+
+            if (existingMaQuanLy != null)
+            {
+                ModelState.AddModelError("MaQuanLy", "Mã Quản Lý đã tồn tại.");
+            }
+
+            if (!ModelState.IsValid)
+            {
+                var errors = ModelState.Values.SelectMany(v => v.Errors).ToList();
+                foreach (var error in errors)
+                {
+                    // Log hoặc kiểm tra chi tiết lỗi
+                    Console.WriteLine(error.ErrorMessage);
+
+                }
+                // Lấy danh sách Loại Ca nếu cần
+                ViewBag.LoaiCa = _QLNhaHangContext.Cas.Select(ca => new { LoaiCa = ca.LoaiCa }).Distinct().ToList();
+
+                // Lấy danh sách Mã Ca từ bảng Ca và kết hợp thời gian hiển thị
+                var maCaList = _QLNhaHangContext.Cas.Where(ca => ca.LoaiCa == "Full-time").Select(ca => new
+                {
+                    MaCa = ca.MaCa,
+                    ThoiGianHienThi = $"{DateTime.Today.Add((TimeSpan)ca.ThoiGianBatDau):hh:mm tt} - {DateTime.Today.Add((TimeSpan)ca.ThoiGianKetThuc):hh:mm tt}"
+                }).ToList();
+
+                // Trả lại SelectList cho mã ca
+                ViewBag.MaCa = new SelectList(maCaList, "MaCa", "ThoiGianHienThi");
+
+                return View(sltc);  // Trả lại form nếu có lỗi
+            }
+
+            // Tiến hành lưu vào cơ sở dữ liệu
+            _QLNhaHangContext.SoLuongTrongCas.Add(sltc);
+            _QLNhaHangContext.SaveChanges();  // Lưu thay đổi
+            TempData["ThongBaoThem"] = "Thêm số lượng trong ca thành công.";
+            // Chuyển hướng về danh sách sau khi thêm thành công
+            return RedirectToAction("SoLuongTrongCaList");  // Chuyển hướng đến trang danh sách
+        }
+
+        //Xóa số lượng trong ca
+        public IActionResult XoaSoLuongTrongCa(string maQuanLy)
+        {
+            // Tìm bản ghi trong bảng SoLuongTrongCas có MaQuanLy trùng
+            var vtcb = _QLNhaHangContext.SoLuongTrongCas
+                .FirstOrDefault(d => d.MaQuanLy == maQuanLy);
+
+            if (vtcb != null)
+            {
+                // Kiểm tra trong bảng SoLuongChiTietTrongCas có bất kỳ bản ghi nào có MaQuanLy trùng
+                bool hasRelatedRecords = _QLNhaHangContext.SoLuongChiTietTrongCas
+                    .Any(ctq => ctq.MaQuanLy == maQuanLy);
+
+                if (hasRelatedRecords)
+                {
+                    // Nếu có dữ liệu liên quan, không cho phép xóa
+                    TempData["ThongBaoXoa"] = "Không thể xóa vì có các dữ liệu liên quan.";
+                    return RedirectToAction("SoLuongTrongCaList");
+                }
+
+                // Nếu không có dữ liệu liên quan, tiến hành xóa
+                _QLNhaHangContext.SoLuongTrongCas.Remove(vtcb);
+                _QLNhaHangContext.SaveChanges();
+
+                TempData["ThongBaoXoa"] = "Xóa thành công";
+            }
+            else
+            {
+                // Không tìm thấy bản ghi để xóa
+                TempData["ThongBaoXoa"] = "Không tìm thấy số lượng trong ca.";
+            }
+
+            return RedirectToAction("SoLuongTrongCaList");
+        }
+
+        //Cập nhật số lượng trong ca
+        public IActionResult CapNhatSoLuongTrongCa(string maQuanLy)
+        {
+            var vtcv = _QLNhaHangContext.SoLuongTrongCas
+                            .FirstOrDefault(p => p.MaQuanLy == maQuanLy);
+            var ca = _QLNhaHangContext.Cas.FirstOrDefault(c => c.MaCa == vtcv.MaCa);
+
+            if (ca != null)
+            {
+
+                // Tính toán thời gian hiển thị
+                var thoiGianLich = $"{DateTime.Today.Add((TimeSpan)ca.ThoiGianBatDau):hh:mm tt} - {DateTime.Today.Add((TimeSpan)ca.ThoiGianKetThuc):hh:mm tt}";
+                ViewBag.LoaiCa = ca.LoaiCa;
+
+                // Gán giá trị vào ViewBag
+                ViewBag.ThoiGianLich = thoiGianLich;
+            }
+            else
+            {
+                ViewBag.ThoiGianLich = "Không tìm thấy thông tin ca";
+            }
+
+            if (vtcv == null)
+            {
+                // Nếu không tìm thấy vị trí công việc, trả về lỗi hoặc trang khác
+                return NotFound();
+            }
+
+            // Gửi model đến View
+            return View(vtcv);
+        }
+
+        [HttpPost]
+        public IActionResult CapNhatSoLuongTrongCa(SoLuongTrongCa vtcv)
+        {
+            ModelState.Remove("MaCaNavigation");
+
+            // Nếu ModelState hợp lệ, thực hiện cập nhật
+            if (ModelState.IsValid)
+            {
+                // Lấy thông tin của SoLuongTrongCa dựa trên MaQuanLy
+                var existingViTri = _QLNhaHangContext.SoLuongTrongCas
+                                        .FirstOrDefault(p => p.MaQuanLy == vtcv.MaQuanLy);
+
+                if (existingViTri != null)
+                {
+                    // Chỉ cập nhật trường SoLuongToiDa, các trường khác giữ nguyên
+                    existingViTri.SoLuongToiDa = vtcv.SoLuongToiDa;
+
+                    // Lưu thay đổi vào cơ sở dữ liệu
+                    _QLNhaHangContext.SaveChanges();
+
+                    // Thông báo thành công
+                    TempData["ThongBaoSua"] = "Cập nhật số lượng trong ca thành công!";
+                    return RedirectToAction("SoLuongTrongCaList");
+                }
+                else
+                {
+                    // Nếu không tìm thấy đối tượng trong cơ sở dữ liệu
+                    ModelState.AddModelError("", "Không tìm thấy thông tin số lượng ca.");
+                }
+            }
+            // Nếu có lỗi hoặc không hợp lệ, hiển thị lại form với các lỗi
+            return View(vtcv);
+        }
+
+        public IActionResult LayLoaiCaTheoMaCa(string maCa)
+        {
+            if (string.IsNullOrEmpty(maCa))
+            {
+                return Json(new { loaiCa = "" });
+            }
+
+            // Tìm loại ca dựa trên mã ca
+            var ca = _QLNhaHangContext.Cas
+                        .FirstOrDefault(c => c.MaCa == maCa);
+
+            if (ca != null)
+            {
+                // Trả về loại ca
+                return Json(new { loaiCa = ca.LoaiCa });
+            }
+
+            return Json(new { loaiCa = "" }); // Trường hợp không tìm thấy loại ca
+        }
+
+
+        //Hiển thị danh sách chi tiết số lượng ca
+        public IActionResult ChiTietSoLuongTrongCaList(string maQuanLy, int? page)
+        {
+            if (string.IsNullOrEmpty(maQuanLy))
+            {
+                return NotFound("Mã Quản Lý không hợp lệ.");
+            }
+
+            int pageSize = 5; // Số lượng bản ghi mỗi trang
+            int pageNumber = page ?? 1; // Trang hiện tại, mặc định là trang 1
+
+            // Truy vấn danh sách chi tiết số lượng ca theo MaQuanLy
+            var sltc = _QLNhaHangContext.SoLuongChiTietTrongCas
+                .Include(c => c.MaQuanLyNavigation) // Load thông tin liên quan nếu cần
+                .Include(c => c.MaViTriCvNavigation) // Load thông tin vị trí công việc
+                .Where(c => c.MaQuanLy == maQuanLy) // Lọc theo MaQuanLy
+                .OrderBy(c => c.MaQuanLyChiTiet) // Sắp xếp theo thứ tự mã quản lý chi tiết
+                .ToPagedList(pageNumber, pageSize);
+
+            ViewBag.MaQuanLy = maQuanLy; // Truyền mã quản lý vào View để sử dụng (nếu cần)
+
+            var ca = _QLNhaHangContext.SoLuongTrongCas
+                .FirstOrDefault(s => s.MaQuanLy == maQuanLy);
+
+            // Kiểm tra điều kiện Ngày
+            bool isDateConditionMet = ca != null && ca.Ngay >= DateTime.Today.AddDays(7);
+
+            // Truyền điều kiện vào View
+            ViewBag.IsDateConditionMet = isDateConditionMet;
+
+            return View(sltc);
+        }
+
+        [HttpGet]
+        public IActionResult TimKiemChiTietSoLuongTrongCa(string searchQuery, int? page, string maQuanLy)
+        {
+            int pageSize = 5; // Số lượng kết quả mỗi trang
+            int pageNumber = page ?? 1; // Trang hiện tại, mặc định là trang 1
+
+            // Truy vấn dữ liệu từ database
+            var query = _QLNhaHangContext.SoLuongChiTietTrongCas
+                .Include(c => c.MaViTriCvNavigation) // Bao gồm navigation property
+                .Where(s => s.MaQuanLy == maQuanLy) // Lọc theo MaQuanLy
+                .AsQueryable();
+
+            // Kiểm tra nếu có từ khóa tìm kiếm
+            if (!string.IsNullOrEmpty(searchQuery))
+            {
+                string searchQueryKhongDau = RemoveDiacritics(searchQuery.ToLower());
+                query = query.Where(vtcv => RemoveDiacritics(vtcv.MaViTriCvNavigation.TenViTriCv.ToLower()).Contains(searchQueryKhongDau));
+            }
+
+            // Phân trang và sắp xếp
+            var dsTimKiem = query
+                .OrderBy(vtcv => vtcv.MaQuanLyChiTiet) // Sắp xếp theo MaQuanLyChiTiet
+                .ToPagedList(pageNumber, pageSize); // Phân trang
+
+            ViewBag.SearchQuery = searchQuery; // Lưu từ khóa tìm kiếm vào ViewBag (nếu có)
+
+            return PartialView("_ChiTietSoLuongTrongCaContainer", dsTimKiem); // Trả về PartialView
+        }
+
+        //Thêm chi tiết số lượng trong ca 
+        public IActionResult ThemChiTietSoLuongTrongCa(string maQuanLy)
+        {
+            if (string.IsNullOrEmpty(maQuanLy))
+            {
+                return BadRequest("Mã quản lý không được để trống."); // Kiểm tra mã quản lý hợp lệ
+            }
+
+            var viTriCongViecList = _QLNhaHangContext.ViTriCongViecs.ToList();
+
+            // Bỏ mã đầu tiên
+            var viTriCongViecFilteredList = viTriCongViecList.Skip(1).ToList();
+
+            // Tạo SelectList cho ComboBox
+            ViewBag.ViTriCongViecSelectedList = new SelectList(viTriCongViecFilteredList, "MaViTriCv", "TenViTriCv");
+
+
+            // Lấy mã quản lý chi tiết lớn nhất hiện có cho mã quản lý này
+            var maxMaQLChiTiet = _QLNhaHangContext.SoLuongChiTietTrongCas
+                .Where(ct => ct.MaQuanLy == maQuanLy)
+                .OrderByDescending(ct => ct.MaQuanLyChiTiet)
+                .Select(ct => ct.MaQuanLyChiTiet)
+                .FirstOrDefault();
+
+            // Tạo mã quản lý chi tiết mới
+            var soThuTu = 1; // Nếu chưa có mã nào, bắt đầu từ 1
+            if (!string.IsNullOrEmpty(maxMaQLChiTiet))
+            {
+                var soCuoi = maxMaQLChiTiet.Split('.').Last();
+                soThuTu = int.Parse(soCuoi) + 1;
+            }
+            var maQLChiTietMoi = $"{maQuanLy}.{soThuTu}";
+
+            // Tạo một đối tượng mới để thêm chi tiết
+            var chiTiet = new SoLuongChiTietTrongCa
+            {
+                MaQuanLy = maQuanLy,
+                MaQuanLyChiTiet = maQLChiTietMoi,
+                SoLuong = 1 // Ban đầu để 0, người dùng sẽ nhập vào
+            };
+
+            // Gán danh sách vị trí công việc vào ViewBag
+            ViewBag.MaQuanLy = maQuanLy;
+
+            return View(chiTiet); // Trả về View để thêm chi tiết
+        }
+
+        [HttpPost]
+        public IActionResult ThemChiTietSoLuongTrongCa(SoLuongChiTietTrongCa sltc)
+        {
+            ModelState.Remove("MaViTriCvNavigation");
+            ModelState.Remove("MaQuanLyNavigation");
+            if (string.IsNullOrEmpty(sltc.MaQuanLy))
+            {
+                ModelState.AddModelError("MaQuanLy", "Mã quản lý không được để trống.");
+            }
+
+            var soLuongToiDa = _QLNhaHangContext.SoLuongTrongCas
+                               .Where(s => s.MaQuanLy == sltc.MaQuanLy)
+                               .Select(s => s.SoLuongToiDa)
+                               .FirstOrDefault();
+
+            if (sltc.SoLuong > soLuongToiDa)
+            {
+                ModelState.AddModelError("SoLuong", $"Số lượng không được vượt quá số lượng tối đa là {soLuongToiDa}.");
+            }
+
+            var tongSoLuongHienTai = _QLNhaHangContext.SoLuongChiTietTrongCas
+                                     .Where(ct => ct.MaQuanLy == sltc.MaQuanLy)
+                                     .Sum(ct => ct.SoLuong) ?? 0;
+
+            // Kiểm tra nếu tổng vượt quá `SoLuongToiDa`
+            if (tongSoLuongHienTai + sltc.SoLuong > soLuongToiDa)
+            {
+                ModelState.AddModelError("SoLuong", $"Tổng số lượng nhân viên của ca hiện tại là {tongSoLuongHienTai} nếu thêm {sltc.SoLuong} thì sẽ vượt quá số lượng tối đa là {soLuongToiDa} người.");
+            }
+
+            if (!sltc.SoLuong.HasValue || sltc.SoLuong.Value <= 0)
+            {
+                ModelState.AddModelError("SoLuong", "Số lượng nhân viên phải lớn hơn 0.");
+            }
+
+            bool viTriDaTonTai = _QLNhaHangContext.SoLuongChiTietTrongCas.Any(ct => ct.MaQuanLy == sltc.MaQuanLy && ct.MaViTriCv == sltc.MaViTriCv);
+
+            if (viTriDaTonTai)
+            {
+                ModelState.AddModelError("MaViTriCv", "Vị trí công việc này đã tồn tại trong danh sách.");
+            }
+
+
+            if (!ModelState.IsValid)
+            {
+                // Xử lý khi form không hợp lệ
+                var viTriCongViecList = _QLNhaHangContext.ViTriCongViecs.ToList();
+                var viTriCongViecFilteredList = viTriCongViecList.Skip(1).ToList();
+                ViewBag.ViTriCongViecSelectedList = new SelectList(viTriCongViecFilteredList, "MaViTriCv", "TenViTriCv");
+                ViewBag.MaQuanLy = sltc.MaQuanLy;
+                if (sltc.MaViTriCvNavigation != null)
+                {
+                    Console.WriteLine($"VTCV: {sltc.MaViTriCvNavigation.TenViTriCv}");
+                }
+                else
+                {
+                    Console.WriteLine("Vị trí công việc không được tìm thấy.");
+                }
+
+                return View(sltc);
+            }
+
+            // Lưu vào cơ sở dữ liệu
+
+
+            _QLNhaHangContext.SoLuongChiTietTrongCas.Add(sltc);
+            _QLNhaHangContext.SaveChanges();  // Lưu thay đổi
+
+            TempData["ThongBaoThem"] = "Thêm chi tiết số lượng trong ca thành công.";
+            return RedirectToAction("ChiTietSoLuongTrongCaList", new { maQuanLy = sltc.MaQuanLy });
+        }
+
+        //Xóa số lượng trong ca
+        public IActionResult XoaSoLuongChiTietTrongCa(string maQuanLyChiTiet)
+        {
+            // Tìm bản ghi trong bảng SoLuongChiTietTrongCa có MaQuanLyChiTiet trùng
+            var chiTiet = _QLNhaHangContext.SoLuongChiTietTrongCas
+                .FirstOrDefault(ct => ct.MaQuanLyChiTiet == maQuanLyChiTiet);
+
+            if (chiTiet != null)
+            {
+                // Nếu tìm thấy, tiến hành xóa
+                _QLNhaHangContext.SoLuongChiTietTrongCas.Remove(chiTiet);
+                _QLNhaHangContext.SaveChanges();
+
+                TempData["ThongBaoXoa"] = "Xóa chi tiết số lượng trong ca thành công.";
+            }
+            else
+            {
+                // Không tìm thấy bản ghi
+                TempData["ThongBaoXoa"] = "Không tìm thấy chi tiết số lượng trong ca để xóa.";
+            }
+
+            return RedirectToAction("ChiTietSoLuongTrongCaList", new { maQuanLy = chiTiet?.MaQuanLy });
+        }
+
+        //Cập Nhật Chi Tiết Số Lượng Trong Ca
+        public IActionResult CapNhatSoLuongChiTietTrongCa(string maQuanLyChiTiet)
+        {
+            if (string.IsNullOrEmpty(maQuanLyChiTiet))
+            {
+                return BadRequest("Mã quản lý chi tiết không hợp lệ.");
+            }
+            var chiTiet = _QLNhaHangContext.SoLuongChiTietTrongCas.Where(c => c.MaQuanLyChiTiet == maQuanLyChiTiet).FirstOrDefault();
+            if (chiTiet == null)
+            {
+                return NotFound("Không tìm thấy chi tiết số lượng trong ca.");
+            }
+            var viTriCongViecList = _QLNhaHangContext.ViTriCongViecs.ToList();
+            var viTriCongViecFilteredList = viTriCongViecList.Skip(1).ToList();
+            ViewBag.ViTriCongViecSelectedList = new SelectList(viTriCongViecFilteredList, "MaViTriCv", "TenViTriCv", chiTiet.MaViTriCv);
+
+            ViewBag.MaQuanLy = chiTiet.MaQuanLy;
+            return View(chiTiet); // Trả về View để thêm chi tiết
+        }
+        [HttpPost]
+        public IActionResult CapNhatSoLuongChiTietTrongCa(SoLuongChiTietTrongCa sltc)
+        {
+            // Loại bỏ các thuộc tính không cần thiết khỏi ModelState
+            ModelState.Remove("MaViTriCvNavigation");
+            ModelState.Remove("MaQuanLyNavigation");
+
+            // Kiểm tra Mã Quản Lý Chi Tiết
+            if (string.IsNullOrEmpty(sltc.MaQuanLyChiTiet))
+            {
+                ModelState.AddModelError("MaQuanLyChiTiet", "Mã quản lý chi tiết không được để trống.");
+            }
+
+            // Lấy số lượng tối đa
+            var soLuongToiDa = _QLNhaHangContext.SoLuongTrongCas
+                .Where(s => s.MaQuanLy == sltc.MaQuanLy)
+                .Select(s => s.SoLuongToiDa)
+                .FirstOrDefault();
+
+            // Kiểm tra số lượng nhập vào
+            if (sltc.SoLuong > soLuongToiDa)
+            {
+                ModelState.AddModelError("SoLuong", $"Số lượng không được vượt quá số lượng tối đa là {soLuongToiDa}.");
+            }
+
+            // Tính tổng số lượng hiện tại
+            var tongSoLuongHienTai = _QLNhaHangContext.SoLuongChiTietTrongCas
+                .Where(ct => ct.MaQuanLy == sltc.MaQuanLy && ct.MaQuanLyChiTiet != sltc.MaQuanLyChiTiet)
+                .Sum(ct => ct.SoLuong) ?? 0;
+
+            // Kiểm tra tổng số lượng
+            if (tongSoLuongHienTai + sltc.SoLuong > soLuongToiDa)
+            {
+                ModelState.AddModelError("SoLuong", $"Tổng số lượng nhân viên hiện tại là {tongSoLuongHienTai}, nếu cập nhật sẽ vượt quá số lượng tối đa {soLuongToiDa}.");
+            }
+
+            // Kiểm tra số lượng hợp lệ
+            if (!sltc.SoLuong.HasValue || sltc.SoLuong.Value <= 0)
+            {
+                ModelState.AddModelError("SoLuong", "Số lượng nhân viên phải lớn hơn 0.");
+            }
+
+            // Kiểm tra lỗi trong ModelState
+            if (!ModelState.IsValid)
+            {
+                var viTriCongViecList = _QLNhaHangContext.ViTriCongViecs.ToList();
+                var viTriCongViecFilteredList = viTriCongViecList.Skip(1).ToList();
+                ViewBag.ViTriCongViecSelectedList = new SelectList(viTriCongViecFilteredList, "MaViTriCv", "TenViTriCv", sltc.MaViTriCv);
+                ViewBag.MaQuanLy = sltc.MaQuanLy;
+                return View(sltc); // Trả về view với thông tin cũ và lỗi hiển thị
+            }
+
+            // Tìm chi tiết cần cập nhật
+            var chiTiet = _QLNhaHangContext.SoLuongChiTietTrongCas
+                .FirstOrDefault(ct => ct.MaQuanLyChiTiet == sltc.MaQuanLyChiTiet);
+
+            // Kiểm tra nếu không tìm thấy chi tiết
+            if (chiTiet == null)
+            {
+                return RedirectToAction("ChiTietSoLuongTrongCaList", new { maQuanLy = sltc.MaQuanLy });
+            }
+
+            // Cập nhật thông tin
+            chiTiet.SoLuong = sltc.SoLuong;
+            chiTiet.MaViTriCv = sltc.MaViTriCv;
+
+            // Lưu thay đổi vào cơ sở dữ liệu
+            _QLNhaHangContext.SaveChanges();
+
+            // Thông báo thành công
+            TempData["ThongBaoSua"] = "Cập nhật chi tiết số lượng trong ca thành công.";
+            return RedirectToAction("ChiTietSoLuongTrongCaList", new { maQuanLy = sltc.MaQuanLy });
+        }
+        //Chức năng gọi món
+        public IActionResult GoiMon(string maBan, string date = null, int? floor = 1)
+        {
+            ViewData["CurrentFloor"] = floor;
+            if (ViewData["Floor"] != null)
+            {
+                ViewData["CurrentFloor"] = ViewData["Floor"];
+            }
+            Console.WriteLine(ViewData["CurrentFloor"]);
+            Console.WriteLine(date);
+            // Nếu không có ngày được chọn, sử dụng ngày hiện tại
+            var selectedDate = string.IsNullOrEmpty(date) ? DateTime.Today : DateTime.Parse(date);
+            LayDanhSachMaDatBan(maBan, selectedDate);
+            var maDatBan = layMaDatBan(maBan, selectedDate);
+            ViewData["MaDatBan"] = maDatBan;
+            return View();
+        }
+        //Lấy danh sách tên loại món ăn
+        public IActionResult DSTenLoaiMA()
+        {
+            var dsLoaiMonAn = _QLNhaHangContext.LoaiMonAns.ToList();
+            return PartialView("_TabDanhMucMonAn", dsLoaiMonAn);
+        }
+        public IActionResult GetMonAnByLoai(string maLoaiMon)
+        {
+            List<MonAn> dsMonAn;
+
+            if (maLoaiMon == "Tất cả")
+            {
+                // Lấy tất cả món ăn
+                dsMonAn = _QLNhaHangContext.MonAns.ToList();
+            }
+            else
+            {
+                // Lấy món ăn theo mã loại món
+                dsMonAn = _QLNhaHangContext.MonAns.Where(m => m.LoaiMa == maLoaiMon).ToList();
+            }
+            // Trả về PartialView với dữ liệu món ăn
+            return PartialView("_MonAnList", dsMonAn);
+        }
+        //Lấy mã đặt bàn
+        public void LayDanhSachMaDatBan(string maBan, DateTime ngayDB)
+        {
+            // Lấy ngày không bao gồm giờ để so sánh
+            DateTime ngayChiTiet = ngayDB.Date;
+
+            // Lấy danh sách mã đặt bàn dựa trên điều kiện ngày và mã bàn
+            var danhSachMaDatBan = (from db in _QLNhaHangContext.DatBans
+                                    where db.MaBan == maBan && db.NgayDatBan.Value.Date == ngayChiTiet
+                                    select db.MaDatBan).ToList();
+
+            // Lọc danh sách mã đặt bàn chưa có mã hóa đơn
+            var maDatBanChuaCoHoaDon = danhSachMaDatBan
+                .Where(maDatBan => !_QLNhaHangContext.HoaDons.Any(hd => hd.MaDatBan == maDatBan))
+                .ToList();
+
+            // Tạo mã hóa đơn cho các mã đặt bàn chưa có
+            foreach (var maDatBan in maDatBanChuaCoHoaDon)
+            {
+                TaoHoaDonMoi(maDatBan);
+            }
+        }
+        public string TaoMaHoaDonTuDong()
+        {
+            //lấy ngày hiện tại
+            string ngayHienTai = DateTime.Now.ToString("yyyyMMdd");
+
+            //lọc các mã đặt bàn trong ngày hiện tại
+            var maCuoi = _QLNhaHangContext.HoaDons
+                .Where(b => b.MaHoaDon.StartsWith("HD" + ngayHienTai))
+                .OrderByDescending(b => b.MaHoaDon)
+                .FirstOrDefault();
+
+            //tạo mã mới
+            string maMoi;
+            if (maCuoi != null)
+            {
+                //lấy phần số cuối từ mã cuối cùng và tăng lên
+                int soCuoi = int.Parse(maCuoi.MaHoaDon.Substring(10));
+                maMoi = "HD" + ngayHienTai + (soCuoi + 1).ToString("D3");
+            }
+            else
+            {
+                //nếu chưa có mã nào trong ngày, bắt đầu từ 001
+                maMoi = "HD" + ngayHienTai + "001";
+            }
+
+            //gán mã mới cho đối tượng đặt bàn
+            return maMoi;
+        }
+        // Hàm tạo hóa đơn mới
+        private void TaoHoaDonMoi(string maDatBan)
+        {
+            var hoaDonMoi = new HoaDon
+            {
+                MaHoaDon = TaoMaHoaDonTuDong(),
+                MaDatBan = maDatBan,
+                NgayXuatHd = null,
+                TrangThai = "Chưa thanh toán",
+                TongTien = 0 // Hoặc giá trị mặc định khác
+            };
+
+            _QLNhaHangContext.HoaDons.Add(hoaDonMoi);
+            _QLNhaHangContext.SaveChanges();
+        }
+
+        public string layMaDatBan(string maBan, DateTime ngayDB)
+        {
+            DateTime ngayChiTiet = ngayDB.Date;
+            string maDatBan = (from db in _QLNhaHangContext.DatBans
+                               join hd in _QLNhaHangContext.HoaDons
+                               on db.MaDatBan equals hd.MaDatBan
+                               where db.MaBan == maBan && db.NgayDatBan.Value.Date == ngayChiTiet && hd.TrangThai == "Chưa thanh toán"
+                               select db.MaDatBan).SingleOrDefault();
+            return maDatBan;
+        }
+
+
+        [HttpPost]
+        public async Task<JsonResult> ThemHoaDonChiTiet()
+        {
+            try
+            {
+                // Đọc dữ liệu từ Request.Body
+                using (var reader = new System.IO.StreamReader(Request.Body))
+                {
+                    var body = await reader.ReadToEndAsync();  // Đọc toàn bộ nội dung body
+                    dynamic data = JsonConvert.DeserializeObject(body);  // Chuyển đổi body thành đối tượng JSON
+
+                    string maDatBan = data.maDatBan;
+                    string maMA = data.maMA;
+                    int soLuong = data.soLuong;
+                    Console.WriteLine("Mã Đặt bàn: " + maDatBan);
+                    Console.WriteLine("Mã Món ăn: " + maMA);
+
+                    // Tiến hành xử lý dữ liệu như cũ
+                    // Lấy mã hóa đơn
+                    string maHoaDon = (from hd in _QLNhaHangContext.HoaDons
+                                       where hd.MaDatBan == maDatBan
+                                       select hd.MaHoaDon).SingleOrDefault();
+
+                    // Lấy giá món ăn
+                    double giaMonAn = (from ma in _QLNhaHangContext.MonAns
+                                       where ma.MaMonAn == maMA
+                                       select ma.Gia).FirstOrDefault() ?? 0.0;
+
+                    // Kiểm tra và thêm hoặc cập nhật hóa đơn chi tiết
+                    var item = _QLNhaHangContext.HoaDonChiTiets
+                                .Where(hdct => hdct.MaHoaDon == maHoaDon && hdct.MaMonAn == maMA)
+                                .SingleOrDefault();
+
+                    if (item == null)
+                    {
+                        item = new HoaDonChiTiet
+                        {
+                            MaHoaDon = maHoaDon,
+                            MaMonAn = maMA,
+                            SoLuong = soLuong,
+                            Gia = giaMonAn
+                        };
+                        _QLNhaHangContext.HoaDonChiTiets.Add(item);
+                    }
+                    else
+                    {
+                        item.SoLuong += soLuong;
+                        _QLNhaHangContext.HoaDonChiTiets.Update(item);
+                    }
+
+                    _QLNhaHangContext.SaveChanges();
+
+                    // Trả về JSON thành công
+                    return Json(new { success = true, message = "Thêm thành công!" });
+                }
+            }
+            catch (Exception ex)
+            {
+                // Trả về JSON lỗi
+                return Json(new { success = false, message = $"Lỗi: {ex.Message}" });
+            }
+        }
+
+        public IActionResult DSHoaDonChiTiet(string maDatBan)
+        {
+            // Lấy mã hóa đơn
+            string maHoaDon = (from hd in _QLNhaHangContext.HoaDons
+                               where hd.MaDatBan == maDatBan
+                               select hd.MaHoaDon).SingleOrDefault();
+            ViewData["MaDatBan"] = maDatBan;
+            ViewData["MaHoaDon"] = maHoaDon;
+            var dsHoaDonChiTiet = _QLNhaHangContext.HoaDonChiTiets.Include(ma => ma.MaMonAnNavigation).Where(hdct => hdct.MaHoaDon == maHoaDon).ToList();
+            return PartialView("_HoaDonPartial", dsHoaDonChiTiet);
+        }
+
+        [HttpPost]
+        public async Task<JsonResult> SuaSLHoaDonChiTiet()
+        {
+            try
+            {
+                // Đọc dữ liệu từ Request.Body
+                using (var reader = new System.IO.StreamReader(Request.Body))
+                {
+                    var body = await reader.ReadToEndAsync();  // Đọc toàn bộ nội dung body
+                    dynamic data = JsonConvert.DeserializeObject(body);  // Chuyển đổi body thành đối tượng JSON
+
+                    string maDatBan = data.maDatBan;
+                    string maMA = data.maMA;
+                    int soLuong = data.soLuong;
+                    Console.WriteLine("Mã Đặt bàn: " + maDatBan);
+                    Console.WriteLine("Mã Món ăn: " + maMA);
+
+                    // Tiến hành xử lý dữ liệu như cũ
+                    // Lấy mã hóa đơn
+                    string maHoaDon = (from hd in _QLNhaHangContext.HoaDons
+                                       where hd.MaDatBan == maDatBan
+                                       select hd.MaHoaDon).SingleOrDefault();
+
+                    // Lấy giá món ăn
+                    double giaMonAn = (from ma in _QLNhaHangContext.MonAns
+                                       where ma.MaMonAn == maMA
+                                       select ma.Gia).FirstOrDefault() ?? 0.0;
+
+                    // Kiểm tra và thêm hoặc cập nhật hóa đơn chi tiết
+                    var item = _QLNhaHangContext.HoaDonChiTiets
+                                .Where(hdct => hdct.MaHoaDon == maHoaDon && hdct.MaMonAn == maMA)
+                                .SingleOrDefault();
+
+                    item.SoLuong = soLuong;
+                    _QLNhaHangContext.HoaDonChiTiets.Update(item);
+                    _QLNhaHangContext.SaveChanges();
+
+                    // Trả về JSON thành công
+                    return Json(new { success = true, message = "Thêm thành công!" });
+                }
+            }
+            catch (Exception ex)
+            {
+                // Trả về JSON lỗi
+                return Json(new { success = false, message = $"Lỗi: {ex.Message}" });
+            }
+        }
+        public IActionResult SearchMonAn(string keyword, string maLoaiMon)
+        {
+            // Lấy tất cả món ăn từ cơ sở dữ liệu (dùng AsEnumerable để chuyển sang bộ nhớ client)
+            var resultQuery = _QLNhaHangContext.MonAns.AsQueryable();
+
+            // Nếu maLoaiMon không phải "Tất cả", tìm kiếm theo mã loại món ăn
+            if (maLoaiMon != "Tất cả")
+            {
+                resultQuery = resultQuery.Where(m => m.LoaiMa == maLoaiMon);  // Lọc theo mã loại món ăn
+            }
+
+            // Chuyển toàn bộ dữ liệu từ cơ sở dữ liệu vào bộ nhớ client
+            var result = resultQuery
+                .AsEnumerable()  // Chuyển sang bộ nhớ client
+                .Where(m => string.IsNullOrEmpty(keyword) ||
+                            (RemoveDiacritics(m.TenMonAn.ToLower()).Contains(RemoveDiacritics(keyword.ToLower()))))  // Tìm theo từ khóa không phân biệt dấu và chữ hoa/chữ thường
+                .ToList();
+
+            return PartialView("_MonAnList", result);
+        }
+
+        [HttpPost]
+        public async Task<JsonResult> XoaHoaDonChiTiet()
+        {
+            try
+            {
+                // Đọc dữ liệu từ Request.Body
+                using (var reader = new System.IO.StreamReader(Request.Body))
+                {
+                    var body = await reader.ReadToEndAsync();  // Đọc toàn bộ nội dung body
+                    dynamic data = JsonConvert.DeserializeObject(body);  // Chuyển đổi body thành đối tượng JSON
+
+                    string maDatBan = data.maDatBan;
+                    string maMA = data.maMA;
+                    Console.WriteLine("Mã Đặt bàn: " + maDatBan);
+                    Console.WriteLine("Mã Món ăn: " + maMA);
+
+                    // Tiến hành xử lý dữ liệu như cũ
+                    // Lấy mã hóa đơn
+                    string maHoaDon = (from hd in _QLNhaHangContext.HoaDons
+                                       where hd.MaDatBan == maDatBan
+                                       select hd.MaHoaDon).SingleOrDefault();
+                    ViewData["MaHoaDon"] = maHoaDon;
+
+                    // Lấy giá món ăn
+                    double giaMonAn = (from ma in _QLNhaHangContext.MonAns
+                                       where ma.MaMonAn == maMA
+                                       select ma.Gia).FirstOrDefault() ?? 0.0;
+
+                    // Kiểm tra và thêm hoặc cập nhật hóa đơn chi tiết
+                    var item = _QLNhaHangContext.HoaDonChiTiets
+                                .Where(hdct => hdct.MaHoaDon == maHoaDon && hdct.MaMonAn == maMA)
+                                .SingleOrDefault();
+
+                    _QLNhaHangContext.HoaDonChiTiets.Remove(item);
+                    _QLNhaHangContext.SaveChanges();
+
+                    // Trả về JSON thành công
+                    return Json(new { success = true, message = "Thêm thành công!" });
+                }
+            }
+            catch (Exception ex)
+            {
+                // Trả về JSON lỗi
+                return Json(new { success = false, message = $"Lỗi: {ex.Message}" });
+            }
+        }
+        //Màn hình thanh toán
+        public IActionResult ManHinhThanhToan()
+        {
+            return View();
+        }
+        //Lấy thông tin khách hàng
+        public IActionResult LayThongTinKH(string maDatBan)
+        {
+            var ttkh = _QLNhaHangContext.DatBans.Where(db => db.MaDatBan == maDatBan).FirstOrDefault();
+            return PartialView("_ThongTinKhachHang", ttkh);
+        }
+        //
+        public IActionResult XemDSMonAnDaGoi(string maDatBan)
+        {
+            // Lấy mã hóa đơn
+            string maHoaDon = (from hd in _QLNhaHangContext.HoaDons
+                               where hd.MaDatBan == maDatBan
+                               select hd.MaHoaDon).SingleOrDefault();
+            ViewData["MaDatBan"] = maDatBan;
+            ViewData["MaHoaDon"] = maHoaDon;
+            var dsHoaDonChiTiet = _QLNhaHangContext.HoaDonChiTiets.Include(ma => ma.MaMonAnNavigation).Where(hdct => hdct.MaHoaDon == maHoaDon).ToList();
+            return PartialView("_MonAnDaGoi", dsHoaDonChiTiet);
+        }
+        //CapNhapHoaDon
+        [HttpPost]
+        public async Task<JsonResult> CapNhatHoaDon()
+        {
+            using (var reader = new System.IO.StreamReader(Request.Body))
+            {
+                var body = await reader.ReadToEndAsync();  // Đọc toàn bộ nội dung body
+                dynamic data = JsonConvert.DeserializeObject(body);  // Chuyển đổi body thành đối tượng JSON
+                string maDatBan = data.maDatBan;
+                string maMA = data.maMA;
+                // Lấy mã hóa đơn dựa trên mã đặt bàn
+                string maHoaDon = (from hd in _QLNhaHangContext.HoaDons
+                                   where hd.MaDatBan == maDatBan
+                                   select hd.MaHoaDon).SingleOrDefault();
+                if (maHoaDon == null)
+                {
+                    return Json(new { success = false, message = "Không tìm thấy hóa đơn tương ứng." });
+                }
+                // Lấy danh sách chi tiết hóa đơn dựa trên mã hóa đơn
+                var dsHoaDonChiTiet = _QLNhaHangContext.HoaDonChiTiets
+                                                      .Where(hdct => hdct.MaHoaDon == maHoaDon)
+                                                      .ToList();
+                // Tính tổng tiền cho từng chi tiết hóa đơn (Số lượng * Giá)
+                double? tongTien = dsHoaDonChiTiet.Sum(hdct => hdct.SoLuong * hdct.Gia);
+                var hoaDon = _QLNhaHangContext.HoaDons.Where(hd => hd.MaHoaDon == maHoaDon).FirstOrDefault();
+                hoaDon.TrangThai = "Đã thanh toán";
+                hoaDon.TongTien = tongTien;
+                hoaDon.NgayXuatHd = DateTime.Now;
+                var maBan = _QLNhaHangContext.DatBans
+                            .Where(b => b.MaDatBan == maDatBan && b.NgayDatBan.Value.Date == DateTime.Now.Date)
+                            .Select(b => b.MaBan)
+                            .FirstOrDefault();
+                var ban = _QLNhaHangContext.Bans.Where(b => b.MaBan == maBan).FirstOrDefault();
+                ban.TrangThai = false;
+                _QLNhaHangContext.Bans.Update(ban);
+                _QLNhaHangContext.HoaDons.Update(hoaDon);
+                _QLNhaHangContext.SaveChanges();
+                return Json(new { success = true, message = "Xuất hóa đơn thành công!" });
+            }
+
         }
     }
 

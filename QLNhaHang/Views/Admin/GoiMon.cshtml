@@ -1,0 +1,552 @@
+﻿@*
+    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
+*@
+@{
+    Layout = "Header";
+}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gọi Món Ăn</title>
+    <!-- Link to Bootstrap for styling (optional) -->
+
+    <style>
+        .table-wrapper {
+            max-height: 300px; /* Điều chỉnh chiều cao tối đa cho bảng */
+            overflow-y: auto; /* Bật thanh cuộn dọc */
+            width: 100%; /* Đảm bảo rằng bảng chiếm hết chiều rộng của vùng chứa */
+        }
+
+        /* Thêm CSS cho tab */
+        .tab-content {
+            max-height: 300px; /* Điều chỉnh chiều cao tối đa cho tab */
+            height: 80%; /* Điều chỉnh chiều cao tối đa cho tab */
+            overflow-y: auto; /* Bật thanh cuộn dọc */
+            overflow-x: hidden;
+        }
+        /* Áp dụng cho thẻ card để tạo chiều cao đồng đều */
+        .card {
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+        }
+
+        /* Đảm bảo nội dung trong card không bị tràn ra ngoài */
+        .card-body {
+            flex-grow: 1; /* Phần body card sẽ kéo dài để chiếm không gian còn lại */
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between; /* Đảm bảo nội dung trong body card được căn đều */
+        }
+
+        /* Đảm bảo chiều cao của các card đồng đều trong một dòng */
+        .row {
+            display: flex;
+            flex-wrap: wrap;
+        }
+
+        .custom-img {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+        }
+
+
+        .table-wrapper {
+            width: 100%; /* Đảm bảo div cha chiếm toàn bộ chiều rộng */
+            max-height: 200px; /* Giới hạn chiều cao */
+            overflow-y: auto; /* Cho phép thanh cuộn dọc */
+            overflow-x: hidden; /* Giấu thanh cuộn ngang */
+        }
+
+        table {
+            width: 100%; /* Đảm bảo bảng chiếm toàn bộ chiều rộng của div cha */
+            table-layout: fixed; /* Cố định chiều rộng cột */
+        }
+
+        th, td {
+            word-wrap: break-word; /* Ngắt từ khi cần thiết */
+            white-space: normal; /* Cho phép xuống dòng */
+            overflow-wrap: break-word; /* Ngắt từ khi cần thiết */
+        }
+
+        td {
+            word-break: break-word; /* Cắt từ khi cần thiết */
+        }
+
+        /* Tổng thể bảng */
+        .table-wrapper {
+            max-height: 200px;
+            overflow-y: auto;
+            border: 1px solid #dee2e6; /* Viền quanh bảng */
+            border-radius: 5px; /* Bo góc */
+        }
+
+        /* Canh giữa các ô */
+        .table th, .table td {
+            text-align: center;
+            vertical-align: middle;
+        }
+
+        /* Nút tăng giảm số lượng */
+        /* Thiết lập bảng */
+        .table-wrapper {
+            max-height: 200px;
+            overflow-y: auto; /* Thanh cuộn dọc */
+        }
+
+        .table {
+            width: 100%; /* Đảm bảo bảng chiếm toàn bộ chiều rộng */
+        }
+
+            .table th, .table td {
+                vertical-align: middle; /* Căn giữa theo chiều dọc */
+                text-align: center; /* Căn giữa theo chiều ngang */
+                word-break: break-word; /* Đảm bảo nội dung dài xuống dòng */
+                white-space: normal; /* Cho phép xuống dòng khi cần */
+                padding: 8px; /* Khoảng cách bên trong ô */
+            }
+
+                /* Tên món ăn dài sẽ xuống dòng */
+                .table td:nth-child(1) {
+                    text-align: left; /* Căn trái cho cột tên món */
+                    padding-right: 8px;
+                }
+        /* Nút tăng giảm */
+        /*         .quantity-control {
+                                                            display: flex;
+                                                            align-items: center;
+                                                            justify-content: center;
+                                                        } */
+
+        .quantity-control button {
+            height: 50px;
+            font-size: 2rem; /* Kích thước đồng nhất cho cả + và - */
+            line-height: 50px; /* Căn giữa nội dung theo chiều dọc */
+            padding: 0; /* Xóa padding mặc định để tránh lệch */
+            display: flex; /* Căn giữa nội dung */
+            align-items: center;
+            justify-content: center;
+        }
+
+        .quantity-control input {
+            height: 50px;
+            font-size: 1.5rem;
+            text-align: center;
+        }
+
+
+        .quantity-control button:hover {
+            transform: scale(1.1);
+            box-shadow: 0 4px 8px rgba(108, 99, 255, 0.3);
+        }
+
+        .quantity-control button:focus {
+            outline: none;
+            box-shadow: 0 0 8px rgba(108, 99, 255, 0.7);
+        }
+
+        .quantity-control input {
+            width: 100%;
+            height: 50px;
+            text-align: center;
+            font-size: 1.2rem;
+            border-radius: 0.5rem;
+            border: 1px solid #ccc;
+        }
+
+        .quantity-control-wrapper {
+            margin: 0 auto;
+            max-width: 400px;
+        }
+
+        tr {
+            cursor: pointer; /* Khi di chuột vào dòng, con trỏ sẽ trở thành bàn tay */
+        }
+
+        .card-css {
+            display: flex;
+            flex-direction: column;
+            height: 80%;
+        }
+
+    </style>
+</head>
+<body class="with-welcome-text">
+    <div class="container-fluid">
+        @if (ViewData["MaDatBan"] != null)
+        {
+            <input value="@ViewData["MaDatBan"]" type="hidden" id="hiddenMaDatBanPartial"></input>
+        }
+        <div class="row">
+            <!-- Tabs và danh sách món ăn -->
+            <div class="col-lg-8">
+                <!-- Thanh tìm kiếm -->
+                <div class="input-group mb-3">
+                    <input type="text" class="form-control" id="searchInput" placeholder="Tìm kiếm món ăn...">
+                    <button class="btn btn-primary" type="button">Tìm kiếm</button>
+                </div>
+
+                <!-- Tabs loại món ăn -->
+                <ul class="nav nav-tabs" id="foodTabs" role="tablist">
+                    @{
+                        Html.RenderPartial("_TabDanhMucMonAn");
+                    }
+                </ul>
+
+                <!-- Nội dung danh sách món ăn -->
+                <div class="tab-content p-3 border border-top-0" id="foodTabContent">
+                    <!-- Loại 1 -->
+                    @{
+                        Html.RenderPartial("_MonAnList");
+                    }
+                </div>
+            </div>
+
+            <!-- Hóa đơn -->
+            <div class="col-lg-4" id="billContent">
+                @{
+                    Html.RenderPartial("_HoaDonPartial");
+                }
+            </div>
+
+        </div>
+        <a class="btn btn-primary mt-4" asp-controller="Admin" asp-action="DSBanAn">Quay lại danh sách bàn</a>
+    </div>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+
+    <script>
+        var urlParams = new URLSearchParams(window.location.search);
+        var maDBan = urlParams.get('maDatBan');
+
+        const maDatBan = document.getElementById('hiddenMaDatBanPartial')?.value || null;
+        $(document).ready(function () {
+            // Load partial view vào container
+            $("#foodTabs").load('/Admin/DSTenLoaiMA', function () {
+                console.log("Partial view đã được load xong!");
+                loadMonAn("Tất cả"); // Gọi hàm load món ăn sau khi load partial view
+                $('#foodTabs .nav-link[data-maLoaiMon="Tất cả"]').trigger('click');
+                if (maDBan) {
+                    loadHoaDonChiTiet(maDBan);
+                }
+                if (maDatBan) {
+                    loadHoaDonChiTiet(maDatBan);
+                }
+
+
+            });
+
+        });
+
+        $('#searchInput').on('input', function () {
+            var keyword = $(this).val();  // Lấy từ khóa tìm kiếm
+            var maLoaiMon = $('button.nav-link.active').data('maloaimon');  // Loại món ăn hiện tại
+
+            // Gửi yêu cầu AJAX để tìm kiếm
+            $.ajax({
+                url: '@Url.Action("SearchMonAn", "Admin")',  // Đảm bảo URL đúng
+                type: 'GET',
+                data: { keyword: keyword, maLoaiMon: maLoaiMon },  // Gửi từ khóa và mã loại món ăn
+                success: function (response) {
+                    // Cập nhật nội dung vào div
+                    $('#foodTabContent').html(response);
+                },
+                error: function () {
+                    alert('Đã xảy ra lỗi khi tìm kiếm.');
+                }
+            });
+        });
+        // Sự kiện khi chọn tab loại món ăn
+        $('#foodTabs').on('click', '.nav-link', function () {
+            // Cập nhật lại lớp active cho tab được chọn
+            $('button.nav-link').removeClass('active');  // Xóa lớp active khỏi tất cả tab
+            $(this).addClass('active');  // Thêm lớp active cho tab hiện tại
+
+            // Lấy mã loại món ăn từ tab được chọn
+            var maLoaiMon = $(this).data('maloaimon');  // Lấy từ data-maLoaiMon của tab hiện tại
+            var keyword = $('#searchInput').val();  // Lấy từ khóa tìm kiếm nếu có
+            console.log("Ma loai mon" + maLoaiMon);
+            // Gửi yêu cầu AJAX để tìm kiếm và thay đổi nội dung
+            $.ajax({
+                url: '@Url.Action("SearchMonAn", "Admin")',  // Đảm bảo URL đúng
+                type: 'GET',
+                data: { keyword: keyword, maLoaiMon: maLoaiMon },  // Truyền từ khóa và mã loại món ăn
+                success: function (response) {
+                    $('#foodTabContent').html(response);  // Cập nhật nội dung vào div
+                },
+                error: function () {
+                    alert('Đã xảy ra lỗi khi thay đổi loại món ăn.');
+                }
+            });
+        });
+
+        function loadHoaDonChiTiet(maDatBan) {
+            $.ajax({
+                url: '/Admin/DSHoaDonChiTiet', // Thay ControllerName bằng tên controller của bạn
+                type: 'GET',
+                data: { maDatBan: maDatBan },
+                success: function (partialViewHtml) {
+                    // Chèn nội dung Partial View vào div
+                    $('#billContent').html(partialViewHtml);
+                    tinhTien();
+                },
+                error: function (xhr, status, error) {
+                    // Xử lý lỗi nếu có
+                    console.error("Lỗi khi tải dữ liệu: ", error);
+                    $('#billContent').html('<p>Không thể tải hóa đơn chi tiết.</p>');
+                }
+            });
+        }
+
+        function tinhTien() {
+            // Lấy tất cả các ô chứa tiền
+            const priceCells = document.querySelectorAll("#billBody td:nth-child(4)");
+            let total = 0;
+
+            // Tính tổng tiền
+            priceCells.forEach(cell => {
+                const value = parseFloat(cell.textContent.trim().replace(/\D/g, '')) || 0;
+                total += value;
+            });
+
+            // Hiển thị tổng tiền
+            const totalPriceElement = document.getElementById("totalPrice");
+            totalPriceElement.textContent = total.toLocaleString("vi-VN") + " VND";
+        }
+
+        function loadMonAn(maLoaiMon = "Tất cả") {
+            // Xử lý sự kiện click vào tab
+            $('#foodTabs').on('click', '.nav-link', function (e) {
+                e.preventDefault();
+
+                // Lấy giá trị mã loại món ăn từ data-maLoaiMon
+                var maLoaiMon = $(this).data('maloaimon');  // Lấy giá trị từ data-maLoaiMon
+
+                // Kiểm tra nếu là "Tất cả"
+                if (maLoaiMon === undefined || maLoaiMon === "Tất cả") {
+                    maLoaiMon = "Tất cả";  // Xử lý trường hợp "Tất cả"
+                }
+
+                // Gọi Ajax để lấy dữ liệu món ăn
+                $.ajax({
+                    url: '/Admin/GetMonAnByLoai',  // Địa chỉ của Action
+                    type: 'GET',
+                    data: { maLoaiMon: maLoaiMon },  // Truyền mã loại món ăn
+                    success: function (data) {
+                        // Thay thế nội dung vùng hiển thị món ăn
+                        $('#foodTabContent').html(data);
+                    },
+                    error: function () {
+                        alert('Có lỗi xảy ra khi tải món ăn');
+                    }
+                });
+            });
+        }
+
+        function openEditModal(maMonAn) {
+            // Lấy thông tin từ dòng được click
+            const row = document.getElementById(`row-${maMonAn}`);
+
+            // Lấy giá trị từ các cột trong dòng
+            const productName = row.cells[1].innerText; // Tên món ăn (cột 0)
+            const quantity = row.cells[2].innerText;    // Số lượng (cột 1)
+            const value = row.cells[3].innerText;       // Giá trị (cột 2)
+
+            // Gán thông tin vào modal
+            document.getElementById('ProductName').value = productName;
+            document.getElementById('NewQuantity').value = quantity;
+
+            // Hiển thị modal
+            const modal = new bootstrap.Modal(document.getElementById('editModal'));
+            modal.show();
+
+            // Gọi sự kiện cho các nút
+            document.getElementById("incermentBtn").addEventListener("click", incrementQuantity);
+            document.getElementById("decrementBtn").addEventListener("click", decrementQuantity);
+
+            // Lắng nghe sự kiện khi nhấn nút "Sửa"
+            $('#btnSua').off('click').on('click', function () {
+                var quantity = $('#NewQuantity').val(); // Lấy số lượng từ input
+                console.log(quantity);
+                var maDB = document.getElementById('hiddenMaDatBanPartial')?.value || null; // Lấy maDatBan từ hidden input
+                if (maDBan) {
+                    maDB = maDBan;
+                }
+                console.log("Ma dat ban" + maDatBan);
+                console.log("Mả món ăn" + maMonAn);
+                if (quantity && quantity > 0) {
+                    // Gửi dữ liệu đến server thông qua AJAX
+                    $.ajax({
+                        url: '/Admin/SuaSLHoaDonChiTiet',  // Đảm bảo URL đúng
+                        type: 'POST',
+                        contentType: 'application/json',
+                        data: JSON.stringify({
+                            maDatBan: maDB,
+                            maMA: maMonAn,
+                            soLuong: quantity
+                        }),
+                        success: function (response) {
+                            if (response.success) {
+                                // alert("Thêm thành công!");
+                                $('#editModal').modal('hide');  // Đóng modal
+                                if (maDBan) {
+                                    loadHoaDonChiTiet(maDBan);
+                                }
+                                if (maDatBan) {
+                                    loadHoaDonChiTiet(maDatBan);
+                                } // Hàm này dùng để tải lại dữ liệu nếu cần
+                            } else {
+                                alert('Thêm thất bại: ' + response.message);
+                            }
+                        },
+                        error: function () {
+                            alert('Đã xảy ra lỗi trong quá trình thêm.');
+                        }
+                    });
+                } else {
+                    alert("Vui lòng nhập số lượng hợp lệ!");
+                }
+            });
+        }
+
+        function incrementQuantity() {
+            let input = document.getElementById("NewQuantity");
+            let currentValue = parseInt(input.value) || 0;
+            input.value = currentValue + 1;
+        }
+
+        function decrementQuantity() {
+            let input = document.getElementById("NewQuantity");
+            console.log(input);
+            let currentValue = parseInt(input.value) || 0;
+            if (currentValue > 1) {
+                input.value = currentValue - 1;
+            }
+        }
+
+        function checkboxClicked(event) {
+            event.stopPropagation();
+        }
+        function toggleSelectAll() {
+            var selectAllCheckbox = document.getElementById('select-all');
+            var checkboxes = document.querySelectorAll('.delete-checkbox');
+
+            // Lặp qua tất cả các checkbox và set giá trị checked theo trạng thái của checkbox "select-all"
+            checkboxes.forEach(function (checkbox) {
+                checkbox.checked = selectAllCheckbox.checked;
+            });
+        }
+
+        function deleteSelectedRows() {
+            var checkboxes = document.querySelectorAll('.delete-checkbox:checked');
+
+            if (checkboxes.length === 0) {
+                alert('Vui lòng chọn ít nhất một món để xóa!');
+                return; // Nếu không có món nào được chọn, dừng lại
+            }
+
+            // Hiển thị hộp thoại xác nhận trước khi xóa
+            var confirmDelete = window.confirm("Bạn có chắc chắn muốn xóa những món ăn đã chọn?");
+
+            // Nếu người dùng chọn "OK"
+            if (confirmDelete) {
+                checkboxes.forEach(function (checkbox) {
+                    var row = checkbox.closest('tr'); // Lấy dòng chứa checkbox
+                    var maDatBan = document.getElementById('hiddenMaDatBanPartial')?.value || null; // Lấy maDatBan từ hidden input
+                    var maMonAn = checkbox.getAttribute('data-id'); // Lấy mã món ăn từ checkbox
+                    if (maDBan) {
+                        maDatBan = maDBan;
+                    }
+                    // Gửi yêu cầu AJAX để xóa hóa đơn chi tiết
+                    $.ajax({
+                        url: '/Admin/XoaHoaDonChiTiet',  // Đảm bảo URL đúng
+                        type: 'POST',
+                        contentType: 'application/json',
+                        data: JSON.stringify({
+                            maDatBan: maDatBan,
+                            maMA: maMonAn
+                        }),
+                        success: function (response) {
+                            if (response.success) {
+                                if (maDBan) {
+                                    loadHoaDonChiTiet(maDBan);
+                                }
+                                if (maDatBan) {
+                                    loadHoaDonChiTiet(maDatBan);
+                                }  // Hàm này dùng để tải lại dữ liệu nếu cần
+                            } else {
+                                alert('Xóa thất bại: ' + response.message);
+                            }
+                        },
+                        error: function () {
+                            alert('Đã xảy ra lỗi trong quá trình xóa.');
+                        }
+                    });
+
+                    row.remove();  // Xóa dòng trong bảng
+                });
+            } else {
+                // Nếu người dùng chọn "Cancel", không làm gì cả
+                return;
+            }
+        }
+
+
+
+        $(document).on('click', '.btn-add', function () {
+            var maDatBan = document.getElementById('hiddenMaDatBanPartial')?.value || null;
+            if (maDBan) {
+                maDatBan = maDBan;
+            }
+            var maMonAn = $(this).data('mama');
+
+            // Reset input khi modal mở
+            $('#quantityModal').on('shown.bs.modal', function () {
+                $('#quantityInput').val(1); // Reset input
+            });
+            $('#quantityModal').modal('show'); // Đây là dòng mã mở modal
+            // Lắng nghe sự kiện khi nhấn nút "Thêm"
+            $('#addQuantityBtn').off('click').on('click', function () {
+                var quantity = $('#quantityInput').val(); // Lấy số lượng từ input
+
+                if (quantity && quantity > 0) {
+                    // Gửi dữ liệu đến server thông qua AJAX
+                    $.ajax({
+                        url: '/Admin/ThemHoaDonChiTiet',  // Đảm bảo URL đúng
+                        type: 'POST',
+                        contentType: 'application/json',
+                        data: JSON.stringify({
+                            maDatBan: maDatBan,
+                            maMA: maMonAn,
+                            soLuong: quantity
+                        }),
+                        success: function (response) {
+                            if (response.success) {
+                                // alert("Thêm thành công!");
+                                $('#quantityModal').modal('hide');  // Đóng modal
+                                if (maDBan) {
+                                    loadHoaDonChiTiet(maDBan);
+                                }
+                                if (maDatBan) {
+                                    loadHoaDonChiTiet(maDatBan);
+                                }  // Hàm này dùng để tải lại dữ liệu nếu cần
+                            } else {
+                                alert('Thêm thất bại: ' + response.message);
+                            }
+                        },
+                        error: function () {
+                            alert('Đã xảy ra lỗi trong quá trình thêm.');
+                        }
+                    });
+                } else {
+                    alert("Vui lòng nhập số lượng hợp lệ!");
+                }
+            });
+
+        });
+    </script>
+</body>
+</html>

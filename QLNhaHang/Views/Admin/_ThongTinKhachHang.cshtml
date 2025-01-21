@@ -1,0 +1,10 @@
+﻿@model QLNhaHang.Models.DatBan
+
+@if (Model != null)
+{
+    <p>Khách hàng: <span>@(Model.TenKh ?? "Không có")</span></p>
+    <p>Số điện thoại: <span>@(Model.Sdt ?? "Không có")</span></p>
+    <p>Số bàn: <span>@Model.MaBan</span></p>
+}
+
+

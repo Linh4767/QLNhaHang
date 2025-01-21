@@ -34,6 +34,13 @@ namespace QLNhaHang.Controllers
                             where tk.TaiKhoan1 == dto.TaiKhoan
                             select vt.MaViTriCv).FirstOrDefault();
 
+            //tên nhân viên
+            string ten = (from tk in _QLNhaHangContext.TaiKhoans
+                          join nv in _QLNhaHangContext.NhanViens
+                          on tk.MaNv equals nv.MaNv
+                          where tk.TaiKhoan1 == dto.TaiKhoan
+                          select nv.TenNv).FirstOrDefault();
+
             // Kiểm tra tài khoản tồn tại
             if (taiKhoan == null)
                 return Unauthorized("Sai tài khoản hoặc mật khẩu.");
@@ -46,6 +53,7 @@ namespace QLNhaHang.Controllers
             // Lưu quyền vào session hoặc cookie
             HttpContext.Session.SetString("MaNV", taiKhoan.MaNv);
             HttpContext.Session.SetString("ViTri", viTri);
+            HttpContext.Session.SetString("TenNV", ten);
             // Đăng nhập thành công và chuyển hướng về trang chủ
             return RedirectToAction("TrangChu_Admin", "Admin");
         }

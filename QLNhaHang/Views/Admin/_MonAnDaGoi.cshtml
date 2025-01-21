@@ -1,0 +1,25 @@
+﻿@model IEnumerable<QLNhaHang.Models.HoaDonChiTiet>
+<table>
+    <thead>
+        <tr>
+            <th>Món ăn/Dịch vụ</th>
+            <th>Số lượng</th>
+            <th>Giá</th>
+            <th>Tổng tiền</th>
+        </tr>
+    </thead>
+    <tbody id="billBody">
+        @if (Model != null && Model.Any())
+        {
+            @foreach (var item in Model)
+            {
+                <tr>
+                    <td>@Html.DisplayFor(modelItem => item.MaMonAnNavigation.TenMonAn)</td>
+                    <td>@Html.DisplayFor(modelItem => item.SoLuong)</td>
+                    <td>@Html.DisplayFor(modelItem => item.Gia)</td>
+                    <td>@((item.SoLuong * item.Gia)?.ToString("N0"))</td>
+                </tr>
+            }
+        }
+    </tbody>
+</table>

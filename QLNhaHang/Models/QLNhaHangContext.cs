@@ -34,6 +34,7 @@ namespace QLNhaHang.Models
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
+            
         }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -41,7 +42,7 @@ namespace QLNhaHang.Models
             modelBuilder.Entity<Ban>(entity =>
             {
                 entity.HasKey(e => e.MaBan)
-                    .HasName("PK__Ban__3520ED6C6924F827");
+                    .HasName("PK__Ban__3520ED6C42B1E7F2");
 
                 entity.ToTable("Ban");
 
@@ -53,7 +54,7 @@ namespace QLNhaHang.Models
             modelBuilder.Entity<Ca>(entity =>
             {
                 entity.HasKey(e => e.MaCa)
-                    .HasName("PK__Ca__27258E7B4AA51779");
+                    .HasName("PK__Ca__27258E7B5A398464");
 
                 entity.ToTable("Ca");
 
@@ -65,7 +66,7 @@ namespace QLNhaHang.Models
             modelBuilder.Entity<DangKyCa>(entity =>
             {
                 entity.HasKey(e => e.MaDangKy)
-                    .HasName("PK__DangKyCa__BA90F02DA4372E1E");
+                    .HasName("PK__DangKyCa__BA90F02D57852702");
 
                 entity.ToTable("DangKyCa");
 
@@ -95,7 +96,7 @@ namespace QLNhaHang.Models
             modelBuilder.Entity<DatBan>(entity =>
             {
                 entity.HasKey(e => e.MaDatBan)
-                    .HasName("PK__DatBan__703DFB75CBA486E6");
+                    .HasName("PK__DatBan__703DFB75C510C877");
 
                 entity.ToTable("DatBan");
 
@@ -123,7 +124,7 @@ namespace QLNhaHang.Models
             modelBuilder.Entity<HoaDon>(entity =>
             {
                 entity.HasKey(e => e.MaHoaDon)
-                    .HasName("PK__HoaDon__835ED13BF32160C6");
+                    .HasName("PK__HoaDon__835ED13BCAE0E3B0");
 
                 entity.ToTable("HoaDon");
 
@@ -135,6 +136,8 @@ namespace QLNhaHang.Models
                     .HasColumnType("datetime")
                     .HasColumnName("NgayXuatHD");
 
+                entity.Property(e => e.TrangThai).HasMaxLength(30);
+
                 entity.HasOne(d => d.MaDatBanNavigation)
                     .WithMany(p => p.HoaDons)
                     .HasForeignKey(d => d.MaDatBan)
@@ -145,7 +148,7 @@ namespace QLNhaHang.Models
             modelBuilder.Entity<HoaDonChiTiet>(entity =>
             {
                 entity.HasKey(e => new { e.MaHoaDon, e.MaMonAn })
-                    .HasName("PK__HoaDonCh__C84FA0591CCC3EFC");
+                    .HasName("PK__HoaDonCh__C84FA0594DBB2C04");
 
                 entity.ToTable("HoaDonChiTiet");
 
@@ -169,7 +172,7 @@ namespace QLNhaHang.Models
             modelBuilder.Entity<LichSuChuyenBan>(entity =>
             {
                 entity.HasKey(e => e.MaChuyenBan)
-                    .HasName("PK__LichSuCh__9B503554E1A1E74F");
+                    .HasName("PK__LichSuCh__9B5035541156DAC0");
 
                 entity.ToTable("LichSuChuyenBan");
 
@@ -212,7 +215,7 @@ namespace QLNhaHang.Models
             modelBuilder.Entity<LoaiMonAn>(entity =>
             {
                 entity.HasKey(e => e.MaLoaiMa)
-                    .HasName("PK__LoaiMonA__12253B45CB6E55C4");
+                    .HasName("PK__LoaiMonA__12253B4582016F55");
 
                 entity.ToTable("LoaiMonAn");
 
@@ -255,7 +258,7 @@ namespace QLNhaHang.Models
             modelBuilder.Entity<MonAn>(entity =>
             {
                 entity.HasKey(e => e.MaMonAn)
-                    .HasName("PK__MonAn__B11716258D93EF28");
+                    .HasName("PK__MonAn__B11716258E2C8BC4");
 
                 entity.ToTable("MonAn");
 
@@ -280,7 +283,7 @@ namespace QLNhaHang.Models
             modelBuilder.Entity<NhanVien>(entity =>
             {
                 entity.HasKey(e => e.MaNv)
-                    .HasName("PK__NhanVien__2725D70A929C7C8B");
+                    .HasName("PK__NhanVien__2725D70A74C5A19D");
 
                 entity.ToTable("NhanVien");
 
@@ -336,7 +339,7 @@ namespace QLNhaHang.Models
             modelBuilder.Entity<SoLuongChiTietTrongCa>(entity =>
             {
                 entity.HasKey(e => e.MaQuanLyChiTiet)
-                    .HasName("PK__SoLuongC__3AA1F0C93BD49BC3");
+                    .HasName("PK__SoLuongC__3AA1F0C9ECD5FEDE");
 
                 entity.ToTable("SoLuongChiTietTrongCa");
 
@@ -363,7 +366,7 @@ namespace QLNhaHang.Models
             modelBuilder.Entity<SoLuongTrongCa>(entity =>
             {
                 entity.HasKey(e => e.MaQuanLy)
-                    .HasName("PK__SoLuongT__2AB9EAF81D7EFDE9");
+                    .HasName("PK__SoLuongT__2AB9EAF848FFCE50");
 
                 entity.ToTable("SoLuongTrongCa");
 
@@ -383,7 +386,7 @@ namespace QLNhaHang.Models
             modelBuilder.Entity<TaiKhoan>(entity =>
             {
                 entity.HasKey(e => e.TaiKhoan1)
-                    .HasName("PK__TaiKhoan__D5B8C7F11BE989C6");
+                    .HasName("PK__TaiKhoan__D5B8C7F1BBB0A006");
 
                 entity.ToTable("TaiKhoan");
 
@@ -395,7 +398,7 @@ namespace QLNhaHang.Models
                     .HasMaxLength(30)
                     .HasColumnName("MaNV");
 
-                entity.Property(e => e.MatKhau).HasMaxLength(30);
+                entity.Property(e => e.MatKhau).HasMaxLength(60);
 
                 entity.HasOne(d => d.MaNvNavigation)
                     .WithMany(p => p.TaiKhoans)
@@ -407,7 +410,7 @@ namespace QLNhaHang.Models
             modelBuilder.Entity<ViTriCongViec>(entity =>
             {
                 entity.HasKey(e => e.MaViTriCv)
-                    .HasName("PK__ViTriCon__F720CA70878D4A29");
+                    .HasName("PK__ViTriCon__F720CA701819283E");
 
                 entity.ToTable("ViTriCongViec");
 
