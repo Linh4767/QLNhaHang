@@ -486,7 +486,35 @@ namespace QLNhaHang.Controllers
             // Nếu có lỗi hoặc không hợp lệ, hiển thị lại form với các lỗi
             return View(vtcv);
         }
+        private bool IsBanOccupied(string maBan, DateTime selectedDate)
+        {
+            // Lấy danh sách tất cả các lần đặt bàn trong ngày
+            var datBanList = _QLNhaHangContext.DatBans
+                              .Where(db => db.MaBan == maBan && db.NgayDatBan.Value.Date == selectedDate.Date)
+                              .ToList();
 
+            // Kiểm tra trạng thái của từng lần đặt bàn
+            foreach (var datBan in datBanList)
+            {
+                var hoaDon = _QLNhaHangContext.HoaDons
+                                .FirstOrDefault(hd => hd.MaDatBan == datBan.MaDatBan);
+
+                // Nếu chưa có hóa đơn, bàn coi như bị chiếm dụng
+                if (hoaDon == null)
+                {
+                    return true; // occupied
+                }
+
+                // Nếu hóa đơn có trạng thái "Chưa thanh toán", bàn cũng coi như bị chiếm dụng
+                if (hoaDon.TrangThai == "Chưa thanh toán")
+                {
+                    return true; // occupied
+                }
+            }
+
+            // Nếu tất cả các lần đặt bàn đều có hóa đơn "Đã thanh toán", bàn là available
+            return false; // available
+        }
         public IActionResult DSBanAn(string tenKH, string sdt, DateTime ngayDB, int soNguoiDi, int? floor = 1, string date = null)
         {
             ViewBag.TenKH = tenKH ?? string.Empty;
@@ -509,9 +537,7 @@ namespace QLNhaHang.Controllers
                 MaBan = ban.MaBan,
                 SoLuongNguoi = ban.SoLuongNguoi,
                 ViTri = ban.ViTri,
-                TrangThai = _QLNhaHangContext.DatBans.Any(db => db.MaBan == ban.MaBan && db.NgayDatBan.Value.Date == selectedDate.Date)
-                ? true // occupied
-                : false // available
+                TrangThai = IsBanOccupied(ban.MaBan, selectedDate)
             }).ToList();
 
             // Kiểm tra xem yêu cầu là một AJAX request hay không
@@ -1294,8 +1320,17 @@ namespace QLNhaHang.Controllers
             ViewData["SelectedDate"] = selectedDate.ToString("yyyyy/MM/dd");
             var dsDatBan = _QLNhaHangContext.DatBans
                          .Where(b => b.MaBan == maBan && b.NgayDatBan.Value.Date == selectedDate)
-                         .SingleOrDefault();
-            return View(dsDatBan);
+                         .ToList();
+            var dsDatBanChuaThanhToan = dsDatBan.Where(db =>
+            {
+                var hoaDon = _QLNhaHangContext.HoaDons
+                                .FirstOrDefault(hd => hd.MaDatBan == db.MaDatBan);
+
+                // Giữ lại các lần đặt chưa có hóa đơn hoặc hóa đơn chưa thanh toán
+                return hoaDon == null || hoaDon.TrangThai != "Đã thanh toán";
+            }).ToList();
+            var datBan = dsDatBanChuaThanhToan.FirstOrDefault();
+            return View(datBan);
         }
 
         public IActionResult SuaTTDatBan(string maDatBan, string maBan, string date = null, int? floor = 1)
@@ -2248,6 +2283,377 @@ namespace QLNhaHang.Controllers
             // Thông báo thành công
             TempData["ThongBaoSua"] = "Cập nhật chi tiết số lượng trong ca thành công.";
             return RedirectToAction("ChiTietSoLuongTrongCaList", new { maQuanLy = sltc.MaQuanLy });
+        }
+        //Chức năng gọi món
+        public IActionResult GoiMon(string maBan, string date = null, int? floor = 1)
+        {
+            ViewData["CurrentFloor"] = floor;
+            if (ViewData["Floor"] != null)
+            {
+                ViewData["CurrentFloor"] = ViewData["Floor"];
+            }
+            Console.WriteLine(ViewData["CurrentFloor"]);
+            Console.WriteLine(date);
+            // Nếu không có ngày được chọn, sử dụng ngày hiện tại
+            var selectedDate = string.IsNullOrEmpty(date) ? DateTime.Today : DateTime.Parse(date);
+            LayDanhSachMaDatBan(maBan, selectedDate);
+            var maDatBan = layMaDatBan(maBan, selectedDate);
+            ViewData["MaDatBan"] = maDatBan;
+            return View();
+        }
+        //Lấy danh sách tên loại món ăn
+        public IActionResult DSTenLoaiMA()
+        {
+            var dsLoaiMonAn = _QLNhaHangContext.LoaiMonAns.ToList();
+            return PartialView("_TabDanhMucMonAn", dsLoaiMonAn);
+        }
+        public IActionResult GetMonAnByLoai(string maLoaiMon)
+        {
+            List<MonAn> dsMonAn;
+
+            if (maLoaiMon == "Tất cả")
+            {
+                // Lấy tất cả món ăn
+                dsMonAn = _QLNhaHangContext.MonAns.ToList();
+            }
+            else
+            {
+                // Lấy món ăn theo mã loại món
+                dsMonAn = _QLNhaHangContext.MonAns.Where(m => m.LoaiMa == maLoaiMon).ToList();
+            }
+            // Trả về PartialView với dữ liệu món ăn
+            return PartialView("_MonAnList", dsMonAn);
+        }
+        //Lấy mã đặt bàn
+        public void LayDanhSachMaDatBan(string maBan, DateTime ngayDB)
+        {
+            // Lấy ngày không bao gồm giờ để so sánh
+            DateTime ngayChiTiet = ngayDB.Date;
+
+            // Lấy danh sách mã đặt bàn dựa trên điều kiện ngày và mã bàn
+            var danhSachMaDatBan = (from db in _QLNhaHangContext.DatBans
+                                    where db.MaBan == maBan && db.NgayDatBan.Value.Date == ngayChiTiet
+                                    select db.MaDatBan).ToList();
+
+            // Lọc danh sách mã đặt bàn chưa có mã hóa đơn
+            var maDatBanChuaCoHoaDon = danhSachMaDatBan
+                .Where(maDatBan => !_QLNhaHangContext.HoaDons.Any(hd => hd.MaDatBan == maDatBan))
+                .ToList();
+
+            // Tạo mã hóa đơn cho các mã đặt bàn chưa có
+            foreach (var maDatBan in maDatBanChuaCoHoaDon)
+            {
+                TaoHoaDonMoi(maDatBan);
+            }
+        }
+        public string TaoMaHoaDonTuDong()
+        {
+            //lấy ngày hiện tại
+            string ngayHienTai = DateTime.Now.ToString("yyyyMMdd");
+
+            //lọc các mã đặt bàn trong ngày hiện tại
+            var maCuoi = _QLNhaHangContext.HoaDons
+                .Where(b => b.MaHoaDon.StartsWith("HD" + ngayHienTai))
+                .OrderByDescending(b => b.MaHoaDon)
+                .FirstOrDefault();
+
+            //tạo mã mới
+            string maMoi;
+            if (maCuoi != null)
+            {
+                //lấy phần số cuối từ mã cuối cùng và tăng lên
+                int soCuoi = int.Parse(maCuoi.MaHoaDon.Substring(10));
+                maMoi = "HD" + ngayHienTai + (soCuoi + 1).ToString("D3");
+            }
+            else
+            {
+                //nếu chưa có mã nào trong ngày, bắt đầu từ 001
+                maMoi = "HD" + ngayHienTai + "001";
+            }
+
+            //gán mã mới cho đối tượng đặt bàn
+            return maMoi;
+        }
+        // Hàm tạo hóa đơn mới
+        private void TaoHoaDonMoi(string maDatBan)
+        {
+            var hoaDonMoi = new HoaDon
+            {
+                MaHoaDon = TaoMaHoaDonTuDong(),
+                MaDatBan = maDatBan,
+                NgayXuatHd = null,
+                TrangThai = "Chưa thanh toán",
+                TongTien = 0 // Hoặc giá trị mặc định khác
+            };
+
+            _QLNhaHangContext.HoaDons.Add(hoaDonMoi);
+            _QLNhaHangContext.SaveChanges();
+        }
+
+        public string layMaDatBan(string maBan, DateTime ngayDB)
+        {
+            DateTime ngayChiTiet = ngayDB.Date;
+            string maDatBan = (from db in _QLNhaHangContext.DatBans
+                               join hd in _QLNhaHangContext.HoaDons
+                               on db.MaDatBan equals hd.MaDatBan
+                               where db.MaBan == maBan && db.NgayDatBan.Value.Date == ngayChiTiet && hd.TrangThai == "Chưa thanh toán"
+                               select db.MaDatBan).SingleOrDefault();
+            return maDatBan;
+        }
+
+
+        [HttpPost]
+        public async Task<JsonResult> ThemHoaDonChiTiet()
+        {
+            try
+            {
+                // Đọc dữ liệu từ Request.Body
+                using (var reader = new System.IO.StreamReader(Request.Body))
+                {
+                    var body = await reader.ReadToEndAsync();  // Đọc toàn bộ nội dung body
+                    dynamic data = JsonConvert.DeserializeObject(body);  // Chuyển đổi body thành đối tượng JSON
+
+                    string maDatBan = data.maDatBan;
+                    string maMA = data.maMA;
+                    int soLuong = data.soLuong;
+                    Console.WriteLine("Mã Đặt bàn: " + maDatBan);
+                    Console.WriteLine("Mã Món ăn: " + maMA);
+
+                    // Tiến hành xử lý dữ liệu như cũ
+                    // Lấy mã hóa đơn
+                    string maHoaDon = (from hd in _QLNhaHangContext.HoaDons
+                                       where hd.MaDatBan == maDatBan
+                                       select hd.MaHoaDon).SingleOrDefault();
+
+                    // Lấy giá món ăn
+                    double giaMonAn = (from ma in _QLNhaHangContext.MonAns
+                                       where ma.MaMonAn == maMA
+                                       select ma.Gia).FirstOrDefault() ?? 0.0;
+
+                    // Kiểm tra và thêm hoặc cập nhật hóa đơn chi tiết
+                    var item = _QLNhaHangContext.HoaDonChiTiets
+                                .Where(hdct => hdct.MaHoaDon == maHoaDon && hdct.MaMonAn == maMA)
+                                .SingleOrDefault();
+
+                    if (item == null)
+                    {
+                        item = new HoaDonChiTiet
+                        {
+                            MaHoaDon = maHoaDon,
+                            MaMonAn = maMA,
+                            SoLuong = soLuong,
+                            Gia = giaMonAn
+                        };
+                        _QLNhaHangContext.HoaDonChiTiets.Add(item);
+                    }
+                    else
+                    {
+                        item.SoLuong += soLuong;
+                        _QLNhaHangContext.HoaDonChiTiets.Update(item);
+                    }
+
+                    _QLNhaHangContext.SaveChanges();
+
+                    // Trả về JSON thành công
+                    return Json(new { success = true, message = "Thêm thành công!" });
+                }
+            }
+            catch (Exception ex)
+            {
+                // Trả về JSON lỗi
+                return Json(new { success = false, message = $"Lỗi: {ex.Message}" });
+            }
+        }
+
+        public IActionResult DSHoaDonChiTiet(string maDatBan)
+        {
+            // Lấy mã hóa đơn
+            string maHoaDon = (from hd in _QLNhaHangContext.HoaDons
+                               where hd.MaDatBan == maDatBan
+                               select hd.MaHoaDon).SingleOrDefault();
+            ViewData["MaDatBan"] = maDatBan;
+            ViewData["MaHoaDon"] = maHoaDon;
+            var dsHoaDonChiTiet = _QLNhaHangContext.HoaDonChiTiets.Include(ma => ma.MaMonAnNavigation).Where(hdct => hdct.MaHoaDon == maHoaDon).ToList();
+            return PartialView("_HoaDonPartial", dsHoaDonChiTiet);
+        }
+
+        [HttpPost]
+        public async Task<JsonResult> SuaSLHoaDonChiTiet()
+        {
+            try
+            {
+                // Đọc dữ liệu từ Request.Body
+                using (var reader = new System.IO.StreamReader(Request.Body))
+                {
+                    var body = await reader.ReadToEndAsync();  // Đọc toàn bộ nội dung body
+                    dynamic data = JsonConvert.DeserializeObject(body);  // Chuyển đổi body thành đối tượng JSON
+
+                    string maDatBan = data.maDatBan;
+                    string maMA = data.maMA;
+                    int soLuong = data.soLuong;
+                    Console.WriteLine("Mã Đặt bàn: " + maDatBan);
+                    Console.WriteLine("Mã Món ăn: " + maMA);
+
+                    // Tiến hành xử lý dữ liệu như cũ
+                    // Lấy mã hóa đơn
+                    string maHoaDon = (from hd in _QLNhaHangContext.HoaDons
+                                       where hd.MaDatBan == maDatBan
+                                       select hd.MaHoaDon).SingleOrDefault();
+
+                    // Lấy giá món ăn
+                    double giaMonAn = (from ma in _QLNhaHangContext.MonAns
+                                       where ma.MaMonAn == maMA
+                                       select ma.Gia).FirstOrDefault() ?? 0.0;
+
+                    // Kiểm tra và thêm hoặc cập nhật hóa đơn chi tiết
+                    var item = _QLNhaHangContext.HoaDonChiTiets
+                                .Where(hdct => hdct.MaHoaDon == maHoaDon && hdct.MaMonAn == maMA)
+                                .SingleOrDefault();
+
+                    item.SoLuong = soLuong;
+                    _QLNhaHangContext.HoaDonChiTiets.Update(item);
+                    _QLNhaHangContext.SaveChanges();
+
+                    // Trả về JSON thành công
+                    return Json(new { success = true, message = "Thêm thành công!" });
+                }
+            }
+            catch (Exception ex)
+            {
+                // Trả về JSON lỗi
+                return Json(new { success = false, message = $"Lỗi: {ex.Message}" });
+            }
+        }
+        public IActionResult SearchMonAn(string keyword, string maLoaiMon)
+        {
+            // Lấy tất cả món ăn từ cơ sở dữ liệu (dùng AsEnumerable để chuyển sang bộ nhớ client)
+            var resultQuery = _QLNhaHangContext.MonAns.AsQueryable();
+
+            // Nếu maLoaiMon không phải "Tất cả", tìm kiếm theo mã loại món ăn
+            if (maLoaiMon != "Tất cả")
+            {
+                resultQuery = resultQuery.Where(m => m.LoaiMa == maLoaiMon);  // Lọc theo mã loại món ăn
+            }
+
+            // Chuyển toàn bộ dữ liệu từ cơ sở dữ liệu vào bộ nhớ client
+            var result = resultQuery
+                .AsEnumerable()  // Chuyển sang bộ nhớ client
+                .Where(m => string.IsNullOrEmpty(keyword) ||
+                            (RemoveDiacritics(m.TenMonAn.ToLower()).Contains(RemoveDiacritics(keyword.ToLower()))))  // Tìm theo từ khóa không phân biệt dấu và chữ hoa/chữ thường
+                .ToList();
+
+            return PartialView("_MonAnList", result);
+        }
+
+        [HttpPost]
+        public async Task<JsonResult> XoaHoaDonChiTiet()
+        {
+            try
+            {
+                // Đọc dữ liệu từ Request.Body
+                using (var reader = new System.IO.StreamReader(Request.Body))
+                {
+                    var body = await reader.ReadToEndAsync();  // Đọc toàn bộ nội dung body
+                    dynamic data = JsonConvert.DeserializeObject(body);  // Chuyển đổi body thành đối tượng JSON
+
+                    string maDatBan = data.maDatBan;
+                    string maMA = data.maMA;
+                    Console.WriteLine("Mã Đặt bàn: " + maDatBan);
+                    Console.WriteLine("Mã Món ăn: " + maMA);
+
+                    // Tiến hành xử lý dữ liệu như cũ
+                    // Lấy mã hóa đơn
+                    string maHoaDon = (from hd in _QLNhaHangContext.HoaDons
+                                       where hd.MaDatBan == maDatBan
+                                       select hd.MaHoaDon).SingleOrDefault();
+                    ViewData["MaHoaDon"] = maHoaDon;
+
+                    // Lấy giá món ăn
+                    double giaMonAn = (from ma in _QLNhaHangContext.MonAns
+                                       where ma.MaMonAn == maMA
+                                       select ma.Gia).FirstOrDefault() ?? 0.0;
+
+                    // Kiểm tra và thêm hoặc cập nhật hóa đơn chi tiết
+                    var item = _QLNhaHangContext.HoaDonChiTiets
+                                .Where(hdct => hdct.MaHoaDon == maHoaDon && hdct.MaMonAn == maMA)
+                                .SingleOrDefault();
+
+                    _QLNhaHangContext.HoaDonChiTiets.Remove(item);
+                    _QLNhaHangContext.SaveChanges();
+
+                    // Trả về JSON thành công
+                    return Json(new { success = true, message = "Thêm thành công!" });
+                }
+            }
+            catch (Exception ex)
+            {
+                // Trả về JSON lỗi
+                return Json(new { success = false, message = $"Lỗi: {ex.Message}" });
+            }
+        }
+        //Màn hình thanh toán
+        public IActionResult ManHinhThanhToan()
+        {
+            return View();
+        }
+        //Lấy thông tin khách hàng
+        public IActionResult LayThongTinKH(string maDatBan)
+        {
+            var ttkh = _QLNhaHangContext.DatBans.Where(db => db.MaDatBan == maDatBan).FirstOrDefault();
+            return PartialView("_ThongTinKhachHang", ttkh);
+        }
+        //
+        public IActionResult XemDSMonAnDaGoi(string maDatBan)
+        {
+            // Lấy mã hóa đơn
+            string maHoaDon = (from hd in _QLNhaHangContext.HoaDons
+                               where hd.MaDatBan == maDatBan
+                               select hd.MaHoaDon).SingleOrDefault();
+            ViewData["MaDatBan"] = maDatBan;
+            ViewData["MaHoaDon"] = maHoaDon;
+            var dsHoaDonChiTiet = _QLNhaHangContext.HoaDonChiTiets.Include(ma => ma.MaMonAnNavigation).Where(hdct => hdct.MaHoaDon == maHoaDon).ToList();
+            return PartialView("_MonAnDaGoi", dsHoaDonChiTiet);
+        }
+        //CapNhapHoaDon
+        [HttpPost]
+        public async Task<JsonResult> CapNhatHoaDon()
+        {
+            using (var reader = new System.IO.StreamReader(Request.Body))
+            {
+                var body = await reader.ReadToEndAsync();  // Đọc toàn bộ nội dung body
+                dynamic data = JsonConvert.DeserializeObject(body);  // Chuyển đổi body thành đối tượng JSON
+                string maDatBan = data.maDatBan;
+                string maMA = data.maMA;
+                // Lấy mã hóa đơn dựa trên mã đặt bàn
+                string maHoaDon = (from hd in _QLNhaHangContext.HoaDons
+                                   where hd.MaDatBan == maDatBan
+                                   select hd.MaHoaDon).SingleOrDefault();
+                if (maHoaDon == null)
+                {
+                    return Json(new { success = false, message = "Không tìm thấy hóa đơn tương ứng." });
+                }
+                // Lấy danh sách chi tiết hóa đơn dựa trên mã hóa đơn
+                var dsHoaDonChiTiet = _QLNhaHangContext.HoaDonChiTiets
+                                                      .Where(hdct => hdct.MaHoaDon == maHoaDon)
+                                                      .ToList();
+                // Tính tổng tiền cho từng chi tiết hóa đơn (Số lượng * Giá)
+                double? tongTien = dsHoaDonChiTiet.Sum(hdct => hdct.SoLuong * hdct.Gia);
+                var hoaDon = _QLNhaHangContext.HoaDons.Where(hd => hd.MaHoaDon == maHoaDon).FirstOrDefault();
+                hoaDon.TrangThai = "Đã thanh toán";
+                hoaDon.TongTien = tongTien;
+                hoaDon.NgayXuatHd = DateTime.Now;
+                var maBan = _QLNhaHangContext.DatBans
+                            .Where(b => b.MaDatBan == maDatBan && b.NgayDatBan.Value.Date == DateTime.Now.Date)
+                            .Select(b => b.MaBan)
+                            .FirstOrDefault();
+                var ban = _QLNhaHangContext.Bans.Where(b => b.MaBan == maBan).FirstOrDefault();
+                ban.TrangThai = false;
+                _QLNhaHangContext.Bans.Update(ban);
+                _QLNhaHangContext.HoaDons.Update(hoaDon);
+                _QLNhaHangContext.SaveChanges();
+                return Json(new { success = true, message = "Xuất hóa đơn thành công!" });
+            }
+
         }
     }
 

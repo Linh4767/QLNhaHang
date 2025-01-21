@@ -1,0 +1,247 @@
+﻿@*
+    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
+*@
+@{
+    Layout = "Header";
+}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Xác Nhận Thanh Toán</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f9f9f9;
+        }
+
+        .container {
+            width: 90%; /* Thay đổi từ 400px thành phần trăm để tự động co giãn */
+            max-width: 1200px; /* Giới hạn tối đa khi màn hình lớn */
+            margin: 30px auto; /* Đặt giữa màn hình */
+            background-color: #fff;
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1); /* Làm mềm phần bóng */
+            border-radius: 10px; /* Bo góc nhẹ nhàng */
+            overflow: hidden;
+            padding: 20px; /* Thêm padding để nội dung không dính sát mép */
+        }
+
+        .header {
+            background-color: blue;
+            color: #fff;
+            padding: 20px;
+            text-align: center;
+            font-size: 22px;
+        }
+
+        .content {
+            padding: 20px;
+            font-size: 18px;
+            line-height: 1.6; /* Dãn dòng thoáng hơn */
+        }
+
+        .items table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .items th, .items td {
+            text-align: left;
+            padding: 10px;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .total {
+            text-align: right;
+            margin-top: 20px;
+            font-size: 20px;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .actions {
+            display: flex;
+            justify-content: space-between;
+            padding: 20px;
+            background-color: #f1f1f1;
+        }
+
+            .actions button {
+                border: none;
+                padding: 12px 24px;
+                font-size: 18px;
+                cursor: pointer;
+                border-radius: 8px;
+            }
+
+        .confirm {
+            background-color: #4caf50;
+            color: #fff;
+        }
+
+        .cancel {
+            background-color: #f44336;
+            color: #fff;
+        }
+
+        .confirm:hover {
+            background-color: #45a049;
+        }
+
+        .cancel:hover {
+            background-color: #e53935;
+        }
+
+    </style>
+</head>
+<body>
+    @if (ViewData["MaDatBan"] != null)
+    {
+        <input value="@ViewData["MaDatBan"]" type="text" id="hiddenMaDatBanPartial"></input>
+    }
+    @if (ViewData["MaHoaDon"] != null)
+    {
+        <input value="@ViewData["MaHoaDon"]" type="text" id="hiddenMaHoaDonPartial"></input>
+    }
+    <div class="container">
+        <div class="header">XÁC NHẬN THANH TOÁN</div>
+        <div class="content row">
+            <div id="thongTinKH" class="col-6">
+                @{
+                    Html.RenderPartial("_ThongTinKhachHang");
+                }
+            </div>
+            <div class="col-6" id="qr-container" style="display:none; text-align: right;">
+                <img id="qr-image" src="~/images/qr-code.jpg" alt="QR Code" width="30%" />
+            </div>
+            <p>Phương thức thanh toán:</p>
+            <div class="row">
+                <label class="col-6"><input type="radio" name="payment-method" value="cash" checked> Tiền mặt</label><br>
+                <label class="col-6"><input type="radio" name="payment-method" value="qr-bank"> QR Ngân hàng</label>
+            </div>
+            <div class="items" id="menuList">
+                @{
+                    Html.RenderPartial("_MonAnDaGoi");
+                }
+            </div>
+
+            <div class="total">Tổng cộng: <span id="totalPrice"></span></div>
+        </div>
+        <div class="actions">
+            <a class="btn btn-success confirm" onclick="capNhatHoaDon()">XUẤT HÓA ĐƠN</a>
+            <a class="btn btn-danger cancel" id="cancelButton" href="#">HỦY</a>
+        </div>
+    </div>
+</body>
+</html>
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+    $(document).ready(function () {
+        loadThongTinKH();
+        loadDSMonAn();
+        tinhTien();
+        // Lắng nghe sự thay đổi khi người dùng chọn phương thức thanh toán
+        $("input[name='payment-method']").change(function () {
+            // Kiểm tra nếu người dùng chọn "QR Ngân hàng"
+            if ($(this).val() === "qr-bank") {
+                // Hiển thị mã QR
+                $("#qr-container").show();
+            } else {
+                // Ẩn mã QR
+                $("#qr-container").hide();
+            }
+        });
+    });
+    function loadThongTinKH() {
+        var urlParams = new URLSearchParams(window.location.search);
+        var maDatBan = urlParams.get('maDatBan'); // Lấy giá trị của maDatBan từ URL
+        var maHD = urlParams.get('maHD');
+        if (maDatBan) {
+            // Cập nhật href của thẻ a với maDatBan lấy từ URL
+            var cancelButton = document.getElementById('cancelButton');
+            cancelButton.href = 'GoiMon?maDatBan=' + maDatBan; // Thay đổi href của thẻ <a>
+        }
+        $.ajax({
+            url: '/Admin/LayThongTinKH',  // Địa chỉ của Action
+            type: 'GET',
+            data: { maDatBan: maDatBan },  // Truyền mã loại món ăn
+            success: function (data) {
+                // Thay thế nội dung vùng hiển thị món ăn
+                $('#thongTinKH').html(data);
+            },
+            error: function () {
+                alert('Có lỗi xảy ra khi tải món ăn');
+            }
+        });
+    }
+    function loadDSMonAn() {
+        var urlParams = new URLSearchParams(window.location.search);
+        var maDatBan = urlParams.get('maDatBan'); // Lấy giá trị của maDatBan từ URL
+        var maHD = urlParams.get('maHD');
+        if (maDatBan) {
+            // Cập nhật href của thẻ a với maDatBan lấy từ URL
+            var cancelButton = document.getElementById('cancelButton');
+            cancelButton.href = 'GoiMon?maDatBan=' + maDatBan; // Thay đổi href của thẻ <a>
+        }
+        $.ajax({
+            url: '/Admin/XemDSMonAnDaGoi',  // Địa chỉ của Action
+            type: 'GET',
+            data: { maDatBan: maDatBan },  // Truyền mã loại món ăn
+            success: function (data) {
+                // Thay thế nội dung vùng hiển thị món ăn
+                $('#menuList').html(data);
+                tinhTien();
+            },
+            error: function () {
+                alert('Có lỗi xảy ra khi tải món ăn');
+            }
+        });
+    }
+    function tinhTien() {
+        // Lấy tất cả các ô chứa tiền
+        const priceCells = document.querySelectorAll("#billBody td:nth-child(4)");
+        let total = 0;
+
+        // Tính tổng tiền
+        priceCells.forEach(cell => {
+            const value = parseFloat(cell.textContent.trim().replace(/\D/g, '')) || 0;
+            console.log(value);
+            total += value;
+        });
+
+        // Hiển thị tổng tiền
+        const totalPriceElement = document.getElementById("totalPrice");
+        totalPriceElement.textContent = total.toLocaleString("vi-VN") + " VND";
+    }
+    function capNhatHoaDon() {
+        var urlParams = new URLSearchParams(window.location.search);
+        var maDatBan = urlParams.get('maDatBan'); // Lấy giá trị của maDatBan từ URL
+
+        if (!maDatBan) {
+            alert("Không tìm thấy mã đặt bàn.");
+            return;
+        }
+
+        $.ajax({
+            url: '/Admin/CapNhatHoaDon', // Địa chỉ của Action
+            type: 'POST', // Nên sử dụng POST thay vì GET
+            contentType: 'application/json', // Định dạng dữ liệu gửi
+            data: JSON.stringify({ maDatBan: maDatBan }), // Chuyển dữ liệu thành JSON
+            success: function (response) {
+                if (response.success) {
+                    alert("Xuất hóa đơn thành công!");
+                    window.location.href = '/Admin/DSBanAn'; // Điều hướng về danh sách bàn ăn
+                } else {
+                    alert(response.message || "Có lỗi xảy ra khi cập nhật hóa đơn.");
+                }
+            },
+            error: function (xhr) {
+                alert('Lỗi: ' + xhr.responseText || "Không thể kết nối tới server.");
+            }
+        });
+    }
+
+</script>

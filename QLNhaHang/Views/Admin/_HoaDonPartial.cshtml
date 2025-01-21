@@ -1,0 +1,84 @@
+﻿@model IEnumerable<QLNhaHang.Models.HoaDonChiTiet>
+
+<button class="btn btn-danger mb-5" type="button" onclick="deleteSelectedRows()">Xóa</button>
+<div class="card card-css shadow-sm">
+    <div class="card-header bg-primary text-white text-center rounded-top">
+        <h5 class="mb-0">Hóa Đơn</h5>
+    </div>
+    <div class="card-body p-3">
+        <!-- Thêm wrapper cho bảng để có thanh cuộn -->
+        <div class="table-wrapper" style="max-height: 200px; overflow-y: auto;">
+            <table class="table table-sm table-hover text-center align-middle">
+                <thead class="table-light">
+                    <tr>
+                        <th style="width: 5%">
+                            <input type="checkbox" id="select-all" onclick="toggleSelectAll()" />
+                        </th>
+                        <th style="width: 35%">Tên món</th>
+                        <th style="width: 20%">SL</th>
+                        <th style="width: 35%">Tiền</th>
+                    </tr>
+                </thead>
+                <tbody id="billBody">
+                    <!-- Chi tiết món ăn thêm tại đây -->
+                    @if (Model != null && Model.Any())
+                    {
+                        @foreach (var item in Model)
+                        {
+                            <tr id="row-@item.MaMonAn" onclick="openEditModal('@item.MaMonAn')">
+                                <td>
+                                    <input type="checkbox" class="delete-checkbox" data-id="@item.MaMonAn" onclick="checkboxClicked(event)" onclick="checkboxClicked(event)" />
+                                </td>
+                                <td style="word-break: break-word;white-space: normal;">@Html.DisplayFor(modelItem => item.MaMonAnNavigation.TenMonAn)</td>
+                                <td style="word-break: break-word;white-space: normal;">@Html.DisplayFor(modelItem => item.SoLuong)</td>
+                                <td style="word-break: break-word;white-space: normal;">@((item.SoLuong * item.Gia)?.ToString("N0"))</td>
+                            </tr>
+                        }
+                    }
+                </tbody>
+            </table>
+        </div>
+        <hr>
+        <div class="d-flex justify-content-between fw-bold fs-5">
+            <span>Tổng tiền:</span>
+            <span id="totalPrice"></span>
+        </div>
+    </div>
+    <div class="card-footer text-center">
+        <a class="btn btn-success w-100 py-2 fs-5" asp-controller="Admin" asp-action="ManHinhThanhToan" asp-route-maDatBan="@ViewData["MaDatBan"]" asp-route-maHD="@ViewData["MaHoaDon"]" style="box-sizing: border-box; max-width: 100%;">Thanh Toán</a>
+
+    </div>
+</div>
+
+<div class="modal" id="editModal" tabindex="-1" aria-labelledby="editModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="editModalLabel">Chỉnh sửa món ăn</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <!-- Form để nhập số lượng mới -->
+                <div class="mb-3">
+                    <label for="ProductName" class="form-label">Tên món ăn</label>
+                    <input type="text" class="form-control" id="ProductName" readonly>
+                </div>
+                <div class="mb-3">
+                    <label for="NewQuantity" class="form-label">Số lượng mới</label>
+                    <div class="quantity-control row align-items-center justify-content-center">
+                        <button class="col-3 btn btn-primary" id="incermentBtn">+</button>
+                        <div class="col-5 px-0">
+                            <input type="number" class="form-control text-center" id="NewQuantity" min="1">
+                        </div>
+                        <button class="col-3 btn btn-primary" id="decrementBtn">-</button>
+                    </div>
+
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+                <button type="button" class="btn btn-primary" id="btnSua">Lưu thay đổi</button>
+            </div>
+        </div>
+    </div>
+</div>
