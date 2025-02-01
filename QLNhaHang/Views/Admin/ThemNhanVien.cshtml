@@ -1,187 +1,112 @@
 ﻿@model QLNhaHang.Models.NhanVien
-@*
-    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
-*@
+
 @{
     Layout = "Header";
+    ViewData["Title"] = "ThemNhanVien";
 }
-<html lang="en">
-<head>
-    <!-- Required meta tags -->
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-    <title>Star Admin2 </title>
-</head>
-<body class="with-welcome-text">
-    <div class="col-12 grid-margin">
-        <div class="card">
-            <div class="card-body">
-                <h4 class="card-title">Horizontal Two column</h4>
-                <form class="form-sample" method="post">
-                    <p class="card-description"> Personal info </p>
-                    <div class="row">
-                        <div class="col-md-6">
-                            <div class="form-group row">
-                                @* Nhớ thêm asp-for vào mỗi label và input theo trường dữ liệu của table*@
-                                <label class="col-sm-3 col-form-label">First Name</label>
-                                <div class="col-sm-9">
-                                    <input type="text" class="form-control" />
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="form-group row">
-                                <label class="col-sm-3 col-form-label">Last Name</label>
-                                <div class="col-sm-9">
-                                    <input type="text" class="form-control" />
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="row">
-                        <div class="col-md-6">
-                            <div class="form-group row">
-                                <label class="col-sm-3 col-form-label">Gender</label>
-                                <div class="col-sm-9">
-                                    <select class="form-select">
-                                        <option>Male</option>
-                                        <option>Female</option>
-                                    </select>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="form-group row">
-                                <label class="col-sm-3 col-form-label">Date of Birth</label>
-                                <div class="col-sm-9">
-                                    <input class="form-control" type="date" />
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="row">
-                        <div class="col-md-6">
-                            <div class="form-group row">
-                                <label class="col-sm-3 col-form-label">Category</label>
-                                <div class="col-sm-9">
-                                    <select class="form-select">
-                                        <option>Category1</option>
-                                        <option>Category2</option>
-                                        <option>Category3</option>
-                                        <option>Category4</option>
-                                    </select>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="form-group row">
-                                <label class="col-sm-3 col-form-label">Membership</label>
-                                <div class="col-sm-4">
-                                    <div class="form-check">
-                                        <label class="form-check-label">
-                                            <input type="radio" class="form-check-input" name="membershipRadios" id="membershipRadios1" value="" checked> Free
-                                        </label>
-                                    </div>
-                                </div>
-                                <div class="col-sm-5">
-                                    <div class="form-check">
-                                        <label class="form-check-label">
-                                            <input type="radio" class="form-check-input" name="membershipRadios" id="membershipRadios2" value="option2"> Professional
-                                        </label>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <p class="card-description"> Address </p>
-                    <div class="row">
-                        <div class="col-md-6">
-                            <div class="form-group row">
-                                <label class="col-sm-3 col-form-label">Address 1</label>
-                                <div class="col-sm-9">
-                                    <input type="text" class="form-control" />
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="form-group row">
-                                <label class="col-sm-3 col-form-label">State</label>
-                                <div class="col-sm-9">
-                                    <input type="text" class="form-control" />
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="row">
-                        <div class="col-md-6">
-                            <div class="form-group row">
-                                <label class="col-sm-3 col-form-label">Address 2</label>
-                                <div class="col-sm-9">
-                                    <input type="text" class="form-control" />
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="form-group row">
-                                <label class="col-sm-3 col-form-label">Postcode</label>
-                                <div class="col-sm-9">
-                                    <input type="text" class="form-control" />
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="row">
-                        <div class="col-md-6">
-                            <div class="form-group row">
-                                <label class="col-sm-3 col-form-label">City</label>
-                                <div class="col-sm-9">
-                                    <input type="text" class="form-control" />
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="form-group row">
-                                <label class="col-sm-3 col-form-label">Country</label>
-                                <div class="col-sm-9">
-                                    <select class="form-select">
-                                        <option>America</option>
-                                        <option>Italy</option>
-                                        <option>Russia</option>
-                                        <option>Britain</option>
-                                    </select>
-                                </div>
-                            </div>
 
+<h1>ThemNhanVien</h1>
+
+<h4>NhanVien</h4>
+<hr />
+<div class="row">
+    <div class="col-md-12">
+        <form asp-action="ThemNhanVien" method="post">
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+            <div class="form-group">
+                @* <label asp-for="MaNv" class="control-label"></label>
+                <input asp-for="MaNv" class="form-control" /> *@
+                <span asp-validation-for="MaNv" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="TenNv" class="control-label"></label>
+                <input asp-for="TenNv" class="form-control" />
+                <span asp-validation-for="TenNv" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="Cccd" class="control-label"></label>
+                <input asp-for="Cccd" class="form-control" />
+                <span asp-validation-for="Cccd" class="text-danger"></span>
+            </div>
+            <div class="row">
+                <div class="col-md-12 d-flex align-items-center">
+                    <label class="col-form-label fw me-3" style="margin-bottom: 0; width: 100px;">Giới tính</label>
+                    <div class="d-flex align-items-center">
+                        <div class="form-check me-4 d-flex align-items-center">
+                            <input asp-for="GioiTinh" type="radio" class="form-check-input" style="margin-left: 0px;" id="membershipRadios1" value="Nam" checked>
+                            <label class="form-check-label ms-2" for="membershipRadios1" style="margin-right: 10px;">Nam</label>
                         </div>
-                        <div class="row">
-                            <div class="col-md-12">
-                                <div class="form-group row">
-                                    <label>File upload</label>
-                                    <input type="file" name="img[]" class="file-upload-default">
-                                    <div class="input-group col-xs-12">
-                                        <input type="text" class="form-control file-upload-info" disabled placeholder="Upload Image">
-                                        <span class="input-group-append">
-                                            <button class="file-upload-browse btn btn-primary" type="button">Upload</button>
-                                        </span>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="row">
-                            <div class="col-md-12">
-                                <div class="form-group row">
-                                    <label class="form-check-label">
-                                        <input type="checkbox" class="form-check-input"> Default
-                                    </label>
-                                </div>
-                            </div>
+                        <div class="form-check d-flex align-items-center">
+                            <input asp-for="GioiTinh" type="radio" class="form-check-input" id="membershipRadios2" value="Nữ">
+                            <label class="form-check-label ms-2" for="membershipRadios2">Nữ</label>
                         </div>
                     </div>
-                    <button type="submit" class="btn btn-primary me-2">Thêm Nhân Viên</button>
-                    <a class="btn btn-light" asp-action="DanhSachNhanVien_Admin">Quay Lại Danh Sách</a>
-                </form>
+                </div>
             </div>
+            <div class="form-group">
+                <label asp-for="Sdt" class="control-label"></label>
+                <input asp-for="Sdt" class="form-control" />
+                <span asp-validation-for="Sdt" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="Email" class="control-label"></label>
+                <input asp-for="Email" class="form-control" />
+                <span asp-validation-for="Email" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="DiaChi" class="control-label"></label>
+                <input asp-for="DiaChi" class="form-control" />
+                <span asp-validation-for="DiaChi" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="MaViTriCv" class="control-label"></label>
+                <select asp-for="MaViTriCv" class="form-control" asp-items="@ViewBag.ViTriCongViecs"></select>
+            </div>
+            <div class="form-group">
+                <label asp-for="MaQuanLy" class="control-label"></label>
+                <select asp-for="MaQuanLy" class="form-control" asp-items="@ViewBag.NhanViens">
+                    <option value="none">Select</option>
+                    </select>
+            </div>
+            <div class="form-group">
+                <label asp-for="ThuViec" class="control-label"></label>
+                <input asp-for="ThuViec" class="form-control" />
+                <span asp-validation-for="ThuViec" class="text-danger"></span>
+            </div>
+        </form>
+    </div>
+    <div class="col-md-6">
+        <div style="margin-top: 23px;" class="form-group">
+            <label asp-for="HinhAnh" class="control-label"></label>
+            <input asp-for="HinhAnh" class="form-control" />
+            <span asp-validation-for="HinhAnh" class="text-danger"></span>
+        </div>
+        <div class="form-group">
+            <label asp-for="NgayVaoLam" class="control-label"></label>
+            <input asp-for="NgayVaoLam" class="form-control" />
+            <span asp-validation-for="NgayVaoLam" class="text-danger"></span>
+        </div>
+        <div class="form-group">
+            <label asp-for="TrangThai" class="control-label"></label>
+            <input asp-for="TrangThai" class="form-control" />
+            <span asp-validation-for="TrangThai" class="text-danger"></span>
+        </div>
+        <div class="form-group">
+            <label asp-for="MaBhyt" class="control-label"></label>
+            <input asp-for="MaBhyt" class="form-control" />
+            <span asp-validation-for="MaBhyt" class="text-danger"></span>
         </div>
     </div>
-</body>
-</html>
+    <div class="col-md-6">
+        <button type="submit" class="btn btn-primary me-2 mt-3" asp-action="ThemNhanVien">Thêm Nhân Viên</button>
+        <a class="btn btn-light mt-3" asp-action="XemDSNhanVien">Quay Lại Danh Sách</a>
+    </div>
+</div>
+
+<div>
+    <a asp-action="Index">Back to List</a>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}

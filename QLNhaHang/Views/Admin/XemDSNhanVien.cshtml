@@ -1,0 +1,127 @@
+﻿@model X.PagedList.IPagedList<QLNhaHang.Models.NhanVien>
+@using X.PagedList.Mvc.Core
+@using X.PagedList;
+
+@{
+    Layout = "Header";
+    ViewData["Title"] = "XemDSNhanVien";
+}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>Star Admin2 </title>
+</head>
+<body class="with-welcome-text">
+
+    <div class="container mt-4">
+        <h2 class="mb-4">Thông Tin Nhân Viên</h2>
+
+        <!-- Thanh tìm kiếm -->
+        <form method="get" action="@Url.Action("XemDSNhanVien")">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <input type="text" class="form-control w-50" placeholder="Tìm kiếm tên nhân viên..."
+                       name="searchTerm" value="@ViewBag.SearchTerm" />
+                <button type="submit" class="btn btn-success">Tìm kiếm</button>
+                <button type="submit" class="btn btn-success" asp-action="XemDSNhanVien">Quay lại danh sách</button>
+                <button class="btn btn-success" onclick="window.location.href='#'" asp-action="ThemNhanVien">Thêm mới</button>
+            </div>
+        </form>
+
+        <!-- Bảng -->
+        <div class="table-responsive" id="caLamTableContainer">
+            <table class="table table-striped table-hover">
+                <thead>
+                    <tr>
+                        <th><center><b>Mã Nhân Viên</b></center></th>
+                        <th><center><b>Tên Nhân Viên</b></center></th>
+                        <th><center><b>Hình Ảnh</b></center></th>
+                        <th><center><b>CCCD</b></center></th>
+                        <th><center><b>Giới Tính</b></center></th>
+                        <th><center><b>SDT</b></center></th>
+                        <th><center><b>Email</b></center></th>
+                        <th><center><b>Địa Chỉ</b></center></th>
+                        <th><center><b>Trạng Thái</b></center></th>
+                        <th><center><b>Thử Việc</b></center></th>
+                        <th><center><b>Ngày Vào Làm</b></center></th>
+                        <th><center><b>Mã BHYT</b></center></th>
+                        <th><center><b>Mã Quản Lý</b></center></th>
+                        <th><center><b>Mã Vị Trí</b></center></th>
+                        <th><center><b>Chức Năng</b></center></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var nv in Model)
+                    {
+                        <tr>
+                            <td>
+                                <center>@Html.DisplayFor(modelItem => nv.MaNv)</center>
+                            </td>
+                            <td>
+                                <center>@Html.DisplayFor(modelItem => nv.TenNv)</center>
+                            </td>
+                            <td>
+                                <center>@Html.DisplayFor(modelItem => nv.HinhAnh)</center>
+                            </td>
+                            <td>
+                                <center>@Html.DisplayFor(modelItem => nv.Cccd)</center>
+                            </td>
+                            <td>
+                                <center>@Html.DisplayFor(modelItem => nv.GioiTinh)</center>
+                            </td>
+                            <td>
+                                <center>@Html.DisplayFor(modelItem => nv.Sdt)</center>
+                            </td>
+                            <td>
+                                <center>@Html.DisplayFor(modelItem => nv.Email)</center>
+                            </td>
+                            <td>
+                                <center>@Html.DisplayFor(modelItem => nv.DiaChi)</center>
+                            </td>
+                            <td>
+                                <center>
+                                    @(nv.TrangThai == "0" ? "Nghỉ việc" : nv.TrangThai == "1" ? "Đang làm" : "")
+                                </center>
+                            </td>
+                            <td>
+                                <center>
+                                    @(Convert.ToBoolean(nv.ThuViec) ? "Chính thức" : "Thử việc")
+                                </center>
+                            </td>
+                            <td>
+                                <center>@Html.DisplayFor(modelItem => nv.NgayVaoLam)</center>
+                            </td>
+                            <td>
+                                <center>@Html.DisplayFor(modelItem => nv.MaBhyt)</center>
+                            </td>
+                            <td>
+                                <center>@Html.DisplayFor(modelItem => nv.MaQuanLyNavigation.TenNv)</center>
+                            </td>
+                            <td>
+                                <center>@Html.DisplayFor(modelItem => nv.MaViTriCvNavigation.TenViTriCv)</center>
+                            </td>
+                            <td>
+                                <center>
+                                    <a class="btn btn-warning btn-sm" asp-controller="Admin" asp-action="#">Sửa</a>
+                                    <a class="btn btn-danger btn-sm" asp-controller="Admin" asp-action="#">Xóa</a>
+                                </center>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+            @Html.PagedListPager((IPagedList)Model, page => Url.Action("XemDSNhanVien",
+                     new { page = page }),
+                     new X.PagedList.Mvc.Core.PagedListRenderOptions
+            {
+                ContainerDivClasses = new[] { "navigation" },
+                LiElementClasses = new[] { "page-item" },
+                PageClasses = new[] { "page-link" }
+            })
+        </div>
+    </div>
+</body>
+</html>

@@ -13,6 +13,8 @@ using System.Globalization;
 using System.Text;
 using System.Text.RegularExpressions;
 using Newtonsoft.Json;
+using Microsoft.AspNetCore.Mvc.RazorPages;
+using MailKit.Search;
 
 
 namespace QLNhaHang.Controllers
@@ -34,14 +36,6 @@ namespace QLNhaHang.Controllers
             return View();
         }
         public IActionResult DanhSachNhanVien_Admin()
-        {
-            return View();
-        }
-        public IActionResult ThemNhanVien()
-        {
-            return View();
-        }
-        public IActionResult SuaNhanVien()
         {
             return View();
         }
@@ -1652,8 +1646,54 @@ namespace QLNhaHang.Controllers
         {
             return View();
         }
-    }
 
+        public string TaoMaNVTuDong()
+        {
+            //Lấy danh sách nhân viên
+            var dsNhanVien = _QLNhaHangContext.NhanViens.ToList();
+            //Tìm mã loại món ăn lớn
+            int maLonNhat = dsNhanVien
+                              .Select(manv => int.Parse(manv.MaNv.Substring(3)))
+                              .Max();  // Lấy số lớn nhất
+                                       //Tăng số lớn nhất lên 1
+            int maNVMoi = maLonNhat + 1;
+            return "NV" + maNVMoi.ToString("D3");
+        }
+
+        public IActionResult XemDSNhanVien(int? page, string searchTerm)
+        {
+
+            var dsNhanVien = _QLNhaHangContext.NhanViens.Include(a => a.MaViTriCvNavigation).Include(b => b.MaQuanLyNavigation).OrderByDescending(nv => nv.MaNv).Where(nv => string.IsNullOrEmpty(searchTerm) || nv.TenNv.Contains(searchTerm)).ToPagedList(page ?? 1, 7);
+            return View(dsNhanVien);
+        }
+
+        public IActionResult ThemNhanVien()
+        {
+            var ViTriCongViec = _QLNhaHangContext.ViTriCongViecs.ToList();
+            var QuanLy = _QLNhaHangContext.NhanViens
+            .Where(nv => new[] { "NV001"}.Contains(nv.MaNv)).ToList();
+
+            ViewBag.ViTriCongViecs = new SelectList(ViTriCongViec, "MaViTriCv", "TenViTriCv");
+            ViewBag.NhanViens = new SelectList(QuanLy, "MaNv", "TenNv");
+
+            var loaiMA = new NhanVien
+            {
+                MaNv = TaoMaNVTuDong()
+            };
+            return View(loaiMA);
+        }
+
+
+        [HttpPost]
+        public IActionResult ThemNhanVien(NhanVien nv)
+        {
+            nv.MaNv = TaoMaNVTuDong();// Nối thời gian
+
+            _QLNhaHangContext.NhanViens.Add(nv);
+            _QLNhaHangContext.SaveChanges();
+            return RedirectToAction("XemDSNhanVien");
+        }
+    }
 }
 
 
