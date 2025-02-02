@@ -64,8 +64,11 @@
                                 <center>@Html.DisplayFor(modelItem => nv.TenNv)</center>
                             </td>
                             <td>
-                                <center>@Html.DisplayFor(modelItem => nv.HinhAnh)</center>
+                                <center>
+                                    <img src="@Html.DisplayFor(modelItem => nv.HinhAnh)" alt="Image" style="width: 100px; height: 100px; object-fit: cover; border-radius: 0%;" />
+                                </center>
                             </td>
+
                             <td>
                                 <center>@Html.DisplayFor(modelItem => nv.Cccd)</center>
                             </td>

@@ -1678,21 +1678,66 @@ namespace QLNhaHang.Controllers
 
             var loaiMA = new NhanVien
             {
-                MaNv = TaoMaNVTuDong()
+                MaNv = TaoMaNVTuDong(),
+                NgayVaoLam = DateTime.Now
             };
             return View(loaiMA);
         }
 
 
         [HttpPost]
-        public IActionResult ThemNhanVien(NhanVien nv)
+        public async Task<IActionResult> ThemNhanVien(NhanVien nv, IFormFile HinhAnh)
         {
-            nv.MaNv = TaoMaNVTuDong();// Nối thời gian
+            // Tạo mã nhân viên tự động
+            nv.MaNv = TaoMaNVTuDong();
 
+            if (HinhAnh != null && HinhAnh.Length > 0)
+            {
+                // Lấy đuôi file ảnh từ tên file được upload
+                var fileExtension = Path.GetExtension(HinhAnh.FileName).ToLower();
+
+                // Đổi tên ảnh theo tên nhân viên (loại bỏ khoảng trắng)
+                var fileNameWithoutExtension = nv.TenNv.Replace(" ", "-").ToLower();
+                var fileName = fileNameWithoutExtension + fileExtension;
+
+                // Tạo Cloudinary account từ thông tin cấu hình
+                var account = new Account(
+                    _cloudinarySettings.CloudName,
+                    _cloudinarySettings.ApiKey,
+                    _cloudinarySettings.ApiSecret
+                );
+                var cloudinary = new Cloudinary(account);
+
+                // Tạo stream cho file
+                var fileStream = HinhAnh.OpenReadStream();
+                var uniquePublicId = fileNameWithoutExtension + "-" + DateTime.Now.ToString("yyyyMMddHHmmss");
+                var uploadParams = new ImageUploadParams()
+                {
+                    File = new FileDescription(fileName, fileStream),
+                    Folder = "QLNhaHang/NhanVien",
+                    PublicId = uniquePublicId
+                };
+
+                // Thực hiện upload lên Cloudinary
+                var uploadResult = await cloudinary.UploadAsync(uploadParams);
+
+                // Kiểm tra kết quả upload
+                if (uploadResult.StatusCode == HttpStatusCode.OK)
+                {
+                    // Nếu upload thành công, lưu URL vào đối tượng NhanVien
+                    nv.HinhAnh = uploadResult.SecureUrl.ToString();
+                }
+            }
+
+            // Lưu thông tin nhân viên vào cơ sở dữ liệu
+            nv.TenNv = VietHoa(nv.TenNv); // Nếu có hàm xử lý viết hoa tên
             _QLNhaHangContext.NhanViens.Add(nv);
-            _QLNhaHangContext.SaveChanges();
+            await _QLNhaHangContext.SaveChangesAsync();
+
+            // Chuyển hướng về danh sách nhân viên
             return RedirectToAction("XemDSNhanVien");
         }
+
     }
 }
 
