@@ -37,6 +37,9 @@ namespace QLNhaHang.Models
             
         }
 
+
+
+
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             modelBuilder.Entity<Ban>(entity =>

@@ -2655,6 +2655,50 @@ namespace QLNhaHang.Controllers
             }
 
         }
+
+        [HttpGet]
+        public JsonResult GetDoanhThu(DateTime startDate, DateTime endDate)
+        {
+            var doanhThu = _QLNhaHangContext.HoaDons
+                            .Where(hd => hd.NgayXuatHd.Value.Date >= startDate.Date && hd.NgayXuatHd.Value.Date <= endDate.Date)
+                            .GroupBy(hd => hd.NgayXuatHd.Value.Date)
+                            .Select(g => new
+                            {
+                                Ngay = g.Key,
+                                DoanhThu = g.Sum(hd => hd.TongTien)
+                            })
+                            .OrderBy(d => d.Ngay)
+                            .ToList()
+                            .Select(d => new
+                            {
+                                Ngay = d.Ngay.ToString("MM/dd/yyyy"),
+                                DoanhThu = d.DoanhThu
+                            })
+                            .ToList();
+
+            return Json(doanhThu);
+        }
+
+        [HttpGet]
+        public JsonResult GetMonAnBanChay(DateTime startDate, DateTime endDate)
+        {
+            var monAnBanChay = (from ct in _QLNhaHangContext.HoaDonChiTiets
+                                join hd in _QLNhaHangContext.HoaDons
+                                on ct.MaHoaDon equals hd.MaHoaDon
+                                where hd.NgayXuatHd.Value.Date >= startDate.Date && hd.NgayXuatHd.Value.Date <= endDate.Date
+                                group ct by ct.MaMonAn into groupedItems
+                                select new
+                                {
+                                    MonAn = (from ma in _QLNhaHangContext.MonAns
+                                             where ma.MaMonAn == groupedItems.Key
+                                             select ma.TenMonAn).FirstOrDefault(),
+                                    SoLuong = groupedItems.Sum(ct => ct.SoLuong)
+                                })
+                   .OrderByDescending(m => m.SoLuong)
+                   .ToList();
+
+            return Json(monAnBanChay);
+        }
     }
 
 }
