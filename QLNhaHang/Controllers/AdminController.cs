@@ -1352,7 +1352,7 @@ namespace QLNhaHang.Controllers
             return View(ttDatBan);
         }
 
-       
+
 
         [HttpPost]
         public IActionResult SuaTTDatBan(DatBan datBan)
@@ -1539,7 +1539,9 @@ namespace QLNhaHang.Controllers
             // Chia danh sách bàn
             //ds bàn có người
             var dsBanOccupied = dsBan
-                .Where(ban => _QLNhaHangContext.DatBans.Any(db => db.MaBan == ban.MaBan && db.NgayDatBan.Value.Date == today.Date))
+                .Where(ban => _QLNhaHangContext.DatBans
+                .Any(db => db.MaBan == ban.MaBan && db.NgayDatBan.Value.Date == today.Date &&
+                    _QLNhaHangContext.HoaDons.Any(hd => hd.MaDatBan == db.MaDatBan && hd.TrangThai == "Chưa thanh toán")))
                 .ToList();
 
             //danh sách bàn trống
@@ -1608,7 +1610,16 @@ namespace QLNhaHang.Controllers
             //gán mã mới cho đối tượng chuyển bàn
             lsCB.MaChuyenBan = maMoi;
 
-            var maDB = _QLNhaHangContext.DatBans.FirstOrDefault(b => b.MaBan == lsCB.MaBanCu && b.NgayDatBan.Value.Date == DateTime.Today.Date);
+            string maDatBan = (from db in _QLNhaHangContext.DatBans
+                               join hd in _QLNhaHangContext.HoaDons
+                               on db.MaDatBan equals hd.MaDatBan
+                               where db.MaBan == lsCB.MaBanCu && db.NgayDatBan.Value.Date == DateTime.Today.Date && hd.TrangThai == "Chưa thanh toán"
+                               select db.MaDatBan).SingleOrDefault();
+
+            DateTime ngayHT = DateTime.Now;
+            //var maDatBan = layMaDatBan(lsCB.MaBanCu, ngayHT);
+            //var maDB = _QLNhaHangContext.DatBans.FirstOrDefault(b => b.MaBan == lsCB.MaBanCu && b.NgayDatBan.Value.Date == DateTime.Today.Date);
+            var maDB = _QLNhaHangContext.DatBans.FirstOrDefault(b => b.MaDatBan == maDatBan);
 
             //thay đổi trạng thái bàn
             var banCu = _QLNhaHangContext.Bans.FirstOrDefault(b => b.MaBan == lsCB.MaBanCu);
@@ -1619,7 +1630,6 @@ namespace QLNhaHang.Controllers
                 TempData["BaoLoi"] = "Không tìm thấy bàn cũ hoặc bàn mới";
                 return View("ChuyenBan");
             }
-
 
             if (maDB != null)
             {
