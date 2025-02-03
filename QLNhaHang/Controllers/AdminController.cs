@@ -909,7 +909,7 @@ namespace QLNhaHang.Controllers
             Console.WriteLine(date);
             // Nếu không có ngày được chọn, sử dụng ngày hiện tại
             var selectedDate = string.IsNullOrEmpty(date) ? DateTime.Today : DateTime.Parse(date);
-            ViewData["SelectedDate"] = selectedDate.ToString("yyyyy/MM/dd");
+            ViewData["SelectedDate"] = selectedDate.ToString("yyyy/MM/dd");
             ViewData["MaBan"] = maBan;
             return View();
         }
@@ -1317,7 +1317,7 @@ namespace QLNhaHang.Controllers
             Console.WriteLine(date);
             // Nếu không có ngày được chọn, sử dụng ngày hiện tại
             var selectedDate = string.IsNullOrEmpty(date) ? DateTime.Today : DateTime.Parse(date);
-            ViewData["SelectedDate"] = selectedDate.ToString("yyyyy/MM/dd");
+            ViewData["SelectedDate"] = selectedDate.ToString("yyyy/MM/dd");
             var dsDatBan = _QLNhaHangContext.DatBans
                          .Where(b => b.MaBan == maBan && b.NgayDatBan.Value.Date == selectedDate)
                          .ToList();
@@ -1344,7 +1344,7 @@ namespace QLNhaHang.Controllers
             Console.WriteLine(date);
             // Nếu không có ngày được chọn, sử dụng ngày hiện tại
             var selectedDate = string.IsNullOrEmpty(date) ? DateTime.Today : DateTime.Parse(date);
-            ViewData["SelectedDate"] = selectedDate.ToString("yyyyy/MM/dd");
+            ViewData["SelectedDate"] = selectedDate.ToString("yyyy/MM/dd");
             ViewData["MaBan"] = maBan;
             var ttDatBan = _QLNhaHangContext.DatBans
                          .Where(b => b.MaDatBan == maDatBan)
