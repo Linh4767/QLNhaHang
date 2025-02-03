@@ -1,0 +1,173 @@
+﻿@model IEnumerable<QLNhaHang.Models.HoaDon>
+
+@{
+    Layout = "Header";
+}
+<html lang="en">
+<head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css">
+    <!-- Thêm vào phần <head> -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <style>
+        .items table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .items th, .items td {
+            text-align: left;
+            padding: 10px;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .total {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container mt-4">
+        <h2 class="mb-4 text-center">Lịch sử hóa đơn thanh toán</h2>
+
+        <!-- Chọn tầng -->
+        <div class="d-flex flex-wrap justify-content-between align-items-center mb-3">
+            <div class="container">
+                <div class="row g-3 align-items-center">
+                    <!-- DateTimePicker -->
+                    <div class="col-12 col-md-4">
+                        <div class="input-group">
+                            <span class="input-group-text">
+                                <i class="icon-calendar"></i>
+                            </span>
+                            <input type="text" id="datePicker" class="form-control" value="@ViewData["SelectedDate"]"
+                                   onchange="filterByDate()" />
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Danh sách bàn hiển thị dạng lưới -->
+        <div class="grid-container" id="tableContainer" style="max-height:300px;overflow-y:auto; overflow-x:hidden;">
+            @Html.Partial("_DSHoaDonTheoNgayPartial")
+        </div>
+
+    </div>
+    <div class="modal fade" id="detailModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="exampleModalLabel">Thông tin hóa đơn</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                <div class="modal-body" id="modalContent">
+                    <!-- Nội dung chi tiết hóa đơn sẽ được load vào đây -->
+                    <div id="thongTinKH" class="col-6">
+                        @Html.Partial("_ThongTinKhachHang");
+
+                    </div>
+                    <div class="items" id="menuList">
+                        @Html.Partial("_MonAnDaGoi");
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Đóng</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Thêm jQuery -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <!-- Thêm Bootstrap JS -->
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+
+    <script>
+        filterByDate();
+        document.addEventListener("DOMContentLoaded", function () {
+            var defaultDate = "@ViewData["SelectedDate"]";
+            // Khởi tạo flatpickr với ngày mặc định
+            flatpickr("#datePicker", {
+                dateFormat: "m/d/Y", // Định dạng tháng/ngày/năm
+                defaultDate: defaultDate, // Ngày mặc định từ ViewData
+            });
+        });
+
+        // Hàm xử lý thay đổi ngày
+        function filterByDate() {
+            const selectedDate = document.getElementById("datePicker").value;
+            const selectedDateTime = parseDate(selectedDate);
+            const currentDate = new Date();
+            currentDate.setHours(0, 0, 0, 0);
+            selectedDateTime.setHours(0, 0, 0, 0);
+
+            // Gửi yêu cầu AJAX
+            $.ajax({
+                url: '@Url.Action("ThongTinHD", "Admin")',
+                type: 'GET',
+                data: {
+                    date: selectedDate
+                },
+                success: function (response) {
+                    // Sau khi cập nhật nội dung, gọi lại toggleButtonDisplay cho các nút mới
+                    document.getElementById("tableContainer").innerHTML = response;
+                    $(document).on('click', '[data-toggle="modal"]', function () {
+                        var maDatBan = $(this).attr('data-maDB');  // Lấy mã đặt bàn từ data-maDB
+                        console.log("Mã đặt bàn:", maDatBan);
+                        $.ajax({
+                            url: '/Admin/LayThongTinKH',  // Địa chỉ của Action
+                            type: 'GET',
+                            data: { maDatBan: maDatBan },  // Truyền mã loại món ăn
+                            success: function (data) {
+                                // Thay thế nội dung vùng hiển thị món ăn
+                                $('#thongTinKH').html(data);
+                            },
+                            error: function () {
+                                alert('Có lỗi xảy ra khi tải món ăn');
+                            }
+                        });
+                        // Load thông tin khách hàng vào #thongTinKH
+                        $.ajax({
+                            url: '/Admin/XemDSMonAnDaGoi',  // Địa chỉ của Action
+                            type: 'GET',
+                            data: { maDatBan: maDatBan },  // Truyền mã loại món ăn
+                            success: function (data) {
+                                // Thay thế nội dung vùng hiển thị món ăn
+                                $('#menuList').html(data);
+                            },
+                            error: function () {
+                                alert('Có lỗi xảy ra khi tải món ăn');
+                            }
+                        });
+                    });
+                },
+                error: function (xhr, status, error) {
+                    console.error("Lỗi khi lấy dữ liệu từ server: " + error);
+                }
+            });
+        }
+
+
+
+        // Hàm chuyển đổi ngày từ chuỗi
+        function parseDate(dateString) {
+            const parts = dateString.split('/'); // Tách chuỗi ngày theo dấu "/"
+            if (parts.length === 3) {
+                const month = parseInt(parts[0], 10) - 1; // Lấy tháng (0-based)
+                const day = parseInt(parts[1], 10);       // Lấy ngày
+                const year = parseInt(parts[2], 10);      // Lấy năm
+
+                return new Date(year, month, day);       // Trả về đối tượng Date
+            }
+            return null; // Trả về null nếu không hợp lệ
+        }
+
+    </script>
+</body>
+</html>

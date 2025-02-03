@@ -1352,7 +1352,7 @@ namespace QLNhaHang.Controllers
             return View(ttDatBan);
         }
 
-       
+
 
         [HttpPost]
         public IActionResult SuaTTDatBan(DatBan datBan)
@@ -1539,7 +1539,9 @@ namespace QLNhaHang.Controllers
             // Chia danh sách bàn
             //ds bàn có người
             var dsBanOccupied = dsBan
-                .Where(ban => _QLNhaHangContext.DatBans.Any(db => db.MaBan == ban.MaBan && db.NgayDatBan.Value.Date == today.Date))
+                .Where(ban => _QLNhaHangContext.DatBans
+                .Any(db => db.MaBan == ban.MaBan && db.NgayDatBan.Value.Date == today.Date &&
+                    _QLNhaHangContext.HoaDons.Any(hd => hd.MaDatBan == db.MaDatBan && hd.TrangThai == "Chưa thanh toán")))
                 .ToList();
 
             //danh sách bàn trống
@@ -1608,7 +1610,16 @@ namespace QLNhaHang.Controllers
             //gán mã mới cho đối tượng chuyển bàn
             lsCB.MaChuyenBan = maMoi;
 
-            var maDB = _QLNhaHangContext.DatBans.FirstOrDefault(b => b.MaBan == lsCB.MaBanCu && b.NgayDatBan.Value.Date == DateTime.Today.Date);
+            string maDatBan = (from db in _QLNhaHangContext.DatBans
+                               join hd in _QLNhaHangContext.HoaDons
+                               on db.MaDatBan equals hd.MaDatBan
+                               where db.MaBan == lsCB.MaBanCu && db.NgayDatBan.Value.Date == DateTime.Today.Date && hd.TrangThai == "Chưa thanh toán"
+                               select db.MaDatBan).SingleOrDefault();
+
+            DateTime ngayHT = DateTime.Now;
+            //var maDatBan = layMaDatBan(lsCB.MaBanCu, ngayHT);
+            //var maDB = _QLNhaHangContext.DatBans.FirstOrDefault(b => b.MaBan == lsCB.MaBanCu && b.NgayDatBan.Value.Date == DateTime.Today.Date);
+            var maDB = _QLNhaHangContext.DatBans.FirstOrDefault(b => b.MaDatBan == maDatBan);
 
             //thay đổi trạng thái bàn
             var banCu = _QLNhaHangContext.Bans.FirstOrDefault(b => b.MaBan == lsCB.MaBanCu);
@@ -1619,7 +1630,6 @@ namespace QLNhaHang.Controllers
                 TempData["BaoLoi"] = "Không tìm thấy bàn cũ hoặc bàn mới";
                 return View("ChuyenBan");
             }
-
 
             if (maDB != null)
             {
@@ -2699,8 +2709,287 @@ namespace QLNhaHang.Controllers
 
             return Json(monAnBanChay);
         }
-    }
 
+        //Hiện ds lịch sử hóa đơn theo ngày
+        public IActionResult DSHoaDonTheoNgay(string date = null)
+        {
+            var selectedDate = string.IsNullOrEmpty(date) ? DateTime.Today : DateTime.Parse(date);
+            ViewData["SelectedDate"] = selectedDate.ToString("MM/dd/yyyy");
+            return View("DSHoaDonTheoNgay");
+        }
+        public IActionResult ThongTinHD(string date = null)
+        {
+            // Nếu không có ngày được chọn, sử dụng ngày hiện tại
+            var selectedDate = string.IsNullOrEmpty(date) ? DateTime.Today : DateTime.Parse(date);
+            ViewData["SelectedDate"] = selectedDate.ToString("MM/dd/yyyy");
+
+            // Lọc danh sách hóa đơn theo ngày
+            var dsHoaDonTheoNgay = _QLNhaHangContext.HoaDons
+                         .Where(b => b.NgayXuatHd.Value.Date == selectedDate.Date &&
+                                b.TrangThai == "Đã thanh toán")
+                         .ToList();
+
+            // Kiểm tra xem yêu cầu là một AJAX request hay không
+            if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
+            {
+                // Trả về một partial view nếu là AJAX request
+                return PartialView("_DSHoaDonTheoNgayPartial", dsHoaDonTheoNgay);
+            }
+
+            // Trả về view bình thường nếu không phải AJAX request
+            return View(dsHoaDonTheoNgay);
+        }
+        //Đăng ký ca
+        public IActionResult DangKyCa(string maNV, string date = null)
+        {
+            maNV = HttpContext.Session.GetString("MaNV");
+            var selectedDate = string.IsNullOrEmpty(date) ? DateTime.Today : DateTime.Parse(date);
+            ViewData["SelectedDate"] = selectedDate.ToString("MM/dd/yyyy");
+            return View();
+        }
+        // Lấy danh sách ca theo ngày
+        public IActionResult DSCaTheoNgay(string maNVien, string date = null)
+        {
+            maNVien = HttpContext.Session.GetString("MaNV");
+            Console.WriteLine("Mã NV: " + maNVien);
+            var selectedDate = string.IsNullOrEmpty(date) ? DateTime.Today : DateTime.Parse(date);
+            ViewData["SelectedDate"] = selectedDate.ToString("MM/dd/yyyy");
+            var layVTCT = _QLNhaHangContext.NhanViens.Where(maNV => maNV.MaNv == maNVien).FirstOrDefault();
+            Console.WriteLine("Vị Trí: " + layVTCT);
+            var dsCa = _QLNhaHangContext.SoLuongTrongCas.Where(ca => ca.Ngay.Date == selectedDate.Date).ToList();
+            var dsCaTheoNgayVaVTCT = new List<SoLuongChiTietTrongCa>(); // Khởi tạo danh sách
+
+            foreach (var i in dsCa)
+            {
+                // Lấy dữ liệu cho từng phần tử trong dsCa
+                var dsCaTheoNgayVaVTCTTemp = _QLNhaHangContext.SoLuongChiTietTrongCas
+                    .Include(vtct => vtct.MaViTriCvNavigation)         // Liên kết đến bảng vị trí công việc
+                    .Include(sl => sl.MaQuanLyNavigation)               // Liên kết đến bảng quản lý
+                    .ThenInclude(ql => ql.MaCaNavigation)              // Tiếp tục liên kết từ quản lý đến ca làm việc
+                    .Where(slct => slct.MaViTriCv == layVTCT.MaViTriCv && slct.MaQuanLy == i.MaQuanLy)
+                    .ToList();
+
+                // Thêm kết quả vào danh sách chung
+                dsCaTheoNgayVaVTCT.AddRange(dsCaTheoNgayVaVTCTTemp);
+            }
+
+            // Sau khi vòng lặp xong, trả về PartialView với tất cả dữ liệu đã thu thập
+            return PartialView("_DSCaTheoNgayPartial", dsCaTheoNgayVaVTCT);
+        }
+
+        [HttpGet]
+        public IActionResult KiemTraDangKy(string maQL, string maNV)
+        {
+            maNV = HttpContext.Session.GetString("MaNV");
+            var ttCa = _QLNhaHangContext.SoLuongChiTietTrongCas.Include(x => x.MaQuanLyNavigation)
+                .Where(slct => slct.MaQuanLyChiTiet == maQL)
+                .FirstOrDefault();
+            var dKyCa = _QLNhaHangContext.DangKyCas
+                    .Where(dky => dky.MaQuanLy == ttCa.MaQuanLy)
+                    .Count();
+            int? sLTrongCa = ttCa.SoLuong;
+            if (ttCa != null)
+            {
+                var kTraDangKyChua = _QLNhaHangContext.DangKyCas
+                    .Where(dky => dky.MaQuanLy == ttCa.MaQuanLy && dky.MaNv == maNV)
+                    .Any();
+                if (dKyCa < sLTrongCa)
+                {
+                    if (kTraDangKyChua == true)
+                    {
+                        return Json(new { success = false, message = "Đã đăng ký" });
+                    }
+                }
+                else if (dKyCa >= sLTrongCa)
+                {
+                    if (kTraDangKyChua == true)
+                    {
+                        return Json(new { success = false, message = "Đã đăng ký" });
+                    }
+                    return Json(new { success = false }); // Không đủ chỗ
+                }
+                // Lấy thời gian hiện tại
+                DateTime currentDate = DateTime.Now.Date;
+
+                // Lấy thời gian bắt đầu của ca
+                if (ttCa.MaQuanLyNavigation != null)
+                {
+                    if (ttCa.MaQuanLyNavigation.Ngay.Date > currentDate.Date)
+                    {
+                        //sltc.Ngay.Date < DateTime.Today.AddDays(7).Date || sltc.Ngay.Date <= DateTime.Today.Date
+                        DateTime ngayCa = ttCa.MaQuanLyNavigation.Ngay;
+                        // Tiếp tục xử lý với ngayCa
+                        //DateTime.Now > chuyenThamQuan.NgayToChuc.AddDays(-7)
+                        int soNgay = (ttCa.MaQuanLyNavigation.Ngay.Date - currentDate.Date).Days;
+                        if (soNgay < 7 || soNgay < 0)
+                        {
+                            return Json(new { success = false }); // Không cho phép đăng ký nếu ngày ca đã trễ hơn 7 ngày so với ngày hiện tại
+                        }
+                        return Json(new { success = true });
+                    }
+                    return Json(new { success = false }); // Không cho phép đăng ký nếu ngày ca đã trễ hơn 7 ngày so với ngày hiện tại
+                }
+
+
+                if (dKyCa < sLTrongCa)
+                {
+                    return Json(new { success = true }); // Đủ chỗ
+                }
+
+
+            }
+
+            return Json(new { success = false }); // Không đủ chỗ
+        }
+
+        public IActionResult HienDSDKyTheoMaNV(string maNVien, string date = null)
+        {
+            maNVien = HttpContext.Session.GetString("MaNV");
+            Console.WriteLine("Mã NV: " + maNVien);
+            var selectedDate = string.IsNullOrEmpty(date) ? DateTime.Today : DateTime.Parse(date);
+            ViewData["SelectedDate"] = selectedDate.ToString("MM/dd/yyyy");
+            var dsDky = _QLNhaHangContext.DangKyCas.Include(ql => ql.MaQuanLyNavigation).ThenInclude(ql => ql.MaCaNavigation).Where(dky => dky.MaNv == maNVien && dky.MaQuanLyNavigation.Ngay.Date == selectedDate.Date).ToList();
+            return PartialView("_DSDangKyCa", dsDky);
+        }
+        public string TaoMaDangKy(string maQL)
+        {
+            string maQLy = maQL.Substring(2, 8);
+
+            Console.WriteLine("Mã QL: " + maQL);
+            Console.WriteLine("Mã QLy: " + maQLy);
+
+            // Lấy mã đăng ký lớn nhất theo ngày
+            var maxMaDangKy = _QLNhaHangContext.DangKyCas
+                .Where(dky => dky.MaDangKy.Substring(2, 8) == maQLy)
+                .OrderByDescending(dky => dky.MaDangKy)
+                .Select(dky => dky.MaDangKy)
+                .FirstOrDefault(); // Lấy mã lớn nhất hoặc null nếu không có dữ liệu
+
+            int soDem = 1; // Nếu không có mã nào, bắt đầu từ 001
+            if (maxMaDangKy != null)
+            {
+                // Lấy 3 ký tự cuối (số thứ tự)
+                string soThuTuStr = maxMaDangKy.Substring(10, 3);
+
+                // Chuyển thành số và tăng 1
+                if (int.TryParse(soThuTuStr, out int soThuTu))
+                {
+                    soDem = soThuTu + 1;
+                }
+            }
+
+            // Định dạng số thứ tự thành 3 chữ số (001, 002, ..., 999)
+            string soDemStr = soDem.ToString("D3");
+
+            // Tạo mã đăng ký mới
+            string maDangKy = "DK" + maQLy + soDemStr;
+
+            return maDangKy;
+        }
+
+
+        public IActionResult DangKy(DangKyCa dangKyCa, string maQL, string maNV, string date = null)
+        {
+            var maNVien = HttpContext.Session.GetString("MaNV");
+            var selectedDate = string.IsNullOrEmpty(date) ? DateTime.Today : DateTime.Parse(date);
+            ViewData["SelectedDate"] = selectedDate.ToString("MM/dd/yyyy");
+            Console.WriteLine(maQL);
+            // Kiểm tra nếu session không tồn tại hoặc đã hết hạn
+            if (string.IsNullOrEmpty(maNVien))
+            {
+                TempData["ThongBao"] = "Session đã hết hạn hoặc không tồn tại. Vui lòng đăng nhập lại.";
+                return RedirectToAction("Logout", "Admin");
+            }
+            // Thêm thông tin đăng ký
+            dangKyCa.MaDangKy = TaoMaDangKy(maQL);
+            dangKyCa.MaNv = maNVien; // Gán mã sinh viên từ session
+            dangKyCa.Ngay = DateTime.Now;
+            dangKyCa.MaQuanLy = maQL;
+            try
+            {
+                _QLNhaHangContext.DangKyCas.Add(dangKyCa);
+                _QLNhaHangContext.SaveChanges();
+                TempData["ThongBaoThem"] = "Đăng ký ca thành công!";
+            }
+            catch (Exception ex)
+            {
+                // Log lỗi (nếu cần)
+                TempData["ThongBao"] = "Đã xảy ra lỗi trong quá trình đăng ký. Vui lòng thử lại.";
+                if (ex.InnerException != null)
+                {
+                    Console.WriteLine(ex.InnerException.Message); // In chi tiết lỗi từ InnerException
+                }
+                throw new Exception(ex.Message);
+            }
+            Console.WriteLine(ViewData["SelectedDate"]);
+            return RedirectToAction("DangKyCa", new { maNV = maNV, date = ViewData["SelectedDate"] });
+            ////return RedirectToAction("DangKyCa");
+        }
+        [HttpGet]
+        public IActionResult KiemTraDeHuy(string maQL, string maNV)
+        {
+            maNV = HttpContext.Session.GetString("MaNV");
+            var layVTCT = _QLNhaHangContext.NhanViens.Where(nv => nv.MaNv == maNV).FirstOrDefault();
+            var ttCa = _QLNhaHangContext.SoLuongChiTietTrongCas.Include(x => x.MaQuanLyNavigation)
+                .Where(slct => slct.MaQuanLy == maQL && slct.MaViTriCv == layVTCT.MaViTriCv)
+                .FirstOrDefault();
+            if (ttCa != null)
+            {
+                DateTime currentDate = DateTime.Now.Date;
+                // Lấy thời gian bắt đầu của ca
+                if (ttCa.MaQuanLyNavigation.MaQuanLy != null)
+                {
+                    if (ttCa.MaQuanLyNavigation.Ngay.Date > currentDate.Date)
+                    {
+                        //sltc.Ngay.Date < DateTime.Today.AddDays(7).Date || sltc.Ngay.Date <= DateTime.Today.Date
+                        DateTime ngayCa = ttCa.MaQuanLyNavigation.Ngay;
+                        // Tiếp tục xử lý với ngayCa
+                        //DateTime.Now > chuyenThamQuan.NgayToChuc.AddDays(-7)
+                        int soNgay = (ttCa.MaQuanLyNavigation.Ngay.Date - currentDate.Date).Days;
+                        if (soNgay < 0)
+                        {
+                            return Json(new { success = false, message = "Quá hạn để hủy" });
+                        }
+                        if (soNgay < 7)
+                        {
+                            return Json(new { success = false, message = "Quá hạn để hủy" }); // Không cho phép đăng ký nếu ngày ca đã trễ hơn 7 ngày so với ngày hiện tại
+                        }
+
+                        return Json(new { success = true });
+                    }
+                    return Json(new { success = false, message = "Quá hạn để hủy" }); // Không cho phép đăng ký nếu ngày ca đã trễ hơn 7 ngày so với ngày hiện tại
+                }
+                return Json(new { success = false });
+            }
+
+            return Json(new { success = false }); // Không đủ chỗ
+
+        }
+        public IActionResult HuyDangKy(string maDK, string maNV, string date = null)
+        {
+            var maNVien = HttpContext.Session.GetString("MaNV");
+            var selectedDate = string.IsNullOrEmpty(date) ? DateTime.Today : DateTime.Parse(date);
+            ViewData["SelectedDate"] = selectedDate.ToString("MM/dd/yyyy");
+            // Kiểm tra nếu session không tồn tại hoặc đã hết hạn
+            if (string.IsNullOrEmpty(maNVien))
+            {
+                TempData["ThongBao"] = "Session đã hết hạn hoặc không tồn tại. Vui lòng đăng nhập lại.";
+                return RedirectToAction("Logout", "Admin");
+            }
+            var ttDKy = _QLNhaHangContext.DangKyCas.Where(dk => dk.MaDangKy == maDK).FirstOrDefault();
+            if (ttDKy != null)
+            {
+                _QLNhaHangContext.DangKyCas.Remove(ttDKy);
+                _QLNhaHangContext.SaveChanges();
+            }
+            Console.WriteLine(ViewData["SelectedDate"]);
+            return RedirectToAction("DangKyCa", new { maNV = maNV, date = ViewData["SelectedDate"] });
+            ////return RedirectToAction("DangKyCa");
+        }
+
+    }
 }
+
+
 
 

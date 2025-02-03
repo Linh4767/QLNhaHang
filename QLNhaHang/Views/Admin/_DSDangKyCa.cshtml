@@ -1,0 +1,33 @@
+﻿@model IEnumerable<QLNhaHang.Models.DangKyCa>
+<table class="table table-striped table-hover">
+    <thead>
+        <tr>
+            <th>Ca</th>
+            <th>Thời Gian Bắt Đầu</th>
+            <th>Thời Gian Kết Thúc</th>
+            <th>Ngày</th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+        @if (Model != null && Model.Any())
+        {
+            @foreach (var item in Model)
+            {
+                <tr>
+                    <td>@Html.DisplayFor(modelItem => item.MaQuanLyNavigation.MaCa)</td>
+                    <td>@Html.DisplayFor(modelItem => item.MaQuanLyNavigation.MaCaNavigation.ThoiGianBatDau)</td>
+                    <td>@Html.DisplayFor(modelItem => item.MaQuanLyNavigation.MaCaNavigation.ThoiGianKetThuc)</td>
+                    <td>@Html.DisplayFor(modelItem => item.Ngay)</td>
+                    <td>
+                        <a class="btn btn-warning btn-sm btnHuy" style="display:none;" data-maql="@item.MaQuanLyNavigation.MaQuanLy" asp-controller="Admin" asp-action="HuyDangKy" asp-route-maDK="@item.MaDangKy" asp-route-date="@ViewData["SelectedDate"]">
+                            Hủy Đăng ký
+                        </a>
+                        <a class="btn btn-danger btn-sm trangThaiHuy" style="display:none;">Quá hạn</a>
+                    </td>
+                </tr>
+            }
+        }
+    </tbody>
+</table>
+
