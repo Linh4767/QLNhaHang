@@ -1,0 +1,30 @@
+﻿@model IEnumerable<QLNhaHang.Models.MonAn>
+@{
+}
+@* filter-@item.LoaiMaNavigation.TenLoaiMa.Replace(" ", "-") *@
+<div class="row isotope-container" data-aos="fade-up" data-aos-delay="200">
+    @if (Model != null && Model.Any())
+    {
+        @foreach (var item in Model)
+        {
+            <div class="col-lg-6 menu-item isotope-item">
+               
+                <img src="@item.HinhAnh" class="menu-img" alt="">
+                <div class="menu-content">
+                    <a href="#">@item.TenMonAn</a><span>@item.Gia</span>
+                </div>
+                <div class="menu-ingredients">
+                    @item.MoTa
+                </div>
+            </div>
+
+           @*  <!-- Menu Item -->
+            <div class="d-flex justify-content-end" style="text-decoration:none;">
+                <a href="#" id="openFilterDialog" class="btn">Hiển thị thêm &gt;&gt;</a>
+            </div> *@
+        }
+    }
+   
+</div>
+
+
