@@ -38,23 +38,37 @@ namespace QLNhaHang.Controllers
             return View();
         }
 
-        public IActionResult MenuMonAn(string loaiMonAn)
+        public IActionResult MenuMonAn(string maLoaiMon)
         {
-            var danhSachMonAn = _QLNhaHangContext.MonAns
-                .Include(m => m.LoaiMaNavigation) // Đảm bảo đã load navigation property
-                 //.Where(m => m.LoaiMaNavigation != null)
-                .ToList();
+            //    var danhSachMonAn = _QLNhaHangContext.MonAns
+            //        .Include(m => m.LoaiMaNavigation) // Đảm bảo đã load navigation property
+            //         //.Where(m => m.LoaiMaNavigation != null)
+            //        .ToList();
 
-            // Nếu có giá trị lọc, tiến hành lọc món ăn theo loaiMonAn
-            if (!string.IsNullOrEmpty(loaiMonAn))
+            //    // Nếu có giá trị lọc, tiến hành lọc món ăn theo loaiMonAn
+            //    if (!string.IsNullOrEmpty(loaiMonAn))
+            //    {
+            //        danhSachMonAn = danhSachMonAn
+            //            .Where(m => m.LoaiMaNavigation != null &&
+            //                        m.LoaiMaNavigation.TenLoaiMa.ToLower().Replace(" ", "-") == loaiMonAn)
+            //            .ToList();
+            //        //Console.WriteLine("dsmn ne: ", danhSachMonAn);
+            //    }
+            //    return PartialView("_MenuMonAn", danhSachMonAn);
+            List<MonAn> dsMonAn;
+
+            if (maLoaiMon == "Tất cả")
             {
-                danhSachMonAn = danhSachMonAn
-                    .Where(m => m.LoaiMaNavigation != null &&
-                                m.LoaiMaNavigation.TenLoaiMa.ToLower().Replace(" ", "-") == loaiMonAn)
-                    .ToList();
-                //Console.WriteLine("dsmn ne: ", danhSachMonAn);
+                // Lấy tất cả món ăn
+                dsMonAn = _QLNhaHangContext.MonAns.ToList();
             }
-            return PartialView("_MenuMonAn", danhSachMonAn);
+            else
+            {
+                // Lấy món ăn theo mã loại món
+                dsMonAn = _QLNhaHangContext.MonAns.Where(m => m.LoaiMa == maLoaiMon).ToList();
+            }
+            // Trả về PartialView với dữ liệu món ăn
+            return PartialView("_MenuMonAn", dsMonAn);
         }
 
 

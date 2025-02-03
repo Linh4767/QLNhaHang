@@ -241,13 +241,13 @@
                 <div><span>Check Our Tasty</span> <span class="description-title">Menu</span></div>
             </div><!-- End Section Title -->
 
-            <div class="container isotope-layout" data-default-filter="*" data-layout="masonry" data-sort="original-order">
+            <div class="container isotope-layout" style="max-height:400px;overflow-y:auto;overflow-x:hidden;" data-default-filter="*" data-layout="masonry" data-sort="original-order">
                 <div id="loaiMonAn">
                     @{
                         Html.RenderPartial("_LoaiMonAn");
                     }
                 </div>
-            
+
                 <div id="menuMonAn">
                     @{
 
@@ -260,55 +260,6 @@
                 <a href="#" id="openFilterDialog" class="btn">Hiển thị thêm &gt;&gt;</a>
                 </div> *@
             </div>
-            <script>
-                function loadMonAn(loaiMonAn = "all") {
-                    // Lắng nghe sự kiện click vào filter
-                    $('.menu-filters').on('click', 'li', function (e) {
-                        e.preventDefault();
-
-                        // Cập nhật class active
-                        $('.menu-filters li').removeClass('filter-active');
-                        $(this).addClass('filter-active');
-
-                        // Lấy giá trị từ data-filter
-                        var loaiMonAn = $(this).data('filter');
-
-                        // Kiểm tra nếu là "Tất cả"
-                        if (loaiMonAn === undefined || loaiMonAn === "all") {
-                            loaiMonAn = "";  // Truyền rỗng để lấy tất cả món ăn
-                        }
-
-                        // Gọi Ajax để lấy dữ liệu món ăn theo loại
-                        $.ajax({
-                            url: '/Home/MenuMonAn',  // Địa chỉ của Action
-                            type: 'GET',
-                            data: { loaiMonAn: loaiMonAn },  // Truyền loại món ăn
-                            beforeSend: function () {
-                                $('#menuMonAn').html('<p>Đang tải dữ liệu...</p>');
-                            },
-                            success: function (data) {
-                                $('#menuMonAn').html(data); // Cập nhật nội dung danh sách món ăn
-                            },
-                            error: function () {
-                                alert('Có lỗi xảy ra khi tải món ăn.');
-                            }
-                        });
-                    });
-                }
-
-                // Gọi hàm để kích hoạt sự kiện
-                $(document).ready(function () {
-                    loadMonAn();
-                });
-
-
-
-            </script>
-
-
-
-
-
 
             <div id="filterDialog" class="modal" tabindex="-1" aria-hidden="true">
                 <div class="modal-dialog row">
@@ -996,16 +947,39 @@
                 console.log("Partial view đã được load xong!");
                 initFormValidation();
             });
-            $("#menuMonAn").load('/Home/MenuMonAn', function () {
-                // Sau khi load partial view xong, khởi tạo hàm kiểm tra form
-                console.log("Món ăn đã được load xong!");
-            });
+            //Làm hiện loại món ăn
             $("#loaiMonAn").load('/Home/LoaiMonAn', function () {
-                // Sau khi load partial view xong, khởi tạo hàm kiểm tra form
-                console.log("Loại món ăn đã được load xong!");
+                console.log("Partial view loại món ăn đã được load xong!");
+                loadMonAn("Tất cả"); // Gọi hàm load món ăn sau khi load partial view
+                $('#loaiMonAn .nav-link[data-maLoaiMon="Tất cả"]').trigger('click');
             });
         });
+        function loadMonAn(maLoaiMon = "Tất cả") {
+            // Xử lý sự kiện click vào tab
+            $('#loaiMonAn').on('click', '.nav-link', function (e) {
+                e.preventDefault();
+                // Lấy giá trị mã loại món ăn từ data-maLoaiMon
+                var maLoaiMon = $(this).data('maloaimon');  // Lấy giá trị từ data-maLoaiMon
 
+                // Kiểm tra nếu là "Tất cả"
+                if (maLoaiMon === undefined || maLoaiMon === "Tất cả") {
+                    maLoaiMon = "Tất cả";  // Xử lý trường hợp "Tất cả"
+                }
+                // Gọi Ajax để lấy dữ liệu món ăn
+                $.ajax({
+                    url: '/Home/MenuMonAn',  // Địa chỉ của Action
+                    type: 'GET',
+                    data: { maLoaiMon: maLoaiMon },  // Truyền mã loại món ăn
+                    success: function (data) {
+                        // Thay thế nội dung vùng hiển thị món ăn
+                        $('#menuMonAn').html(data);
+                    },
+                    error: function () {
+                        alert('Có lỗi xảy ra khi tải món ăn');
+                    }
+                });
+            });
+        }
         function initFormValidation() {
             // Lấy các phần tử cần kiểm tra trong form
             const submitBtn = document.getElementById("submitBtn");
