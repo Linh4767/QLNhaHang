@@ -49,16 +49,19 @@
                             <div class="form-group row">
                                 <label asp-for="TenNv" class="col-sm-3 col-form-label">Họ tên</label>
                                 <div class="col-sm-9">
-                                    <input asp-for="TenNv" type="text" class="form-control" required />
-                                    <span asp-validation-for="TenNv" class="text-danger"></span>
+                                    <input asp-for="TenNv" type="text" class="form-control"
+                                           required />
+                                    <span asp-validation-for="TenNv" id="TenError" class="text-danger"></span>
                                 </div>
                             </div>
                         </div>
+
                         <div class="col-md-6">
                             <div class="form-group row">
                                 <label asp-for="NgayVaoLam" class="col-sm-3 col-form-label">Ngày vào làm</label>
                                 <div class="col-sm-9">
                                     <input asp-for="NgayVaoLam" class="form-control" type="date" />
+                                    <span asp-validation-for="NgayVaoLam" id="NVLError" class="text-danger"></span>
                                 </div>
                             </div>
                         </div>
@@ -69,6 +72,7 @@
                                 <label asp-for="Cccd" class="col-sm-3 col-form-label">Số căn cước</label>
                                 <div class="col-sm-9">
                                     <input asp-for="Cccd" type="text" class="form-control" pattern="^[0-9]{12}$" title="CCCD phải có 12 chữ số." required />
+                                    <span asp-validation-for="Cccd" id="CCCDError" class="text-danger"></span>
                                 </div>
                             </div>
                         </div>
@@ -78,14 +82,16 @@
                                 <div class="col-sm-4">
                                     <div class="form-check">
                                         <label class="form-check-label">
-                                            <input asp-for="GioiTinh" type="radio" class="form-check-input" name="GioiTinh" id="membershipRadios1" value="Nam" checked> Nam
+                                            <input asp-for="GioiTinh" type="radio" class="form-check-input" name="GioiTinh"
+                                            id="membershipRadios1" value="Nam" checked> Nam
                                         </label>
                                     </div>
                                 </div>
                                 <div class="col-sm-5">
                                     <div class="form-check" name="GioiTinh">
                                         <label class="form-check-label">
-                                            <input asp-for="GioiTinh" type="radio" class="form-check-input" name="GioiTinh" id="membershipRadios2" value="Nữ"> Nữ
+                                            <input asp-for="GioiTinh" type="radio" class="form-check-input" name="GioiTinh"
+                                            id="membershipRadios2" value="Nữ"> Nữ
                                         </label>
                                     </div>
                                 </div>
@@ -97,7 +103,8 @@
                             <div class="form-group row">
                                 <label asp-for="Sdt" class="col-sm-3 col-form-label">Số điện thoại</label>
                                 <div class="col-sm-9">
-                                    <input asp-for="Sdt" type="text" class="form-control" pattern="^0[0-9]{9,10}$" title="Số điện thoại phải bắt đầu bằng 0 và có 10-11 số." required />
+                                    <input asp-for="Sdt" type="text" class="form-control" pattern="^0[0-9]{9,10}$"
+                                    title="Số điện thoại phải bắt đầu bằng 0 và có 10-11 số." required />
                                 </div>
                             </div>
                         </div>
@@ -105,7 +112,10 @@
                             <div class="form-group row">
                                 <label asp-for="Email" class="col-sm-3 col-form-label">Email</label>
                                 <div class="col-sm-9">
-                                    <input asp-for="Email" type="text" class="form-control" required />
+                                    <input asp-for="Email" type="text" class="form-control" required
+                                           pattern="^[a-z0-9]+(\.[a-z0-9]+);a-z0-9]+\.[a-z0-9]+$"
+                                           title="Định dạng email của bạn chưa đúng." />
+                                    <span asp-validation-for="Email" class="text-danger"></span>
                                 </div>
                             </div>
                         </div>
@@ -115,7 +125,8 @@
                             <div class="form-group row">
                                 <label asp-for="MaBhyt" class="col-sm-1 col-form-label">BHYT</label>
                                 <div class="col-sm-11">
-                                    <input asp-for="MaBhyt" type="text" class="form-control" required />
+                                    <input asp-for="MaBhyt" type="text" class="form-control" pattern="^[A-Z0-9]+$"
+                                           title="Mã BHYT chỉ được chứa chữ in hoa và số" required />
                                 </div>
                             </div>
                         </div>
@@ -125,7 +136,8 @@
                             <div class="form-group row">
                                 <label asp-for="DiaChi" class="col-sm-1 col-form-label">Địa chỉ</label>
                                 <div class="col-sm-11">
-                                    <input asp-for="DiaChi" type="text" class="form-control" />
+                                    <input asp-for="DiaChi" type="text" class="form-control" pattern="^[a-zA-Z0-9À-ÿ, /]+$"
+                                           title="Địa chỉ chỉ được chứa chữ thường, chữ in hoa, chữ có dấu, số và các dấu ',' và '/'." required />
                                 </div>
                             </div>
                         </div>
@@ -144,8 +156,8 @@
                                 <label asp-for="TrangThai" class="col-sm-3 col-form-label">Trạng thái</label>
                                 <div class="col-sm-9">
                                     <select name="TrangThai" class="form-control">
-                                        <option asp-for="TrangThai" value="0">Nghỉ việc</option>
                                         <option asp-for="TrangThai" value="1">Đang làm việc</option>
+                                        <option asp-for="TrangThai" value="0">Nghỉ việc</option>
                                     </select>
                                 </div>
                             </div>

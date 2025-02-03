@@ -1684,10 +1684,42 @@ namespace QLNhaHang.Controllers
             return View(loaiMA);
         }
 
-
         [HttpPost]
         public async Task<IActionResult> ThemNhanVien(NhanVien nv, IFormFile HinhAnh)
         {
+            ModelState.Remove("MaQuanLyNavigation");
+            ModelState.Remove("MaViTriCvNavigation");
+            ModelState.Remove("MaNv");
+            // Kiểm tra Ngày vào làm không được lớn hơn ngày hiện tại hoặc nhỏ hơn 1 năm trước
+            var currentDate = DateTime.Now;
+            var minDate = currentDate.AddYears(-1);  // 1 năm trước
+
+            if (nv.NgayVaoLam > currentDate || nv.NgayVaoLam < minDate)
+            {
+                ModelState.AddModelError("NgayVaoLam", "Ngày vào làm phải trong khoảng từ 1 năm trước đến ngày hiện tại.");
+            }
+
+            // Nếu có lỗi, trả về lại trang và hiển thị lỗi
+            if (!ModelState.IsValid)
+            {
+                var errors = ModelState.Values.SelectMany(v => v.Errors).ToList();
+                foreach (var error in errors)
+                {
+                    //Console.WriteLine("MaLoaiMa: " + loaiMA.MaLoaiMa);
+                    // Log hoặc kiểm tra chi tiết lỗi
+                    Console.WriteLine(error.ErrorMessage);
+
+                }
+                var ViTriCongViec = _QLNhaHangContext.ViTriCongViecs.ToList();
+                var QuanLy = _QLNhaHangContext.NhanViens
+                    .Where(nv => new[] { "NV001" }.Contains(nv.MaNv)).ToList();
+
+                ViewBag.ViTriCongViecs = new SelectList(ViTriCongViec, "MaViTriCv", "TenViTriCv");
+                ViewBag.NhanViens = new SelectList(QuanLy, "MaNv", "TenNv");
+
+                return View(nv); // Trả về view với thông tin đã nhập
+            }
+
             // Tạo mã nhân viên tự động
             nv.MaNv = TaoMaNVTuDong();
 
