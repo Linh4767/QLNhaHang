@@ -1,0 +1,31 @@
+﻿@model IEnumerable<QLNhaHang.Models.HoaDon>
+<div class="row">
+
+    @if (Model != null && Model.Any())
+    {
+        @foreach (var item in Model)
+        {
+            <div class="col-sm-6 mb-2">
+                <!-- Card lớn -->
+                <div class="card border-0 rounded-4 p-3">
+                    <div class="card-body">
+                        <h4 class="text-center fw-bold text-primary mb-3">Thông Tin Hóa Đơn</h4>
+                        <!-- Cột 1: Thông tin hóa đơn -->
+                        <div class="card border-0 rounded-3 mb-3">
+                            <div class="card-body" id="TTHD">
+                                <p><i class="bi bi-file-earmark-text"></i> <strong>Mã hóa đơn:</strong> @item.MaHoaDon</p>
+                                <p><i class="bi bi-calendar-date"></i> <strong>Ngày lập:</strong> @item.NgayXuatHd</p>
+                                <p><i class="bi bi-cash"></i> <strong>Tổng tiền:</strong> @item.TongTien</p>
+                                <a class="btn btn-primary" data-maDB="@item.MaDatBan" data-toggle="modal" data-target="#detailModal">Xem chi tiết </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+    }
+
+</div>
+
+
+
