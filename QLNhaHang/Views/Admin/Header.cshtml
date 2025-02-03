@@ -416,6 +416,7 @@
                 storedEmailBody.forEach(function (emailBody) {
                     console.log("Processing email: " + emailBody);  // Kiểm tra giá trị email
                     xacNhan(emailBody);  // Gọi hàm xacNhan cho mỗi emailBody
+                    // clearEmailBody();
                 });
                 function xacNhan(storedEmailBody) {
                     $.ajax({
@@ -424,7 +425,7 @@
                         data: { storedEmailBody: storedEmailBody },  // Gửi nội dung email lên server
                         success: function (response) {
                             if (response.success) {
-                                clearEmailBody(storedEmailBody);  // Thông báo khi đặt bàn thành công
+                                clearEmailBody();  // Thông báo khi đặt bàn thành công
                             }
                             else {
                             }
@@ -435,9 +436,8 @@
                     });
                 }
                 function clearEmailBody() {
-                    localStorage.removeItem('emailBody');  // Xóa emailBody khỏi localStorage
+                    localStorage.removeItem('emailBodies');  // Sử dụng đúng key 'emailBodies'
                 }
-
             });
         </script>
     </div>
