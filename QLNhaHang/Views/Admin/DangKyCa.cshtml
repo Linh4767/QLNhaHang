@@ -1,0 +1,217 @@
+﻿@*
+    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
+*@
+@{
+    Layout = "Header";
+}
+@inject Microsoft.AspNetCore.Http.IHttpContextAccessor HttpContextAccessor
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>Star Admin2 </title>
+
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+</head>
+<body class="with-welcome-text">
+    <div class="container mt-4">
+        <h2 class="mb-4 text-center">Quản lý món ăn</h2>
+
+        <!-- Thanh tìm kiếm -->
+        <div class="d-flex justify-content-start align-items-center mb-3">
+            <div class="col-12 col-md-4">
+                <div class="input-group">
+                    <span class="input-group-text">
+                        <i class="icon-calendar"></i>
+                    </span>
+                    <input type="text" id="datePicker" class="form-control" value="@ViewData["SelectedDate"]"
+                           onchange="filterByDate()" />
+                </div>
+            </div>
+        </div>
+        <!-- Bảng -->
+        <!--DS Ca Trong Ngày-->
+        <div class="table-responsive" id="dsCa">
+            @Html.Partial("_DSCaTheoNgayPartial")
+        </div>
+        <!--DS Đăng ký Ca-->
+        <p class="mt-3 mb-2">Đăng ký</p>
+        <div class="table-responsive" id="dsDangKy">
+            @Html.Partial("_DSDangKyCa")
+        </div>
+    </div>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        filterByDate();
+        document.addEventListener("DOMContentLoaded", function () {
+            var defaultDate = "@ViewData["SelectedDate"]";
+            console.log("Ngày: " + defaultDate);
+            // Khởi tạo flatpickr với ngày mặc định
+            flatpickr("#datePicker", {
+                dateFormat: "m/d/Y", // Định dạng tháng/ngày/năm
+                defaultDate: defaultDate, // Ngày mặc định từ ViewData
+            });
+        });
+        function filterByDate() {
+            const selectedDate = document.getElementById("datePicker").value;
+            const selectedDateTime = parseDate(selectedDate);
+            const currentDate = new Date();
+            currentDate.setHours(0, 0, 0, 0);
+            selectedDateTime.setHours(0, 0, 0, 0);
+
+            // Gửi yêu cầu AJAX
+            $.ajax({
+                url: '@Url.Action("DSCaTheoNgay", "Admin")',
+                type: 'GET',
+                data: {
+                    date: selectedDate
+                },
+                xhrFields: {
+                    withCredentials: true // Đảm bảo gửi kèm cookie/session
+                },
+                success: function (response) {
+                    // Sau khi cập nhật nội dung, gọi lại toggleButtonDisplay cho các nút mới
+                    document.getElementById("dsCa").innerHTML = response;
+                    // Duyệt qua tất cả các nút Đăng ký trong bảng
+                    anNutDKy();
+
+                    listDky();
+                },
+                error: function (xhr, status, error) {
+                    console.error("Lỗi khi lấy dữ liệu từ server: " + error);
+                }
+            });
+        }
+
+        function anNutDKy() {
+            $('.btnDangKy').each(function () {
+                var maQL = $(this).data('maql'); // Lấy mã ca từ data attribute
+                console.log(maQL);
+                var button = $(this); // Lưu lại đối tượng nút đăng ký để ẩn sau
+                var trangThai = $(this).closest('tr').find('.trangThai');
+                console.log(button);
+                console.log(trangThai);
+                // Gọi action KiemTraDangKy để kiểm tra số lượng
+                $.ajax({
+                    url: '@Url.Action("KiemTraDangKy", "Admin")', // Địa chỉ API trong controller
+                    type: 'GET',
+                    data: { maQL: maQL },
+                    xhrFields: {
+                        withCredentials: true // Đảm bảo gửi kèm cookie/session
+                    },
+                    success: function (response) {
+                        console.log('Success:', response.success);
+                        console.log('Button:', button[0].outerHTML);  // Log button HTML
+                        console.log('TrangThai:', trangThai[0].outerHTML);  // Log trangThai HTML
+                        console.log('Button Display:', button.css('display')); // Kiểm tra thuộc tính display của button
+                        console.log('TrangThai Display:', trangThai.css('display')); // Kiểm tra thuộc tính display của trangThai
+
+                        if (response.success) {
+                            button.show();
+                            trangThai.css('display', 'none');
+                            console.log("Button display after:", button.css('display'));
+                            console.log("TrangThai display after:", trangThai.css('display'));
+                        } else {
+                            button.hide();
+                            if (response.message === "Đã đăng ký") {
+                                trangThai.css('display', 'inline-block');
+                            } else {
+                                trangThai.css('display', 'none');
+                            }
+                        }
+                    },
+                    error: function () {
+                        alert('Lỗi khi kiểm tra số lượng!');
+                    }
+                });
+            });
+        }
+        function anNutHuy() {
+            $('.btnHuy').each(function () {
+                var maQL = $(this).data('maql'); // Lấy mã ca từ data attribute
+                console.log(maQL);
+                var button = $(this); // Lưu lại đối tượng nút đăng ký để ẩn sau
+                var trangThai = $(this).closest('tr').find('.trangThaiHuy');
+                // console.log(button);
+                // console.log(trangThai);
+                // Gọi action KiemTraDangKy để kiểm tra số lượng
+                $.ajax({
+                    url: '@Url.Action("KiemTraDeHuy", "Admin")', // Địa chỉ API trong controller
+                    type: 'GET',
+                    data: { maQL: maQL },
+                    xhrFields: {
+                        withCredentials: true // Đảm bảo gửi kèm cookie/session
+                    },
+                    success: function (response) {
+                        // console.log('Success:', response.success);
+                        // console.log('Button:', button[0].outerHTML);  // Log button HTML
+                        // console.log('TrangThai:', trangThai[0].outerHTML);  // Log trangThai HTML
+                        // console.log('Button Display:', button.css('display')); // Kiểm tra thuộc tính display của button
+                        // console.log('TrangThai Display:', trangThai.css('display')); // Kiểm tra thuộc tính display của trangThai
+
+                        if (response.success) {
+                            button.show();
+                            trangThai.css('display', 'none');
+                            // console.log("Button display after:", button.css('display'));
+                            // console.log("TrangThai display after:", trangThai.css('display'));
+                        } else {
+                            button.hide();
+                            if (response.message === "Quá hạn để hủy") {
+                                trangThai.css('display', 'inline-block');
+                            } else {
+                                trangThai.css('display', 'none');
+                            }
+                        }
+                    },
+                    error: function () {
+                        alert('Lỗi khi kiểm tra số lượng!');
+                    }
+                });
+            });
+        }
+        function listDky() {
+            const selectedDate = document.getElementById("datePicker").value;
+            const selectedDateTime = parseDate(selectedDate);
+            const currentDate = new Date();
+            currentDate.setHours(0, 0, 0, 0);
+            selectedDateTime.setHours(0, 0, 0, 0);
+
+            // Gửi yêu cầu AJAX
+            $.ajax({
+                url: '@Url.Action("HienDSDKyTheoMaNV", "Admin")',
+                type: 'GET',
+                data: {
+                    date: selectedDate
+                },
+                xhrFields: {
+                    withCredentials: true // Đảm bảo gửi kèm cookie/session
+                },
+                success: function (response) {
+                    // Sau khi cập nhật nội dung, gọi lại toggleButtonDisplay cho các nút mới
+                    document.getElementById("dsDangKy").innerHTML = response;
+                    anNutHuy();
+                },
+                error: function (xhr, status, error) {
+                    console.error("Lỗi khi lấy dữ liệu từ server: " + error);
+                }
+            });
+        }
+        // Hàm chuyển đổi ngày từ chuỗi
+        function parseDate(dateString) {
+            const parts = dateString.split('/'); // Tách chuỗi ngày theo dấu "/"
+            if (parts.length === 3) {
+                const month = parseInt(parts[0], 10) - 1; // Lấy tháng (0-based)
+                const day = parseInt(parts[1], 10);       // Lấy ngày
+                const year = parseInt(parts[2], 10);      // Lấy năm
+
+                return new Date(year, month, day);       // Trả về đối tượng Date
+            }
+            return null; // Trả về null nếu không hợp lệ
+        }
+
+    </script>
+</body>
+</html>
