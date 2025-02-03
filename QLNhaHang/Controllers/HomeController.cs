@@ -38,6 +38,32 @@ namespace QLNhaHang.Controllers
             return View();
         }
 
+        public IActionResult MenuMonAn(string loaiMonAn)
+        {
+            var danhSachMonAn = _QLNhaHangContext.MonAns
+                .Include(m => m.LoaiMaNavigation) // Đảm bảo đã load navigation property
+                 //.Where(m => m.LoaiMaNavigation != null)
+                .ToList();
+
+            // Nếu có giá trị lọc, tiến hành lọc món ăn theo loaiMonAn
+            if (!string.IsNullOrEmpty(loaiMonAn))
+            {
+                danhSachMonAn = danhSachMonAn
+                    .Where(m => m.LoaiMaNavigation != null &&
+                                m.LoaiMaNavigation.TenLoaiMa.ToLower().Replace(" ", "-") == loaiMonAn)
+                    .ToList();
+                //Console.WriteLine("dsmn ne: ", danhSachMonAn);
+            }
+            return PartialView("_MenuMonAn", danhSachMonAn);
+        }
+
+
+        public IActionResult LoaiMonAn()
+        {
+            var danhSachLoaiMon = _QLNhaHangContext.LoaiMonAns.ToList();
+            return PartialView("_LoaiMonAn", danhSachLoaiMon);
+        }
+
 
 
 
