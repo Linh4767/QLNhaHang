@@ -1649,16 +1649,30 @@ namespace QLNhaHang.Controllers
 
         public string TaoMaNVTuDong()
         {
-            //Lấy danh sách nhân viên
+            // Lấy danh sách nhân viên hiện có trong cơ sở dữ liệu
             var dsNhanVien = _QLNhaHangContext.NhanViens.ToList();
-            //Tìm mã loại món ăn lớn
+
+            // Lấy mã nhân viên lớn nhất từ dữ liệu hiện tại
             int maLonNhat = dsNhanVien
-                              .Select(manv => int.Parse(manv.MaNv.Substring(3)))
-                              .Max();  // Lấy số lớn nhất
-                                       //Tăng số lớn nhất lên 1
+                                .Where(manv => manv.MaNv.StartsWith("NV"))  // Đảm bảo chỉ xét mã nhân viên
+                                .Select(manv => int.Parse(manv.MaNv.Substring(2)))  // Loại bỏ "NV" và lấy phần số
+                                .DefaultIfEmpty(0)  // Nếu không có mã nào, bắt đầu từ 0
+                                .Max();  // Lấy số lớn nhất
+
+            // Tạo mã nhân viên mới
             int maNVMoi = maLonNhat + 1;
-            return "NV" + maNVMoi.ToString("D3");
+            string maNVMoiStr = "NV" + maNVMoi.ToString("D3");
+
+            // Kiểm tra nếu mã nhân viên mới đã tồn tại, tăng số lên cho đến khi tìm được mã chưa tồn tại
+            while (dsNhanVien.Any(nv => nv.MaNv == maNVMoiStr))
+            {
+                maNVMoi++;
+                maNVMoiStr = "NV" + maNVMoi.ToString("D3");
+            }
+
+            return maNVMoiStr;
         }
+
 
         public IActionResult XemDSNhanVien(int? page, string searchTerm)
         {

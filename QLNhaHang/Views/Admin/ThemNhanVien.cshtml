@@ -49,9 +49,8 @@
                             <div class="form-group row">
                                 <label asp-for="TenNv" class="col-sm-3 col-form-label">Họ tên</label>
                                 <div class="col-sm-9">
-                                    <input asp-for="TenNv" type="text" class="form-control"
-                                           required />
-                                    <span asp-validation-for="TenNv" id="TenError" class="text-danger"></span>
+                                    <input asp-for="TenNv" type="text" id="TenNV" class="form-control" required />
+                                    <span asp-validation-for="TenNv" id="TenNVError" class="text-danger"></span>
                                 </div>
                             </div>
                         </div>
@@ -60,7 +59,7 @@
                             <div class="form-group row">
                                 <label asp-for="NgayVaoLam" class="col-sm-3 col-form-label">Ngày vào làm</label>
                                 <div class="col-sm-9">
-                                    <input asp-for="NgayVaoLam" class="form-control" type="date" />
+                                    <input asp-for="NgayVaoLam" id="NgayVaoLam" class="form-control" type="date" />
                                     <span asp-validation-for="NgayVaoLam" id="NVLError" class="text-danger"></span>
                                 </div>
                             </div>
@@ -71,7 +70,7 @@
                             <div class="form-group row">
                                 <label asp-for="Cccd" class="col-sm-3 col-form-label">Số căn cước</label>
                                 <div class="col-sm-9">
-                                    <input asp-for="Cccd" type="text" class="form-control" pattern="^[0-9]{12}$" title="CCCD phải có 12 chữ số." required />
+                                    <input asp-for="Cccd" type="text" id="CCCD" class="form-control" pattern="^[0-9]{12}$" title="CCCD phải có 12 chữ số." required />
                                     <span asp-validation-for="Cccd" id="CCCDError" class="text-danger"></span>
                                 </div>
                             </div>
@@ -103,8 +102,9 @@
                             <div class="form-group row">
                                 <label asp-for="Sdt" class="col-sm-3 col-form-label">Số điện thoại</label>
                                 <div class="col-sm-9">
-                                    <input asp-for="Sdt" type="text" class="form-control" pattern="^0[0-9]{9,10}$"
+                                    <input asp-for="Sdt" type="text" id="STD" class="form-control" pattern="^0[0-9]{9,10}$"
                                     title="Số điện thoại phải bắt đầu bằng 0 và có 10-11 số." required />
+                                    <span asp-validation-for="Sdt" id="STDError" class="text-danger"></span>
                                 </div>
                             </div>
                         </div>
@@ -112,10 +112,10 @@
                             <div class="form-group row">
                                 <label asp-for="Email" class="col-sm-3 col-form-label">Email</label>
                                 <div class="col-sm-9">
-                                    <input asp-for="Email" type="text" class="form-control" required
+                                    <input asp-for="Email" type="text" id="Email" class="form-control" required
                                            pattern="^[a-z0-9]+(\.[a-z0-9]+);a-z0-9]+\.[a-z0-9]+$"
                                            title="Định dạng email của bạn chưa đúng." />
-                                    <span asp-validation-for="Email" class="text-danger"></span>
+                                    <span asp-validation-for="Email" id="EmailError" class="text-danger"></span>
                                 </div>
                             </div>
                         </div>
@@ -125,8 +125,9 @@
                             <div class="form-group row">
                                 <label asp-for="MaBhyt" class="col-sm-1 col-form-label">BHYT</label>
                                 <div class="col-sm-11">
-                                    <input asp-for="MaBhyt" type="text" class="form-control" pattern="^[A-Z0-9]+$"
+                                    <input asp-for="MaBhyt" type="text" id="BHYT" class="form-control" pattern="^[A-Z0-9]+$"
                                            title="Mã BHYT chỉ được chứa chữ in hoa và số" required />
+                                    <span asp-validation-for="MaBhyt" id="BHYTError" class="text-danger"></span>
                                 </div>
                             </div>
                         </div>
@@ -136,8 +137,9 @@
                             <div class="form-group row">
                                 <label asp-for="DiaChi" class="col-sm-1 col-form-label">Địa chỉ</label>
                                 <div class="col-sm-11">
-                                    <input asp-for="DiaChi" type="text" class="form-control" pattern="^[a-zA-Z0-9À-ÿ, /]+$"
+                                    <input asp-for="DiaChi" type="text" id="DiaChi" class="form-control" pattern="^[a-zA-Z0-9À-ÿ, /]+$"
                                            title="Địa chỉ chỉ được chứa chữ thường, chữ in hoa, chữ có dấu, số và các dấu ',' và '/'." required />
+                                    <span asp-validation-for="DiaChi" id="DiaChiError" class="text-danger"></span>
                                 </div>
                             </div>
                         </div>
@@ -186,14 +188,20 @@
                             </div>
                         </div>
                     </div>
-                    <button type="submit" class="btn btn-primary me-2" asp-action="ThemNhanVien">Thêm Nhân Viên</button>
+                    <button type="submit" class="btn btn-primary me-2" id="submitBtn" asp-action="ThemNhanVien">Thêm Nhân Viên</button>
                     <a class="btn btn-light" asp-action="XemDSNhanVien">Quay Lại Danh Sách</a>
                 </form>
             </div>
         </div>
     </div>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jquery-validation@1.19.5/dist/jquery.validate.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/typeahead.js/0.11.1/typeahead.bundle.min.js"></script>
 
-    <script>
+    <script src="~/js/file-upload.js"></script>
+    <script src="~/js/typeahead.js"></script>
+    <script src="~/js/select2.js"></script>
+    @* <script>
         document.getElementById("fileUploadBrowse").addEventListener("click", function () {
             document.getElementById("fileInput").click();
         });
@@ -202,6 +210,157 @@
             var fileName = this.files[0] ? this.files[0].name : "";
             document.getElementById("fileInfoInput").value = fileName;
         });
+    </script> *@
+    <script>
+        // document.addEventListener("DOMContentLoaded", function () {
+        //     // Lấy các phần tử cần kiểm tra
+        //     const submitBtn = document.getElementById("submitBtn");
+        //     const tenNhanVienInput = document.getElementById("TenNV");
+        //     const fileInput = document.getElementById("fileInput");
+        //     const fileInfoInput = document.getElementById("fileInfoInput");
+        //     const fileErrorSpan = document.getElementById("fileError");
+        //     console.log(document.getElementById("TenNV"));
+
+        //     // Kiểm tra File ảnh
+        //     function validateFileInput() {
+        //         const file = fileInput.files.length > 0 ? fileInput.files[0] : null;
+        //         const validExtensions = ["jpg", "jpeg", "png", "gif"];
+        //         fileInfoInput.value = file ? file.name : ""; // Hiển thị tên file nếu có
+
+        //         if (!file) {
+        //             fileErrorSpan.textContent = "Vui lòng chọn một file ảnh.";
+        //             submitBtn.disabled = true;
+        //             return;
+        //         }
+
+        //         const fileExtension = file.name.split('.').pop().toLowerCase();
+        //         if (!validExtensions.includes(fileExtension)) {
+        //             fileErrorSpan.textContent = "Chỉ chấp nhận file ảnh (jpg, jpeg, png, gif).";
+        //             fileInput.value = ""; // Reset nếu file không hợp lệ
+        //             fileInfoInput.value = ""; // Xóa tên file hiển thị
+        //             submitBtn.disabled = true;
+        //         } else {
+        //             fileErrorSpan.textContent = ""; // Xóa lỗi
+        //             validateForm(); // Kiểm tra lại form
+        //         }
+        //     }
+
+        //     // Kiểm tra Tên món ăn
+        //     function validateTenNhanVien(value) {
+        //         console.log(value);
+        //         if (!value) return "Tên nhân viên là bắt buộc.";
+        //         if (value.length > 30) return "Tên nhân viên không được vượt quá 30 ký tự.";
+        //         if (/\s{2,}/.test(value)) return "Tên nhân viên không được chứa 2 khoảng trắng liên tiếp.";
+        //         if (!/^[\p{L}\s]+$/u.test(value)) return "Mô tả chỉ được chứa chữ cái, số, dấu -, và không được có 2 khoảng trắng liên tiếp.";
+                
+        //         return ""; // Không có lỗi
+        //     }
+
+        //     // Hàm kiểm tra toàn bộ form
+        //     function validateForm() {
+        //         const TenError1 = validateTenNhanVien(TenNV);
+        //         const tenNhanVien = tenNhanVienInput.value.trim();
+
+
+        //         // Hiển thị lỗi
+        //         document.getElementById("TenError").textContent = TenError1 || "";
+
+        //         // Kiểm tra trạng thái nút submit
+        //         if (TenError1 || !tenNhanVien || !fileInput.files[0]) {
+        //             submitBtn.disabled = true;
+        //         } else {
+        //             submitBtn.disabled = false;
+        //         }
+        //     }
+
+        //     // Gắn sự kiện
+        //     tenNhanVienInput.addEventListener("input", validateForm);
+        //     fileInput.addEventListener("change", function () {
+        //         // Cập nhật lại khi ảnh thay đổi
+        //         validateFileInput();
+        //         validateForm();
+        //     });
+        //     // Kiểm tra lần đầu khi load trang
+        //     validateForm();
+        //     validateFileInput();
+        // });
+        document.addEventListener("DOMContentLoaded", function () {
+            // Lấy các phần tử cần kiểm tra
+            const submitBtn = document.getElementById("submitBtn");
+            const tenNhanVienInput = document.getElementById("TenNV");
+            const fileInput = document.getElementById("fileInput");
+            const fileInfoInput = document.getElementById("fileInfoInput");
+            const fileErrorSpan = document.getElementById("fileError");
+            // Kiểm tra các phần tử
+            if (!tenNhanVienInput || !fileInput || !fileErrorSpan || !submitBtn) {
+                console.error("Một hoặc nhiều phần tử không tồn tại");
+                return;
+            }
+
+            // Kiểm tra Tên nhân viên
+            function validateTenNhanVien(value) {
+                if (!value) return "Tên nhân viên là bắt buộc.";
+                if (/\s{2,}/.test(value)) return "Tên nhân viên không được chứa 2 khoảng trắng liên tiếp.";
+                if (!/^[\p{L}\s]+$/u.test(value)) return "Tên nhân viên chỉ được chứa chữ cái, dấu cách";
+                return ""; // Không có lỗi
+            }
+            
+            // Kiểm tra File ảnh
+            function validateFileInput() {
+                const file = fileInput.files.length > 0 ? fileInput.files[0] : null;
+                const validExtensions = ["jpg", "jpeg", "png", "gif"];
+                fileInfoInput.value = file ? file.name : ""; // Hiển thị tên file nếu có
+
+                if (!file) {
+                    fileErrorSpan.textContent = "Vui lòng chọn một file ảnh.";
+                    submitBtn.disabled = true;
+                    return;
+                }
+
+                const fileExtension = file.name.split('.').pop().toLowerCase();
+                if (!validExtensions.includes(fileExtension)) {
+                    fileErrorSpan.textContent = "Chỉ chấp nhận file ảnh (jpg, jpeg, png, gif).";
+                    fileInput.value = ""; // Reset nếu file không hợp lệ
+                    fileInfoInput.value = ""; // Xóa tên file hiển thị
+                    submitBtn.disabled = true;
+                } else {
+                    fileErrorSpan.textContent = ""; // Xóa lỗi
+                    validateForm(); // Kiểm tra lại form
+                }
+            }
+
+            // Hàm kiểm tra toàn bộ form
+            function validateForm() {
+                const tenNhanVien = tenNhanVienInput.value.trim();
+
+                const tenNhanVienError = validateTenNhanVien(tenNhanVien);
+
+                // Hiển thị lỗi
+                document.getElementById("TenNVError").textContent = tenNhanVienError || "";
+
+
+                // Kiểm tra trạng thái nút submit
+                if (tenNhanVienError || !tenNhanVien || !fileInput.files[0] ) {
+                    submitBtn.disabled = true;
+                } else {
+                    submitBtn.disabled = false;
+                }
+            }
+
+            // Gắn sự kiện
+            tenNhanVienInput.addEventListener("input", validateForm);
+
+            // fileInput.addEventListener("change", validateFileInput);
+            fileInput.addEventListener("change", function () {
+                // Cập nhật lại khi ảnh thay đổi
+                validateFileInput();
+                validateForm();
+            });
+            // Kiểm tra lần đầu khi load trang
+            validateForm();
+            validateFileInput();
+        });
+
     </script>
 </body>
 </html>
