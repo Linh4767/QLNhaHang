@@ -3030,6 +3030,13 @@ namespace QLNhaHang.Controllers
                     }
                     return PartialView("_XemDSDangKyCaContainer", dsQL);
                 }
+                else if (maViTriCv == "VT001")
+                {
+                    var dsCa = _QLNhaHangContext.SoLuongTrongCas.Include(B => B.MaCaNavigation)
+                        .Where(a => a.Ngay.Date == selectedDate.Date).Distinct().ToList();
+                    return PartialView("_XemDSDangKyCaContainer", dsCa);
+                }
+
             }
             return PartialView("_XemDSDangKyCaContainer");
         }
