@@ -1,39 +1,73 @@
 ﻿@model QLNhaHang.Models.NhanVien
-@*
-    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
-*@
+
 @{
     Layout = "Header";
+    ViewData["Title"] = "SuaNhanVien";
 }
+
 <html lang="en">
 <head>
     <!-- Required meta tags -->
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-    <title>Star Admin2 </title>
+    <title>Star Admin2</title>
 </head>
 <body class="with-welcome-text">
     <div class="col-12 grid-margin">
         <div class="card">
             <div class="card-body">
-                <h4 class="card-title">Horizontal Two column</h4>
-                <form class="form-sample" method="post">
-                    <p class="card-description"> Personal info </p>
+                <h4 class="card-title">Quản Lý Thông Tin Nhân Viên</h4>
+                <form class="form-sample" method="post" enctype="multipart/form-data">
                     <div class="row">
                         <div class="col-md-6">
-                            @* Nhớ thêm asp-for vào mỗi label và input theo trường dữ liệu của table*@
                             <div class="form-group row">
-                                <label class="col-sm-3 col-form-label">First Name</label>
+                                <label asp-for="MaNv" class="col-sm-3 col-form-label">Mã nhân viên</label>
                                 <div class="col-sm-9">
-                                    <input type="text" class="form-control" />
+                                    <input asp-for="MaNv" type="text" class="form-control" />
+                                </div>
+                                <span asp-validation-for="MaNv" class="text-danger"></span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-12">
+                            <div class="form-group row">
+                                <label asp-for="HinhAnh">Hình Ảnh</label>
+                                <input type="file" asp-for="HinhAnh" class="file-upload-default" id="fileInput">
+                                <div class="input-group col-xs-12">
+                                    <input type="text" class="form-control file-upload-info" disabled placeholder="Upload Image" id="fileInfoInput">
+                                    <span class="input-group-append">
+                                        <button class="file-upload-browse btn btn-primary" type="button">Upload</button>
+                                    </span>
+                                </div>
+                                <span asp-validation-for="HinhAnh" id="fileError" class="text-danger"></span>
+                            </div>
+                            @if (!string.IsNullOrEmpty(ViewBag.CurrentImage))
+                            {
+                                <div class="form-group row">
+                                    <label>Ảnh Cũ</label>
+                                    <img src="@ViewBag.CurrentImage" alt="Ảnh cũ" style="max-width: 200px; height: auto;" />
+                                </div>
+                            }
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group row">
+                                <label asp-for="TenNv" class="col-sm-3 col-form-label">Họ tên</label>
+                                <div class="col-sm-9">
+                                    <input asp-for="TenNv" type="text" id="TenNV" class="form-control" required />
+                                    <span asp-validation-for="TenNv" id="TenNVError" class="text-danger"></span>
                                 </div>
                             </div>
                         </div>
+
                         <div class="col-md-6">
                             <div class="form-group row">
-                                <label class="col-sm-3 col-form-label">Last Name</label>
+                                <label asp-for="NgayVaoLam" class="col-sm-3 col-form-label">Ngày vào làm</label>
                                 <div class="col-sm-9">
-                                    <input type="text" class="form-control" />
+                                    <input asp-for="NgayVaoLam" id="NgayVaoLam" class="form-control" type="date" />
+                                    <span asp-validation-for="NgayVaoLam" id="NVLError" class="text-danger"></span>
                                 </div>
                             </div>
                         </div>
@@ -41,147 +75,211 @@
                     <div class="row">
                         <div class="col-md-6">
                             <div class="form-group row">
-                                <label class="col-sm-3 col-form-label">Gender</label>
+                                <label asp-for="Cccd" class="col-sm-3 col-form-label">Số căn cước</label>
                                 <div class="col-sm-9">
-                                    <select class="form-select">
-                                        <option>Male</option>
-                                        <option>Female</option>
-                                    </select>
+                                    <input asp-for="Cccd" type="text" id="CCCD" class="form-control" pattern="^[0-9]{12}$" title="CCCD phải có 12 chữ số." required />
+                                    <span asp-validation-for="Cccd" id="CCCDError" class="text-danger"></span>
                                 </div>
                             </div>
                         </div>
                         <div class="col-md-6">
                             <div class="form-group row">
-                                <label class="col-sm-3 col-form-label">Date of Birth</label>
-                                <div class="col-sm-9">
-                                    <input class="form-control" type="date" />
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="row">
-                        <div class="col-md-6">
-                            <div class="form-group row">
-                                <label class="col-sm-3 col-form-label">Category</label>
-                                <div class="col-sm-9">
-                                    <select class="form-select">
-                                        <option>Category1</option>
-                                        <option>Category2</option>
-                                        <option>Category3</option>
-                                        <option>Category4</option>
-                                    </select>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="form-group row">
-                                <label class="col-sm-3 col-form-label">Membership</label>
+                                <label asp-for="GioiTinh" class="col-sm-3 col-form-label">Giới tính</label>
                                 <div class="col-sm-4">
                                     <div class="form-check">
                                         <label class="form-check-label">
-                                            <input type="radio" class="form-check-input" name="membershipRadios" id="membershipRadios1" value="" checked> Free
+                                            <input asp-for="GioiTinh" type="radio" class="form-check-input" name="GioiTinh"
+                                                   id="membershipRadios1" value="Nam" checked> Nam
                                         </label>
                                     </div>
                                 </div>
                                 <div class="col-sm-5">
-                                    <div class="form-check">
+                                    <div class="form-check" name="GioiTinh">
                                         <label class="form-check-label">
-                                            <input type="radio" class="form-check-input" name="membershipRadios" id="membershipRadios2" value="option2"> Professional
+                                            <input asp-for="GioiTinh" type="radio" class="form-check-input" name="GioiTinh"
+                                                   id="membershipRadios2" value="Nữ"> Nữ
                                         </label>
                                     </div>
                                 </div>
                             </div>
                         </div>
                     </div>
-                    <p class="card-description"> Address </p>
                     <div class="row">
                         <div class="col-md-6">
                             <div class="form-group row">
-                                <label class="col-sm-3 col-form-label">Address 1</label>
+                                <label asp-for="Sdt" class="col-sm-3 col-form-label">Số điện thoại</label>
                                 <div class="col-sm-9">
-                                    <input type="text" class="form-control" />
+                                    <input asp-for="Sdt" type="text" id="STD" class="form-control" pattern="^0[0-9]{9,10}$"
+                                           title="Số điện thoại phải bắt đầu bằng 0 và có 10-11 số." required />
+                                    <span asp-validation-for="Sdt" id="STDError" class="text-danger"></span>
                                 </div>
                             </div>
                         </div>
                         <div class="col-md-6">
                             <div class="form-group row">
-                                <label class="col-sm-3 col-form-label">State</label>
+                                <label asp-for="Email" class="col-sm-3 col-form-label">Email</label>
                                 <div class="col-sm-9">
-                                    <input type="text" class="form-control" />
+                                    <input asp-for="Email" type="text" id="Email" class="form-control" required
+                                           pattern="^[a-z0-9]+(\.[a-z0-9]+);a-z0-9]+\.[a-z0-9]+$"
+                                           title="Định dạng email của bạn chưa đúng." />
+                                    <span asp-validation-for="Email" id="EmailError" class="text-danger"></span>
                                 </div>
                             </div>
                         </div>
                     </div>
                     <div class="row">
-                        <div class="col-md-6">
+                        <div class="col-xs-12">
                             <div class="form-group row">
-                                <label class="col-sm-3 col-form-label">Address 2</label>
-                                <div class="col-sm-9">
-                                    <input type="text" class="form-control" />
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="form-group row">
-                                <label class="col-sm-3 col-form-label">Postcode</label>
-                                <div class="col-sm-9">
-                                    <input type="text" class="form-control" />
+                                <label asp-for="MaBhyt" class="col-sm-1 col-form-label">BHYT</label>
+                                <div class="col-sm-11">
+                                    <input asp-for="MaBhyt" type="text" id="BHYT" class="form-control" pattern="^[A-Z0-9]+$"
+                                           title="Mã BHYT chỉ được chứa chữ in hoa và số" required />
+                                    <span asp-validation-for="MaBhyt" id="BHYTError" class="text-danger"></span>
                                 </div>
                             </div>
                         </div>
                     </div>
                     <div class="row">
+                        <div class="col-xs-12">
+                            <div class="form-group row">
+                                <label asp-for="DiaChi" class="col-sm-1 col-form-label">Địa chỉ</label>
+                                <div class="col-sm-11">
+                                    <input asp-for="DiaChi" type="text" id="DiaChi" class="form-control" pattern="^[a-zA-Z0-9À-ÿ, /]+$"
+                                           title="Địa chỉ chỉ được chứa chữ thường, chữ in hoa, chữ có dấu, số và các dấu ',' và '/'." required />
+                                    <span asp-validation-for="DiaChi" id="DiaChiError" class="text-danger"></span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row col-xs-12">
                         <div class="col-md-6">
                             <div class="form-group row">
-                                <label class="col-sm-3 col-form-label">City</label>
+                                <label asp-for="MaViTriCv" class="col-sm-3 col-form-label">Vị trí</label>
                                 <div class="col-sm-9">
-                                    <input type="text" class="form-control" />
+                                    <select asp-for="MaViTriCv" class="form-control" asp-items="@ViewBag.ViTriCongViecs"></select>
                                 </div>
                             </div>
                         </div>
                         <div class="col-md-6">
                             <div class="form-group row">
-                                <label class="col-sm-3 col-form-label">Country</label>
+                                <label asp-for="TrangThai" class="col-sm-3 col-form-label">Trạng thái</label>
                                 <div class="col-sm-9">
-                                    <select class="form-select">
-                                        <option>America</option>
-                                        <option>Italy</option>
-                                        <option>Russia</option>
-                                        <option>Britain</option>
+                                    <select name="TrangThai" class="form-control">
+                                        <option asp-for="TrangThai" value="1">Đang làm việc</option>
+                                        <option asp-for="TrangThai" value="0">Nghỉ việc</option>
                                     </select>
                                 </div>
                             </div>
-
                         </div>
-                        <div class="row">
-                            <div class="col-md-12">
-                                <div class="form-group row">
-                                    <label>File upload</label>
-                                    <input type="file" name="img[]" class="file-upload-default">
-                                    <div class="input-group col-xs-12">
-                                        <input type="text" class="form-control file-upload-info" disabled placeholder="Upload Image">
-                                        <span class="input-group-append">
-                                            <button class="file-upload-browse btn btn-primary" type="button">Upload</button>
-                                        </span>
-                                    </div>
+                    </div>
+                    <div class="row col-xs-12">
+                        <div class="col-md-6">
+                            <div class="form-group row">
+                                <label asp-for="MaQuanLy" class="col-sm-3 col-form-label">Quản lý</label>
+                                <div class="col-sm-9">
+                                    <select asp-for="MaQuanLy" class="form-control" asp-items="@ViewBag.NhanViens">
+                                        <option value="">Chọn Quản Lý</option>
+                                    </select>
                                 </div>
                             </div>
                         </div>
-                        <div class="row">
-                            <div class="col-md-12">
-                                <div class="form-group row">
-                                    <label class="form-check-label">
-                                        <input type="checkbox" class="form-check-input"> Default
-                                    </label>
+                        <div class="col-md-6">
+                            <div class="form-group row">
+                                <label asp-for="ThuViec" class="col-sm-3 col-form-label">Hợp đồng</label>
+                                <div class="col-sm-9">
+                                    <select class="form-control" asp-for="ThuViec">
+                                        <option value="false">Thử việc</option>
+                                        <option value="true">Chính thức</option>
+                                    </select>
                                 </div>
                             </div>
                         </div>
                     </div>
-                    <button type="submit" class="btn btn-primary me-2">Sửa Nhân Viên</button>
-                    <a class="btn btn-light" asp-controller="Admin" asp-action="DanhSachNhanVien_Admin">Quay Lại Danh Sách</a>
+                    <button type="submit" class="btn btn-primary me-2" id="submitBtn"  asp-action="SuaNhanVien">Sửa nhân viên</button>
+                    <a class="btn btn-light" asp-action="XemDSNhanVien">Quay Lại Danh Sách</a>
                 </form>
             </div>
         </div>
     </div>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jquery-validation@1.19.5/dist/jquery.validate.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/typeahead.js/0.11.1/typeahead.bundle.min.js"></script>
+
+    <script src="~/js/file-upload.js"></script>
+    <script src="~/js/typeahead.js"></script>
+    <script src="~/js/select2.js"></script>
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            // Lấy các phần tử cần kiểm tra
+            const submitBtn = document.getElementById("submitBtn");
+            const tenNhanVienInput = document.getElementById("TenNV");
+            const fileInput = document.getElementById("fileInput");
+            const fileInfoInput = document.getElementById("fileInfoInput");
+            const fileErrorSpan = document.getElementById("fileError");
+            // Kiểm tra các phần tử
+            if (!tenNhanVienInput || !fileInput || !fileErrorSpan || !submitBtn) {
+                console.error("Một hoặc nhiều phần tử không tồn tại");
+                return;
+            }
+
+            // Kiểm tra Tên nhân viên
+            function validateTenNhanVien(value) {
+                if (!value) return "Tên nhân viên là bắt buộc.";
+                if (/\s{2,}/.test(value)) return "Tên nhân viên không được chứa 2 khoảng trắng liên tiếp.";
+                if (!/^[\p{L}\s]+$/u.test(value)) return "Tên nhân viên chỉ được chứa chữ cái, dấu cách";
+                return ""; // Không có lỗi
+            }
+
+            // Kiểm tra File ảnh
+            function validateFileInput() {
+                const file = fileInput.files.length > 0 ? fileInput.files[0] : null;
+                const validExtensions = ["jpg", "jpeg", "png", "gif"];
+                fileInfoInput.value = file ? file.name : ""; // Hiển thị tên file nếu có
+
+                const fileExtension = file.name.split('.').pop().toLowerCase();
+                if (!validExtensions.includes(fileExtension)) {
+                    fileErrorSpan.textContent = "Chỉ chấp nhận file ảnh (jpg, jpeg, png, gif).";
+                    fileInput.value = ""; // Reset nếu file không hợp lệ
+                    fileInfoInput.value = ""; // Xóa tên file hiển thị
+                    submitBtn.disabled = true;
+                } else {
+                    fileErrorSpan.textContent = ""; // Xóa lỗi
+                    validateForm(); // Kiểm tra lại form
+                }
+            }
+
+            // Hàm kiểm tra toàn bộ form
+            function validateForm() {
+                const tenNhanVien = tenNhanVienInput.value.trim();
+
+                const tenNhanVienError = validateTenNhanVien(tenNhanVien);
+
+                // Hiển thị lỗi
+                document.getElementById("TenNVError").textContent = tenNhanVienError || "";
+
+
+                // Kiểm tra trạng thái nút submit
+                if (tenNhanVienError || !tenNhanVien || !fileInput.files[0]) {
+                    submitBtn.disabled = true;
+                } else {
+                    submitBtn.disabled = false;
+                }
+            }
+
+            // Gắn sự kiện
+            tenNhanVienInput.addEventListener("input", validateForm);
+
+            // fileInput.addEventListener("change", validateFileInput);
+            fileInput.addEventListener("change", function () {
+                // Cập nhật lại khi ảnh thay đổi
+                validateFileInput();
+                validateForm();
+            });
+            // Kiểm tra lần đầu khi load trang
+            validateForm();
+            validateFileInput();
+        });
+
+    </script>
 </body>
 </html>
