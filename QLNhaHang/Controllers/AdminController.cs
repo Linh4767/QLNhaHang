@@ -2991,6 +2991,8 @@ namespace QLNhaHang.Controllers
         //Xem danh sach dang ky
         public IActionResult DanhSachDangKyList(int? page, string deadTime)
         {
+
+
             var selectedDate = string.IsNullOrEmpty(deadTime) ? DateTime.Today : DateTime.Parse(deadTime);
             ViewData["SelectedDate"] = selectedDate.ToString("MM/dd/yyyy");
             // Lấy thông tin mã nhân viên và vị trí công việc từ session          
