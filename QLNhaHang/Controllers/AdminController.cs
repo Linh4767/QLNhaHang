@@ -1311,7 +1311,7 @@ namespace QLNhaHang.Controllers
             return View(ttDatBan);
         }
 
-       
+
 
         [HttpPost]
         public IActionResult SuaTTDatBan(DatBan datBan)
@@ -1691,12 +1691,12 @@ namespace QLNhaHang.Controllers
         /// Thêm nhân viên.
         /// </summary>
         /// <returns></returns>
-        
+
         public IActionResult ThemNhanVien()
         {
             var ViTriCongViec = _QLNhaHangContext.ViTriCongViecs.ToList();
             var QuanLy = _QLNhaHangContext.NhanViens
-            .Where(nv => new[] { "NV001"}.Contains(nv.MaNv)).ToList();
+            .Where(nv => new[] { "NV001" }.Contains(nv.MaNv)).ToList();
 
             ViewBag.ViTriCongViecs = new SelectList(ViTriCongViec, "MaViTriCv", "TenViTriCv");
             ViewBag.NhanViens = new SelectList(QuanLy, "MaNv", "TenNv");
@@ -1813,7 +1813,7 @@ namespace QLNhaHang.Controllers
         /// </summary>
         /// <param name="id"></param>
         /// <returns></returns>
-        
+
         public IActionResult XoaNhanVien(string id)
         {
             var nv = _QLNhaHangContext.NhanViens.Where(t => t.MaNv == id).FirstOrDefault();
@@ -1843,7 +1843,8 @@ namespace QLNhaHang.Controllers
             }
 
             // Truyền tên ảnh vào ViewBag
-            ViewBag.TenAnh = nv.HinhAnh != null ? Path.GetFileName(nv.HinhAnh) : null;
+            /*ViewBag.TenAnh = nv.HinhAnh != null ? Path.GetFileName(nv.HinhAnh) : n*/
+            ViewBag.CurrentImage = nv?.HinhAnh ?? string.Empty;
 
             // Truyền các dữ liệu cần thiết vào View
             ViewBag.ViTriCongViecs = new SelectList(ViTriCongViec, "MaViTriCv", "TenViTriCv");
@@ -1866,23 +1867,22 @@ namespace QLNhaHang.Controllers
                 ModelState.AddModelError("NgayVaoLam", "Ngày vào làm phải trong khoảng từ 1 năm trước đến ngày hiện tại.");
             }
 
-            // Kiểm tra trùng thông tin: Sdt, Cccd, Bhyt, Email
-            var existingNhanVien = await _QLNhaHangContext.NhanViens
-                .FirstOrDefaultAsync(n => n.Sdt == nv.Sdt || n.Cccd == nv.Cccd || n.MaBhyt == nv.MaBhyt || n.Email == nv.Email);
+            //// Kiểm tra trùng thông tin: Sdt, Cccd, Bhyt, Email
+            //var existingNhanVien = await _QLNhaHangContext.NhanViens
+            //    .FirstOrDefaultAsync(n => n.Sdt == nv.Sdt || n.Cccd == nv.Cccd || n.MaBhyt == nv.MaBhyt || n.Email == nv.Email);
 
-            if (existingNhanVien != null)
-            {
-                if (existingNhanVien.Sdt == nv.Sdt)
-                    ModelState.AddModelError("Sdt", "Số điện thoại đã tồn tại.");
-                if (existingNhanVien.Cccd == nv.Cccd)
-                    ModelState.AddModelError("Cccd", "Số CCCD đã tồn tại.");
-                if (existingNhanVien.MaBhyt == nv.MaBhyt)
-                    ModelState.AddModelError("MaBhyt", "Số BHYT đã tồn tại.");
-                if (existingNhanVien.Email == nv.Email)
-                    ModelState.AddModelError("Email", "Email đã tồn tại.");
-            }
-
-            // Truy vấn món ăn cũ từ database
+            //if (existingNhanVien != null)
+            //{
+            //    if (existingNhanVien.Sdt == nv.Sdt)
+            //        ModelState.AddModelError("Sdt", "Số điện thoại đã tồn tại.");
+            //    if (existingNhanVien.Cccd == nv.Cccd)
+            //        ModelState.AddModelError("Cccd", "Số CCCD đã tồn tại.");
+            //    if (existingNhanVien.MaBhyt == nv.MaBhyt)
+            //        ModelState.AddModelError("MaBhyt", "Số BHYT đã tồn tại.");
+            //    if (existingNhanVien.Email == nv.Email)
+            //        ModelState.AddModelError("Email", "Email đã tồn tại.");
+            //}
+            // Truy vấn nhân viên cũ từ database
             var oldNV = await _QLNhaHangContext.NhanViens
                 .Where(ma => ma.MaNv == nv.MaNv)
                 .FirstOrDefaultAsync();
@@ -1902,7 +1902,7 @@ namespace QLNhaHang.Controllers
             {
                 // Tạo tên file mới
                 var fileExtension = Path.GetExtension(HinhAnh.FileName).ToLower();
-                var fileNameWithoutExtension = nv.TenNv.Replace(" ", "-").ToLower();
+                var fileNameWithoutExtension = nv.TenNv.Replace(" ", "-").ToLower(); // Tên món ăn, không có đuôi
                 var uniquePublicId = fileNameWithoutExtension + "-" + DateTime.Now.ToString("yyyyMMddHHmmss"); // Tạo publicId duy nhất
 
                 var fileName = uniquePublicId + fileExtension;  // Thêm đuôi file vào cuối
@@ -1938,6 +1938,11 @@ namespace QLNhaHang.Controllers
                     if (deletionResult.StatusCode != HttpStatusCode.OK)
                     {
                         TempData["DoiTenAnh"] = $"Không thể xóa ảnh cũ trên Cloudinary. Lỗi: {deletionResult?.Error?.Message}";
+                        var ViTriCongViec = _QLNhaHangContext.ViTriCongViecs.ToList();
+                        var QuanLy = _QLNhaHangContext.NhanViens
+                            .Where(nv => new[] { "NV001" }.Contains(nv.MaNv)).ToList();
+                        ViewBag.ViTriCongViecs = new SelectList(ViTriCongViec, "MaViTriCv", "TenViTriCv");
+                        ViewBag.NhanViens = new SelectList(QuanLy, "MaNv", "TenNv");
                         return View(nv);
                     }
                 }
@@ -1947,7 +1952,7 @@ namespace QLNhaHang.Controllers
                 var uploadParams = new ImageUploadParams()
                 {
                     File = new FileDescription(fileName, fileStream),
-                    Folder = "QLNhaHang",
+                    Folder = "QLNhaHang/NhanVien",
                     PublicId = uniquePublicId  // Sử dụng publicId duy nhất
                 };
 
@@ -1981,7 +1986,7 @@ namespace QLNhaHang.Controllers
                     // Đổi tên ảnh cũ với tên mới (sử dụng tên món ăn mới)
                     var newFileNameWithoutExtension = nv.TenNv.Replace(" ", "-").ToLower();
                     var newUniquePublicId = newFileNameWithoutExtension + "-" + DateTime.Now.ToString("yyyyMMddHHmmss");
-                    var renameParams = new RenameParams(oldImagePublicId, $"/QLNhaHang/NhanVien/{newUniquePublicId}");
+                    var renameParams = new RenameParams(oldImagePublicId, $"QLNhaHang/NhanVien/{newUniquePublicId}");
 
                     var renameResult = await cloudinary.RenameAsync(renameParams);
 
@@ -1989,24 +1994,50 @@ namespace QLNhaHang.Controllers
                     if (renameResult.StatusCode != HttpStatusCode.OK)
                     {
                         TempData["XoaLoi"] = $"Không thể đổi tên ảnh trên Cloudinary. Lỗi: {renameResult?.Error?.Message}";
+                        var ViTriCongViec = _QLNhaHangContext.ViTriCongViecs.ToList();
+                        var QuanLy = _QLNhaHangContext.NhanViens
+                            .Where(nv => new[] { "NV001" }.Contains(nv.MaNv)).ToList();
+                        ViewBag.ViTriCongViecs = new SelectList(ViTriCongViec, "MaViTriCv", "TenViTriCv");
+                        ViewBag.NhanViens = new SelectList(QuanLy, "MaNv", "TenNv");
                         return View(nv);
                     }
 
                     // Cập nhật URL ảnh mới cho đối tượng `oldMonAn`
-                    oldNV.HinhAnh = renameResult.SecureUrl.ToString();
+                    nv.HinhAnh = renameResult.SecureUrl.ToString();
                     nv.HinhAnh = oldNV.HinhAnh;
                 }
                 else if (oldNV.TenNv == nv.TenNv && !string.IsNullOrEmpty(oldImageUrl))
                 {
                     // Nếu không đổi tên ảnh, giữ nguyên URL ảnh cũ
                     oldNV.HinhAnh = oldImageUrl;
-                    nv.HinhAnh = oldNV.HinhAnh;
+                    nv.HinhAnh = nv.HinhAnh;
                 }
             }
 
-            // Cập nhật thông tin nhân viên vào cơ sở dữ liệu
-            _QLNhaHangContext.NhanViens.Update(nv);
-            _QLNhaHangContext.SaveChanges();
+            // Cập nhật các thuộc tính khác của món ăn
+            oldNV.TenNv = VietHoa(nv.TenNv);
+            oldNV.Cccd = nv.Cccd;
+
+            oldNV.GioiTinh = nv.GioiTinh;
+
+            await _QLNhaHangContext.Entry(oldNV)
+    .Reference(ma => ma.MaViTriCvNavigation)
+    .LoadAsync();
+            await _QLNhaHangContext.Entry(oldNV)
+    .Reference(ma => ma.MaQuanLyNavigation)
+    .LoadAsync();
+            //Console.WriteLine($"LoaiMa: {oldMonAn.LoaiMa}");
+            //Console.WriteLine($"LoaiMaNavigation: {oldMonAn.LoaiMaNavigation?.TenLoaiMa}");
+
+            oldNV.Sdt = nv.Sdt;
+            oldNV.Email = nv.Email;
+            oldNV.DiaChi = nv.DiaChi;
+            oldNV.TrangThai = nv.TrangThai;
+            oldNV.ThuViec = nv.ThuViec;
+            oldNV.MaBhyt = nv.MaBhyt;
+            oldNV.MaViTriCv = nv.MaViTriCv;
+            // Lưu thay đổi vào cơ sở dữ liệu
+            await _QLNhaHangContext.SaveChangesAsync();
 
             return RedirectToAction("XemDSNhanVien");
         }

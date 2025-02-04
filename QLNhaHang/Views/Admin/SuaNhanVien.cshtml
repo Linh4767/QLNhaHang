@@ -217,7 +217,7 @@
             const fileInfoInput = document.getElementById("fileInfoInput");
             const fileErrorSpan = document.getElementById("fileError");
             // Kiểm tra các phần tử
-            if (!tenNhanVienInput || !fileInput || !fileErrorSpan || !submitBtn) {
+            if (!tenNhanVienInput || !submitBtn) {
                 console.error("Một hoặc nhiều phần tử không tồn tại");
                 return;
             }
@@ -259,7 +259,7 @@
 
 
                 // Kiểm tra trạng thái nút submit
-                if (tenNhanVienError || !tenNhanVien || !fileInput.files[0]) {
+                if (tenNhanVienError || !tenNhanVien) {
                     submitBtn.disabled = true;
                 } else {
                     submitBtn.disabled = false;
