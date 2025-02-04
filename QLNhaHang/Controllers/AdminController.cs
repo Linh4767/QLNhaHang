@@ -1964,6 +1964,7 @@ namespace QLNhaHang.Controllers
                 {
                     // Nếu upload thành công, lưu URL vào đối tượng MonAn
                     nv.HinhAnh = uploadResult.SecureUrl.ToString();
+                    oldNV.HinhAnh = nv.HinhAnh;
                 }
             }
             else
