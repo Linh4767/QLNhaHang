@@ -2793,14 +2793,14 @@ namespace QLNhaHang.Controllers
                 var kTraDangKyChua = _QLNhaHangContext.DangKyCas
                     .Where(dky => dky.MaQuanLy == ttCa.MaQuanLy && dky.MaNv == maNV)
                     .Any();
-                if (dKyCa < sLTrongCa)
+                if (dKyCa <= sLTrongCa)
                 {
                     if (kTraDangKyChua == true)
                     {
                         return Json(new { success = false, message = "Đã đăng ký" });
                     }
                 }
-                else if (dKyCa >= sLTrongCa)
+                else if (dKyCa > sLTrongCa)
                 {
                     if (kTraDangKyChua == true)
                     {
