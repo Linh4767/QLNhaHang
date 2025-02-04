@@ -2793,14 +2793,14 @@ namespace QLNhaHang.Controllers
                 var kTraDangKyChua = _QLNhaHangContext.DangKyCas
                     .Where(dky => dky.MaQuanLy == ttCa.MaQuanLy && dky.MaNv == maNV)
                     .Any();
-                if (dKyCa < sLTrongCa)
+                if (dKyCa <= sLTrongCa)
                 {
                     if (kTraDangKyChua == true)
                     {
                         return Json(new { success = false, message = "Đã đăng ký" });
                     }
                 }
-                else if (dKyCa >= sLTrongCa)
+                else if (dKyCa > sLTrongCa)
                 {
                     if (kTraDangKyChua == true)
                     {
@@ -2987,6 +2987,83 @@ namespace QLNhaHang.Controllers
             ////return RedirectToAction("DangKyCa");
         }
 
+
+        //Xem danh sach dang ky
+        public IActionResult DanhSachDangKyList(int? page, string deadTime)
+        {
+
+
+            var selectedDate = string.IsNullOrEmpty(deadTime) ? DateTime.Today : DateTime.Parse(deadTime);
+            ViewData["SelectedDate"] = selectedDate.ToString("MM/dd/yyyy");
+            // Lấy thông tin mã nhân viên và vị trí công việc từ session          
+            return View();
+        }
+
+        [HttpGet]
+        public IActionResult TimKiemDanhSachDangKy(int? page, string deadTime)
+        {
+            // Lấy thông tin ngày đã lọc từ query string (nếu có), nếu không thì sử dụng ngày hiện tại
+            var selectedDate = string.IsNullOrEmpty(deadTime) ? DateTime.Today : DateTime.Parse(deadTime);
+            ViewData["SelectedDate"] = selectedDate.ToString("MM/dd/yyyy");
+
+            // Lấy thông tin mã nhân viên từ session
+            var maNVien = HttpContext.Session.GetString("MaNV");
+            var nhanVien = _QLNhaHangContext.NhanViens
+                .Include(nv => nv.MaViTriCvNavigation)
+                .Where(a => a.MaNv == maNVien) // Dùng navigation property để lấy thông tin vị trí công việc
+                .FirstOrDefault();
+
+            if (nhanVien != null)
+            {
+                var maViTriCv = nhanVien.MaViTriCvNavigation.MaViTriCv;
+                // Kiểm tra nếu vị trí công việc là "VT010" (quản lý ca)
+                if (maViTriCv == "VT010")
+                {
+                    // Hiển thị danh sách đăng ký nếu là quản lý ca
+                    var dsDangKy = _QLNhaHangContext.DangKyCas.Where(dk => dk.MaNv == maNVien).ToList();
+                    var dsQL = new List<SoLuongTrongCa>();
+                    foreach (var item in dsDangKy)
+                    {
+                        var dsCa = _QLNhaHangContext.SoLuongTrongCas.Include(B => B.MaCaNavigation)
+                            .Where(a => a.MaQuanLy == item.MaQuanLy && a.Ngay.Date == selectedDate.Date).ToList();
+                        dsQL.AddRange(dsCa);
+                    }
+                    return PartialView("_XemDSDangKyCaContainer", dsQL);
+                }
+            }
+            return PartialView("_XemDSDangKyCaContainer");
+        }
+
+
+
+        public IActionResult ChiTietDSDangKyCa(string maQuanLy, int? page)
+        {
+            if (string.IsNullOrEmpty(maQuanLy))
+            {
+                return NotFound("Mã Quản Lý không hợp lệ.");
+            }
+            int pageSize = 5; // Số lượng bản ghi mỗi trang
+            int pageNumber = page ?? 1; // Trang hiện tại, mặc định là trang 1
+            var maNVien = HttpContext.Session.GetString("MaNV");
+            var nhanVien = _QLNhaHangContext.NhanViens.Include(nv => nv.MaViTriCvNavigation)
+                .Where(a => a.MaNv == maNVien)// Dùng navigation property để lấy thông tin vị trí công việc
+                .FirstOrDefault();
+            if (nhanVien != null)
+            {
+                // Truy vấn danh sách chi tiết số lượng ca theo MaQuanLy
+                var sltc = _QLNhaHangContext.DangKyCas
+                .Include(c => c.MaQuanLyNavigation) // Load thông tin liên quan nếu cần
+                .Include(c => c.MaNvNavigation)
+                .ThenInclude(c => c.MaViTriCvNavigation)// Load thông tin vị trí công việc
+                .Where(c => c.MaQuanLy == maQuanLy) // Lọc theo MaQuanLy
+                .OrderBy(c => c.MaDangKy) // Sắp xếp theo thứ tự mã quản lý chi tiết
+                .ToPagedList(pageNumber, pageSize);
+
+                ViewBag.MaQuanLy = maQuanLy; // Truyền mã quản lý vào View để sử dụng (nếu cần)
+                return View(sltc);
+            }
+            return View();
+        }
     }
 }
 

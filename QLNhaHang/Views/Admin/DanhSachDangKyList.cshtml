@@ -1,0 +1,49 @@
+﻿@model IEnumerable<QLNhaHang.Models.SoLuongTrongCa>
+
+@{
+    Layout = "Header";
+    ViewData["Title"] = "DanhSachDangKyList";
+}
+
+<h2>Danh Sách Đăng Ký Ca</h2>
+<div class="d-flex justify-content-between align-items-center mb-3 mt-3">
+    <label for="datetimepicker"></label>
+    <div class="col-12 col-md-4">
+        <div class="input-group">
+            <span class="input-group-text">
+                <i class="icon-calendar"></i>
+            </span>
+            <input type="text" id="datePicker" class="form-control" value="@ViewData["SelectedDate"]" onchange="filterByDate()" />
+        </div>
+    </div>
+</div>
+<div id="danhSachDangKyCaContainer">
+    @await Html.PartialAsync("_XemDSDangKyCaContainer", Model)
+</div>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        flatpickr("#datePicker", {
+            dateFormat: "m/d/Y", // Định dạng tháng/ngày/năm
+            defaultDate: "@ViewData["SelectedDate"]" // Ngày mặc định
+        });
+        filterByDate();
+    });
+
+    function filterByDate() {
+        const searchDate = document.getElementById("datePicker").value;
+
+        $.ajax({
+            url: '/Admin/TimKiemDanhSachDangKy',
+            data: { deadTime: searchDate }, // Gửi dữ liệu searchDate với tham số deadTime
+            success: function (result) {
+                $('#danhSachDangKyCaContainer').html(result); // Đảm bảo sử dụng 'result' thay vì 'data'
+            },
+            error: function () {
+                alert('Có lỗi xảy ra khi tải dữ liệu!');
+            }
+        });
+    }
+</script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>

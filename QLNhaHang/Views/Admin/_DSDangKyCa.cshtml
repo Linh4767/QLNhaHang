@@ -20,7 +20,7 @@
                     <td>@Html.DisplayFor(modelItem => item.MaQuanLyNavigation.MaCaNavigation.ThoiGianKetThuc)</td>
                     <td>@Html.DisplayFor(modelItem => item.Ngay)</td>
                     <td>
-                        <a class="btn btn-warning btn-sm btnHuy" style="display:none;" data-maql="@item.MaQuanLyNavigation.MaQuanLy" asp-controller="Admin" asp-action="HuyDangKy" asp-route-maDK="@item.MaDangKy" asp-route-date="@ViewData["SelectedDate"]">
+                        <a class="btn btn-warning btn-sm btnHuy" style="display:none;" data-maql="@item.MaQuanLyNavigation.MaQuanLy" asp-controller="Admin" asp-action="HuyDangKy" asp-route-maDK="@item.MaDangKy" asp-route-date="@ViewData["SelectedDate"]" onclick="return confirm ('Bạn muốn hủy đăng ca không ?')">
                             Hủy Đăng ký
                         </a>
                         <a class="btn btn-danger btn-sm trangThaiHuy" style="display:none;">Quá hạn</a>

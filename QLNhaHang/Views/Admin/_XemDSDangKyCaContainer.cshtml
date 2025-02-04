@@ -1,0 +1,73 @@
+﻿@model IEnumerable<QLNhaHang.Models.SoLuongTrongCa>
+@{
+    ViewData["Title"] = "View";
+}
+<table class="table table-striped table-hover mt-3 mb-3">
+    <thead>
+        <tr>
+            <th>Mã Quản Lý</th>
+            <th>Ca</th>
+            <th>Thời Gian Bắt Đầu</th>
+            <th>Thời Gian Kết Thúc</th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+        @if (Model != null && Model.Any())
+        {
+            @foreach (var item in Model)
+            {
+                <tr>
+                    <td>
+                        @Html.DisplayFor(modelItem => item.MaQuanLy)
+                    </td>
+
+                    <td>
+                        @Html.DisplayFor(modelItem => item.MaCaNavigation.MaCa)
+                    </td>
+
+                    <td>
+                        @Html.DisplayFor(modelItem => item.MaCaNavigation.ThoiGianBatDau)
+                    </td>
+
+                    <td>
+                        @Html.DisplayFor(modelItem => item.MaCaNavigation.ThoiGianKetThuc)
+                    </td>
+                    <td>
+                        <a class="btn btn-primary btn-sm" asp-action="ChiTietDSDangKyCa" asp-route-maQuanLy="@item.MaQuanLy">Chi Tiết</a>
+                    </td>
+
+                    @* <td>
+            @Html.DisplayFor(modelItem => item.MaNvNavigation.MaNv)
+            </td>
+
+            <td>
+            @Html.DisplayFor(modelItem => item.MaNvNavigation.TenNv)
+            </td>
+
+            <td>
+            @Html.DisplayFor(modelItem => item.MaNvNavigation.MaViTriCvNavigation.TenViTriCv)
+            </td> *@
+
+                    @*  @if (ViewBag.IsDateConditionMet)
+            { *@
+                    @* } *@
+                </tr>
+            }
+        }
+    </tbody>
+</table>
+@* <div id="pagination">
+    @Html.PagedListPager(
+            Model,
+            page => "javascript:loadPage(" + page + ")",
+            new X.PagedList.Mvc.Core.PagedListRenderOptions
+    {
+        ContainerDivClasses = new[] { "pagination-container" },
+        LiElementClasses = new[] { "page-item" },
+        PageClasses = new[] { "page-link" },
+        ActiveLiElementClass = "active"
+    }
+            )
+</div> *@
+
