@@ -1704,6 +1704,7 @@ namespace QLNhaHang.Controllers
             ModelState.Remove("MaQuanLyNavigation");
             ModelState.Remove("MaViTriCvNavigation");
             ModelState.Remove("MaNv");
+
             // Kiểm tra Ngày vào làm không được lớn hơn ngày hiện tại hoặc nhỏ hơn 1 năm trước
             var currentDate = DateTime.Now;
             var minDate = currentDate.AddYears(-1);  // 1 năm trước
@@ -1713,17 +1714,32 @@ namespace QLNhaHang.Controllers
                 ModelState.AddModelError("NgayVaoLam", "Ngày vào làm phải trong khoảng từ 1 năm trước đến ngày hiện tại.");
             }
 
+            // Kiểm tra trùng thông tin: Sdt, Cccd, Bhyt, Email
+            var existingNhanVien = await _QLNhaHangContext.NhanViens
+                .FirstOrDefaultAsync(n => n.Sdt == nv.Sdt || n.Cccd == nv.Cccd || n.MaBhyt == nv.MaBhyt || n.Email == nv.Email);
+
+            if (existingNhanVien != null)
+            {
+                if (existingNhanVien.Sdt == nv.Sdt)
+                    ModelState.AddModelError("Sdt", "Số điện thoại đã tồn tại.");
+                if (existingNhanVien.Cccd == nv.Cccd)
+                    ModelState.AddModelError("Cccd", "Số CCCD đã tồn tại.");
+                if (existingNhanVien.MaBhyt == nv.MaBhyt)
+                    ModelState.AddModelError("MaBhyt", "Số BHYT đã tồn tại.");
+                if (existingNhanVien.Email == nv.Email)
+                    ModelState.AddModelError("Email", "Email đã tồn tại.");
+            }
+
             // Nếu có lỗi, trả về lại trang và hiển thị lỗi
             if (!ModelState.IsValid)
             {
                 var errors = ModelState.Values.SelectMany(v => v.Errors).ToList();
                 foreach (var error in errors)
                 {
-                    //Console.WriteLine("MaLoaiMa: " + loaiMA.MaLoaiMa);
-                    // Log hoặc kiểm tra chi tiết lỗi
+                    // Log lỗi chi tiết
                     Console.WriteLine(error.ErrorMessage);
-
                 }
+
                 var ViTriCongViec = _QLNhaHangContext.ViTriCongViecs.ToList();
                 var QuanLy = _QLNhaHangContext.NhanViens
                     .Where(nv => new[] { "NV001" }.Contains(nv.MaNv)).ToList();
@@ -1783,6 +1799,7 @@ namespace QLNhaHang.Controllers
             // Chuyển hướng về danh sách nhân viên
             return RedirectToAction("XemDSNhanVien");
         }
+
 
     }
 }
