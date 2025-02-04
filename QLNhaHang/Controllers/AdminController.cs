@@ -1673,6 +1673,12 @@ namespace QLNhaHang.Controllers
             return maNVMoiStr;
         }
 
+        /// <summary>
+        /// Danh sách nhân viên.
+        /// </summary>
+        /// <param name="page"></param>
+        /// <param name="searchTerm"></param>
+        /// <returns></returns>
 
         public IActionResult XemDSNhanVien(int? page, string searchTerm)
         {
@@ -1681,6 +1687,11 @@ namespace QLNhaHang.Controllers
             return View(dsNhanVien);
         }
 
+        /// <summary>
+        /// Thêm nhân viên.
+        /// </summary>
+        /// <returns></returns>
+        
         public IActionResult ThemNhanVien()
         {
             var ViTriCongViec = _QLNhaHangContext.ViTriCongViecs.ToList();
@@ -1800,7 +1811,13 @@ namespace QLNhaHang.Controllers
             return RedirectToAction("XemDSNhanVien");
         }
 
-
+        public IActionResult XoaNhanVien(string id)
+        {
+            var nv = _QLNhaHangContext.NhanViens.Where(t => t.MaNv == id).FirstOrDefault();
+            _QLNhaHangContext.Remove(nv);
+            _QLNhaHangContext.SaveChanges();
+            return RedirectToAction("XemDSNhanVien");
+        }
     }
 }
 
