@@ -611,7 +611,7 @@ h6 {
 /*--------------------------------------------------------------
 # Preloader
 --------------------------------------------------------------*/
-#preloader {
+/*#preloader {
     position: fixed;
     inset: 0;
     z-index: 999999;
@@ -642,7 +642,7 @@ h6 {
         transform: rotate(360deg);
     }
 }
-
+*/
 /*--------------------------------------------------------------
 # Scroll Top Button
 --------------------------------------------------------------*/
@@ -1667,13 +1667,13 @@ section,
 /*--------------------------------------------------------------
 # Starter Section Section
 --------------------------------------------------------------*/
-.starter-section {
+/*.starter-section {*/
     /* Add your styles here */
-}
+/*}*/
 /*CSS cho dialog*/
 /* Đảm bảo modal hoạt động đúng */
 /* Đảm bảo modal luôn ở trên cùng */
-.modal {
+/*.modal {
     display: none;
     position: fixed;
     z-index: 1050;
@@ -1683,35 +1683,35 @@ section,
     bottom: 0;
     width: 100%;
     height: 100%;
-    background: rgba(0, 0, 0, 0.5); /* Làm tối nền */
-    justify-content: center;
+    background: rgba(0, 0, 0, 0.5);*/ /* Làm tối nền */
+    /*justify-content: center;
     align-items: center;
 }
 
     .modal.show {
-        display: flex; /* Hiển thị modal khi có class "show" */
-        position: fixed; /* Giữ modal cố định trên màn hình */
-        top: 0;
+        display: flex;*/ /* Hiển thị modal khi có class "show" */
+        /*position: fixed;*/ /* Giữ modal cố định trên màn hình */
+        /*top: 0;
     }
 
 .modal-body {
-    max-height: 80vh; /* Giới hạn chiều cao tối đa */
-    height: 80vh; /* Đảm bảo modal chiếm 90% chiều cao màn hình */
-    width: 100%; /* Chiều rộng modal là 90% màn hình */
-    max-width: 100%; /* Không giới hạn chiều rộng tối đa */
-    box-sizing: border-box; /* Padding không làm lố chiều rộng */
-    padding: 20px; /* Khoảng cách giữa nội dung và viền */
-    background-color: white; /* Màu nền của modal */
-    border-radius: 8px; /* Bo góc modal */
-    overflow-y: auto; /* Bật cuộn dọc */
-    overflow-x: auto; /* Ẩn cuộn ngang */
-}
+    max-height: 80vh;*/ /* Giới hạn chiều cao tối đa */
+    /*height: 80vh;*/ /* Đảm bảo modal chiếm 90% chiều cao màn hình */
+    /*width: 100%;*/ /* Chiều rộng modal là 90% màn hình */
+    /*max-width: 100%;*/ /* Không giới hạn chiều rộng tối đa */
+    /*box-sizing: border-box;*/ /* Padding không làm lố chiều rộng */
+    /*padding: 20px;*/ /* Khoảng cách giữa nội dung và viền */
+    /*background-color: white;*/ /* Màu nền của modal */
+    /*border-radius: 8px;*/ /* Bo góc modal */
+    /*overflow-y: auto;*/ /* Bật cuộn dọc */
+    /*overflow-x: auto;*/ /* Ẩn cuộn ngang */
+/*}
 .modal-dialog {
-    max-width: 90%; /* Đảm bảo modal chiếm 90% chiều rộng */
-    width: auto; /* Tự động điều chỉnh theo nội dung */
-    margin: 1.75rem auto; /* Căn giữa modal */
+    max-width: 90%;*/ /* Đảm bảo modal chiếm 90% chiều rộng */
+    /*width: auto;*/ /* Tự động điều chỉnh theo nội dung */
+    /*margin: 1.75rem auto;*/ /* Căn giữa modal */
   
-}
+/*}*/
 
 .modal-content {
     width: 100%; /* Chiếm toàn bộ chiều rộng modal */
